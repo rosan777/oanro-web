@@ -1,69 +1,24 @@
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowUpRight, Mail } from "lucide-react";
+import { getSiteConfig } from "@/lib/site-config";
+import { FeatureStory, ProductConveyor, ServiceConveyor, StandardPanel, ValueFan } from "@/components/home-experience";
+import { Reveal } from "@/components/experience";
+import { DoubleConveyor } from "@/components/double-conveyor";
 
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+  const config = getSiteConfig();
+  return <main id="main-content">
+    <section className="opening"><div className="container opening-layout"><Reveal className="opening-brand"><div className="holographic-mark"><Image src="/logo.svg" alt="" width={88} height={88} /></div><div><p className="eyebrow">Welcome to the first chapter</p><h1>OANRO</h1><p>Considered products.<br />Practical possibilities.</p></div></Reveal><StandardPanel /></div></section>
+    <ValueFan showProducts={config.products} />
+    <nav className="discovery-nav container" aria-label="Explore OANRO">{config.products && <Link href="#products">Explore products<ArrowUpRight size={17} /></Link>}{config.services && <Link href="#services">Explore services<ArrowUpRight size={17} /></Link>}<Link href="#about">Discover OANRO<ArrowUpRight size={17} /></Link></nav>
+    {config.features && <FeatureStory />}
+    {config.products && <ProductConveyor />}
+    {config.services && <ServiceConveyor />}
+    <DoubleConveyor showProducts={config.products} showServices={config.services} />
+    {config.partners && <section id="partners" className="partners-section section-space"><Reveal className="container partner-layout"><div><p className="eyebrow">Partner Picks</p><h2>Good finds.<br />Wider possibilities.</h2></div><div><span className="outline-label">A separate selection</span><p>A dedicated space for selected partner offerings, brought together through OANRO.</p><small>Our first partner selection is taking shape.</small></div></Reveal></section>}
+    <section id="about" className="about-section section-space"><div className="container"><Reveal className="section-heading"><div><p className="eyebrow">Our approach</p><h2>Thoughtful from the start.</h2></div><p>Useful choices. Clear information.<br />People at the center.</p></Reveal><div className="about-grid"><article><h3>Clarity first.</h3><p>Understand what you are choosing and what happens next.</p></article><article><h3>Useful by design.</h3><p>Products and technology with a practical place in everyday life.</p></article><article><h3>Room to grow.</h3><p>Starting in Bangladesh, with a wider world of possibilities ahead.</p></article></div>
+      <div id="contact" className="contact-section"><div><p className="eyebrow">Contact OANRO</p><h2>Let&apos;s start<br />a conversation.</h2></div><div><p>Have a question about a product, a service, or a partnership?</p>{config.contactEmail ? <a className="button brand-button" href={`mailto:${config.contactEmail}`}><Mail size={17} />{config.contactEmail}</a> : <p className="contact-pending">Our contact channels are being prepared. They will appear here before launch.</p>}<small>Design preview: sample products and images. Ordering is not yet open.</small></div></div>
+    </div></section>
+  </main>;
 }

@@ -1,0 +1,52 @@
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+(async () => {
+  const browser = await chromium.launch({executablePath: process.env.CHROMIUM_PATH || '/root/.cache/ms-playwright/chromium-1161/chrome-linux/chrome', headless: true, args: ['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+  const context = await browser.newContext();
+  await context.addInitScript(() => sessionStorage.setItem('oanro-intro-v2', '1'));
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('http://127.0.0.1:3100', {waitUntil:'networkidle'});
+  fs.mkdirSync('/tmp/oanro-checks', {recursive:true});
+  for (const width of [320,390,768,1440]) {
+    await page.setViewportSize({width,height:900});
+    await page.waitForTimeout(300);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+    assert.equal(overflow, false, `horizontal overflow at ${width}`);
+    await page.screenshot({path:`/tmp/oanro-checks/home-${width}.png`,fullPage:true});
+    console.log(`Layout ${width}: PASS`);
+  }
+  await page.getByRole('button',{name:'Search OANRO'}).click();
+  await page.getByRole('searchbox').fill('Forest');
+  await page.getByRole('dialog').getByRole('link').first().click();
+  await page.waitForURL('**/products/forest-knit');
+  await page.getByRole('button',{name:'Add to demo bag',exact:true}).click();
+  await page.getByRole('button',{name:'Open demo bag, 1 items'}).click();
+  await page.getByRole('button',{name:'Increase The Forest Knit'}).click();
+  await page.getByRole('button',{name:'Close bag'}).click();
+  await page.reload();
+  await page.getByRole('button',{name:'Open demo bag, 2 items'}).waitFor();
+  await page.getByRole('button',{name:'Film',exact:true}).click();
+  await page.waitForFunction(() => document.querySelector('video')?.readyState >= 1);
+  console.log('Search, product route, cart persistence, video: PASS');
+  await page.goto('http://127.0.0.1:3100/products/studio-headphones');
+  await page.getByRole('button',{name:'3D view',exact:true}).click();
+  await page.waitForTimeout(2500);
+  const canvas = page.locator('canvas').last();
+  await canvas.waitFor();
+  const nonBlank = await canvas.evaluate(canvas => {
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+    const pixels = new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4);
+    gl.readPixels(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
+    return pixels.some((value,index) => index % 4 !== 3 && value > 0);
+  });
+  assert.ok(nonBlank,'3D canvas should contain pixels');
+  await page.screenshot({path:'/tmp/oanro-checks/detail.png',fullPage:true});
+  assert.equal((await page.request.get('http://127.0.0.1:3100/api/products')).status(),200);
+  assert.equal((await page.request.get('http://127.0.0.1:3100/products/missing')).status(),404);
+  assert.deepEqual(errors,[]);
+  console.log('WebGL nonblank, API, 404, runtime errors: PASS');
+  await browser.close();
+})().catch(error => {console.error(error); process.exit(1);});
