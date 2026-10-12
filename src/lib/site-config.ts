@@ -3,6 +3,7 @@ import "server-only";
 // Public display settings only. Authentication and payment keys never go here.
 export function getSiteConfig() {
   const products = process.env.OANRO_PRODUCTS !== "false";
+  const whatsappNumber = (process.env.OANRO_WHATSAPP_NUMBER || "").replace(/\D/g, "");
   return {
     products,
     services: process.env.OANRO_SERVICES !== "false",
@@ -10,6 +11,8 @@ export function getSiteConfig() {
     features: products && process.env.OANRO_FEATURES !== "false",
     intro: process.env.OANRO_INTRO !== "false",
     contactEmail: process.env.OANRO_CONTACT_EMAIL || "",
+    messengerUrl: process.env.OANRO_MESSENGER_URL || "",
+    whatsappUrl: whatsappNumber ? `https://wa.me/${whatsappNumber}` : "",
   };
 }
 export type SiteConfig = ReturnType<typeof getSiteConfig>;

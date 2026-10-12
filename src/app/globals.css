@@ -37,6 +37,7 @@ button { color: inherit; } svg { flex-shrink: 0; }
 .icon-button { display: inline-flex; justify-content: center; align-items: center; width: 44px; height: 44px; padding: 0; background: transparent; border: 1px solid transparent; }
 .icon-button:hover { border-color: var(--line); }
 .button { display: inline-flex; align-items: center; justify-content: center; gap: 1.7rem; min-height: 48px; padding: 0.85rem 1.3rem; border: 1px solid transparent; font-size: 0.85rem; }
+.contact-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.25rem; }
 .brand-button { background: var(--brand); color: var(--surface); }
 .brand-button:hover { background: var(--brand-strong); }
 .light-button { background: var(--surface); color: var(--foreground); }
