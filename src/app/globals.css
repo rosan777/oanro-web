@@ -60,6 +60,9 @@ button { color: inherit; } svg { flex-shrink: 0; }
 .nav-group > button { display: flex; align-items: center; gap: 0.6rem; padding: 1rem 0; border: 0; background: transparent; font-size: 0.85rem; }
 .nav-group > button[aria-expanded="true"] { color: var(--brand); }
 .header-actions { display: flex; align-items: center; gap: 0.5rem; }
+.language-switch { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
+.language-switch button { border: 0; border-radius: 999px; background: transparent; padding: 0.35rem 0.52rem; font-size: 0.68rem; line-height: 1; }
+.language-switch button[aria-pressed="true"] { background: var(--brand); color: var(--surface); }
 .cart-trigger { position: relative; }
 .bag-count { position: absolute; right: -2px; top: 0; min-width: 17px; padding-inline: 3px; border-radius: 50%; background: var(--brand); color: white; font-size: 0.6rem; }
 .menu-trigger { display: none; }

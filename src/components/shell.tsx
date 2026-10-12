@@ -8,12 +8,14 @@ import type { SiteConfig } from "@/lib/site-config";
 import { products, services, formatPrice } from "@/lib/catalog";
 import { useCart, changeQuantity, removeItem } from "@/lib/cart";
 import { MotionToggle } from "./experience";
+import { LanguageSwitch, Localized, useLocale } from "./locale";
 
 export function ProductPhoto({ position, label, className = "" }: { position: string; label: string; className?: string }) {
   return <div className={`product-photo ${className}`} role="img" aria-label={label} style={{ backgroundPosition: position }} />;
 }
 
 export function Header({ config }: { config: SiteConfig }) {
+  const { locale } = useLocale();
   const [mega, setMega] = useState<string | null>(null);
   const [mobile, setMobile] = useState(false);
   const [query, setQuery] = useState("");
@@ -26,15 +28,16 @@ export function Header({ config }: { config: SiteConfig }) {
   const filteredServices = config.services ? services.filter(s => `${s.title} ${s.text}`.toLowerCase().includes(query.toLowerCase().trim())) : [];
   const closeMenu = () => { setMega(null); setMobile(false); };
   const groups = [...(config.products ? ["Products"] : []), ...(config.services ? ["Services"] : []), "About"];
+  const label = (value: string) => locale === "bn" ? ({ Products: "পণ্য", Services: "সেবা", About: "আমাদের কথা" }[value] || value) : value;
   return <>
-    <div className="message-header"><div className="container"><span>COMMERCE &amp; TECHNOLOGY</span><p>Better choices for what you buy and how you build.</p><small>OANRO DESIGN PREVIEW</small></div></div>
+    <div className="message-header"><div className="container"><span><Localized en="COMMERCE & TECHNOLOGY" bn="কমার্স ও টেকনোলজি" /></span><p><Localized en="Better choices for what you buy and how you build." bn="আপনার কেনাকাটা ও কাজের জন্য আরও ভালো পছন্দ।" /></p><small>OANRO DESIGN PREVIEW</small></div></div>
     <header className="site-header" onMouseLeave={() => setMega(null)} onKeyDown={e => { if (e.key === "Escape") { closeMenu(); } }}>
       <div className="container header-row">
         <Link href="/" className="brand" aria-label="OANRO home" onClick={closeMenu}><Image src="/logo.svg" alt="" width={39} height={39} /><span>OANRO</span></Link>
         <nav className={`main-nav ${mobile ? "mobile-open" : ""}`} aria-label="Main navigation">
-          {groups.map(group => <div key={group} className="nav-group"><button type="button" aria-expanded={mega === group} aria-controls={`menu-${group}`} onMouseEnter={() => { if (window.matchMedia("(hover: hover)").matches) setMega(group); }} onClick={() => setMega(mega === group ? null : group)}>{group}<ChevronDown size={13} /></button></div>)}
+          {groups.map(group => <div key={group} className="nav-group"><button type="button" aria-expanded={mega === group} aria-controls={`menu-${group}`} onMouseEnter={() => { if (window.matchMedia("(hover: hover)").matches) setMega(group); }} onClick={() => setMega(mega === group ? null : group)}>{label(group)}<ChevronDown size={13} /></button></div>)}
         </nav>
-        <div className="header-actions"><button type="button" className="icon-button" title="Search" aria-label="Search OANRO" onClick={() => { closeMenu(); searchDialog.current?.showModal(); }}><Search size={20} /></button>
+        <div className="header-actions"><LanguageSwitch /><button type="button" className="icon-button" title="Search" aria-label="Search OANRO" onClick={() => { closeMenu(); searchDialog.current?.showModal(); }}><Search size={20} /></button>
           {config.products && <button type="button" className="icon-button cart-trigger" title="Open demo bag" aria-label={`Open demo bag, ${count} items`} onClick={() => { closeMenu(); cartDialog.current?.showModal(); }}><ShoppingBag size={20} />{count > 0 && <span className="bag-count">{count}</span>}</button>}
           <button type="button" className="icon-button menu-trigger" title="Menu" aria-label="Toggle navigation" aria-expanded={mobile} onClick={() => { setMobile(!mobile); setMega(null); }}>{mobile ? <X size={21} /> : <Menu size={21} />}</button></div>
       </div>

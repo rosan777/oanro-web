@@ -26,4 +26,4 @@ export const services = [
   { slug: "systems", title: "Business software", word: "BUILD", text: "Bring your work into a clearer system.", detail: "Tools for orders, inventory, reporting, and the workflows your business depends on." },
   { slug: "strategy", title: "Technology strategy", word: "NEXT", text: "A clearer direction for what comes next.", detail: "Review your current tools, identify priorities, and define a practical next step." },
 ];
-export function formatPrice(value: number) { return new Intl.NumberFormat("en-BD", { style: "currency", currency: "BDT", maximumFractionDigits: 0 }).format(value); }
+export function formatPrice(value: number, locale: "en" | "bn" = "en") { return new Intl.NumberFormat(locale === "bn" ? "bn-BD" : "en-BD", { style: "currency", currency: "BDT", maximumFractionDigits: 0 }).format(value); }
