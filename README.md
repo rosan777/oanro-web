@@ -146,3 +146,8 @@ See `VERIFICATION.md` for the exact checks and results. Test scripts use Playwri
 Revenue, cost, fees, refunds and profit must use authoritative business records and deterministic calculations. Future AI forecasts should be labelled estimates and must not override financial records or staff authorization.
 
 **বাংলায় সারাংশ:** এই package-এ website-এর design, animation, fake product image, product details, search ও demo bag শেষ করা হয়েছে। আসল order, payment, database এবং permission-controlled admin পরের milestone—এগুলো তৈরি হয়েছে বলে ধরা যাবে না।
+# M2.1 identity foundation update — 14 October 2026
+
+See [docs/M2-FOUNDATION.md](docs/M2-FOUNDATION.md) for the approved Drizzle/Better Auth implementation, setup, migrations, Owner bootstrap and outstanding activation gates. Authentication is disabled by default. The protected Owner entry is not yet a staff dashboard; cart remains a demo and payments are not enabled.
+
+M2.2 adds Caps/Tech preview sections, media flip and a manually curated Global Pulse editorial stage. See [docs/M2-STORE-SECTIONS.md](docs/M2-STORE-SECTIONS.md) for scope, migration and test instructions. Live news ingestion, paid products and business payment remain unavailable.

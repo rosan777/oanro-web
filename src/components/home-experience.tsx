@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play } from "lucide-react";
 import { products, services } from "@/lib/catalog";
 import { useMotion, Reveal } from "./experience";
 import { ProductPhoto } from "./shell";
+import { FlipPanel } from "./flip-panel";
 const Scene = dynamic(() => import("./scene"), { ssr: false, loading: () => <div className="scene-loading" /> });
 
 export function StandardPanel() {
@@ -16,7 +17,7 @@ export function StandardPanel() {
 }
 
 export { ValueFan } from "./value-fan";
-function Conveyor({ id, title, eyebrow, description, children }: { id: string; title: string; eyebrow: string; description: string; children: (duplicate: boolean) => ReactNode }) {
+export function Conveyor({ id, title, eyebrow, description, children }: { id: string; title: string; eyebrow: string; description: string; children: (duplicate: boolean) => ReactNode }) {
   const ref = useRef<HTMLDivElement>(null); const group = useRef<HTMLDivElement>(null); const hover = useRef(false);
   const { allowed } = useMotion(); const [play, setPlay] = useState(true);
   useEffect(() => {
@@ -37,10 +38,10 @@ function Conveyor({ id, title, eyebrow, description, children }: { id: string; t
     </div></section>;
 }
 export function ProductConveyor() {
-  return <Conveyor id="products" title="Your next discovery." eyebrow="The collection" description="A first look at the possibilities. Sample products, made for exploration.">{duplicate => products.map(product => <Link className="conveyor-card product-card" tabIndex={duplicate ? -1 : undefined} key={product.slug} href={`/products/${product.slug}`}><div className="product-card-media"><ProductPhoto position={product.position} label={product.name} /><span className="sample-badge">Sample collection</span><span className="card-arrow"><ArrowUpRight size={21} /></span></div><div className="card-copy"><small>{product.category}</small><h3>{product.name}</h3><p>{product.tagline}</p></div></Link>)}</Conveyor>;
+  return <Conveyor id="products" title="Your next discovery." eyebrow="The collection" description="A first look at the possibilities. Sample products, made for exploration.">{duplicate => products.map((product, index) => <Link className="conveyor-card product-card" tabIndex={duplicate ? -1 : undefined} key={product.slug} href={`/products/${product.slug}`}><div className="product-card-media"><FlipPanel title={product.name} detail={product.tagline} index={index}><ProductPhoto position={product.position} label={product.name} /><span className="sample-badge">Sample collection</span><span className="card-arrow"><ArrowUpRight size={21} /></span></FlipPanel></div><div className="card-copy"><small>{product.category}</small><h3>{product.name}</h3><p>{product.tagline}</p></div></Link>)}</Conveyor>;
 }
 export function ServiceConveyor() {
-  return <Conveyor id="services" title="Ideas, made practical." eyebrow="Technology services" description="A first introduction. Tell us what you have in mind.">{duplicate => services.map((service, index) => <a className="conveyor-card service-card" id={duplicate ? undefined : `service-${service.slug}`} tabIndex={duplicate ? -1 : undefined} key={service.slug} href="#contact"><div className={`service-visual service-tone-${index % 3}`}><span>OANRO STUDIO</span><strong>{service.word}</strong><ArrowUpRight size={27} /></div><div className="card-copy"><h3>{service.title}</h3><p>{service.text}</p></div></a>)}</Conveyor>;
+  return <Conveyor id="services" title="Ideas, made practical." eyebrow="Technology services" description="A first introduction. Tell us what you have in mind.">{duplicate => services.map((service, index) => <a className="conveyor-card service-card" id={duplicate ? undefined : `service-${service.slug}`} tabIndex={duplicate ? -1 : undefined} key={service.slug} href="#contact"><FlipPanel title={service.title} detail={service.text} index={index}><div className={`service-visual service-tone-${index % 3}`}><span>OANRO STUDIO</span><strong>{service.word}</strong><ArrowUpRight size={27} /></div></FlipPanel><div className="card-copy"><h3>{service.title}</h3><p>{service.text}</p></div></a>)}</Conveyor>;
 }
 
 export function FeatureStory() {

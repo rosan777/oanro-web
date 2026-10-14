@@ -6,15 +6,20 @@ import { FeatureStory, ProductConveyor, ServiceConveyor, StandardPanel, ValueFan
 import { Reveal } from "@/components/experience";
 import { DoubleConveyor } from "@/components/double-conveyor";
 import { Localized } from "@/components/locale";
+import { CollectionConveyor } from "@/components/collection-conveyor";
+import { getSectionState } from "@/lib/website-sections";
 
-export default function Home() {
+export default async function Home() {
   const config = getSiteConfig();
+  const sections = await getSectionState();
   return <main id="main-content">
     <section className="opening"><div className="container opening-layout"><Reveal className="opening-brand"><div className="holographic-mark"><Image src="/logo.svg" alt="" width={88} height={88} /></div><div><p className="eyebrow"><Localized en="Welcome to the first chapter" bn="শুরুর প্রথম অধ্যায়ে স্বাগতম" /></p><h1>OANRO</h1><p><Localized en={<>Considered products.<br />Practical possibilities.</>} bn={<>বেছে নেওয়া পণ্য।<br />বাস্তবসম্মত সম্ভাবনা।</>} /></p></div></Reveal><StandardPanel /></div></section>
     <ValueFan showProducts={config.products} />
     <nav className="discovery-nav container" aria-label="Explore OANRO">{config.products && <Link href="#products"><Localized en="Explore products" bn="পণ্য দেখুন" /><ArrowUpRight size={17} /></Link>}{config.services && <Link href="#services"><Localized en="Explore services" bn="সেবা দেখুন" /><ArrowUpRight size={17} /></Link>}<Link href="#about"><Localized en="Discover OANRO" bn="OANRO জানুন" /><ArrowUpRight size={17} /></Link></nav>
     {config.features && <FeatureStory />}
     {config.products && <ProductConveyor />}
+    {config.products && sections.caps && <CollectionConveyor collection="caps" />}
+    {config.products && sections["tech-items"] && <CollectionConveyor collection="tech" />}
     {config.services && <ServiceConveyor />}
     <DoubleConveyor showProducts={config.products} showServices={config.services} />
     {config.partners && <section id="partners" className="partners-section section-space"><Reveal className="container partner-layout"><div><p className="eyebrow"><Localized en="Partner Picks" bn="পার্টনার পছন্দ" /></p><h2><Localized en={<>Good finds.<br />Wider possibilities.</>} bn={<>ভালো পছন্দ।<br />বিস্তৃত সম্ভাবনা।</>} /></h2></div><div><span className="outline-label"><Localized en="A separate selection" bn="আলাদা একটি নির্বাচন" /></span><p><Localized en="A dedicated space for selected partner offerings, brought together through OANRO." bn="OANRO-র মাধ্যমে বেছে নেওয়া পার্টনার অফারগুলোর জন্য একটি আলাদা জায়গা।" /></p><small><Localized en="Our first partner selection is taking shape." bn="আমাদের প্রথম পার্টনার নির্বাচন তৈরি হচ্ছে।" /></small></div></Reveal></section>}
