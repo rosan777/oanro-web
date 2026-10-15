@@ -27,12 +27,12 @@ export async function getApprovedPulseStories() {
     const rows = await getDb().select({ id: pulseStory.id, publisher: pulseStory.publisher, headline: pulseStory.headline, url: pulseStory.url, thumbnailUrl: pulseStory.thumbnailUrl, publishedAt: pulseStory.publishedAt })
       .from(pulseStory).where(and(eq(pulseStory.visible, true), eq(pulseStory.rightsConfirmed, true)))
       .orderBy(desc(pulseStory.approvedAt)).limit(20);
-    return rows.map(r => ({ ...r, publishedAt: r.publishedAt?.toISOString() ?? null }));
+    return rows.map(r => ({ ...r, thumbnailUrl: r.thumbnailUrl ? `/api/pulse/${encodeURIComponent(r.id)}/thumbnail` : null, publishedAt: r.publishedAt?.toISOString() ?? null }));
   } catch { return []; }
 }
 export async function getOwnerPulseStories() {
   if (!process.env.DATABASE_URL) return [];
   try {
-    return await getDb().select({ id: pulseStory.id, publisher: pulseStory.publisher, headline: pulseStory.headline, visible: pulseStory.visible }).from(pulseStory).orderBy(desc(pulseStory.createdAt)).limit(50);
+    return await getDb().select({ id: pulseStory.id, publisher: pulseStory.publisher, headline: pulseStory.headline, url: pulseStory.url, visible: pulseStory.visible }).from(pulseStory).orderBy(desc(pulseStory.createdAt)).limit(50);
   } catch { return []; }
 }
