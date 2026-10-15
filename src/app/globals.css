@@ -433,3 +433,28 @@ html:has([data-motion="paused"]) { scroll-behavior: auto; }
 .auth-links { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 24px; }
 .auth-links button { text-decoration: underline; padding: 4px; }
 .auth-card :focus-visible { outline: 3px solid #597e5b; outline-offset: 3px; }
+
+/* Global Pulse: larger reviewed thumbnails and glass cards. */
+.pulse-section { background: radial-gradient(ellipse at 15% 100%, #50856a18, transparent 65%), var(--surface); }
+.pulse-track { padding-top: .5rem; }
+.pulse-card { position: relative; isolation: isolate; overflow: hidden; width: min(380px, 88vw); min-height: 122px; border-radius: 12px; background: var(--background); background: color-mix(in srgb, var(--background) 86%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: inset 0 1px 0 #ffffff30, 0 5px 16px #00000008; }
+.pulse-card > * { position: relative; z-index: 1; }
+.pulse-card > svg { flex: 0 0 auto; }
+.pulse-thumbnail { width: 110px; height: 90px; flex: 0 0 110px; border-radius: 8px; background: linear-gradient(135deg, var(--brand), #244e40); color: #fff; letter-spacing: .08em; }
+.pulse-card::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(110deg, transparent 25%, #ffffff22 48%, transparent 72%); transform: translateX(-120%); }
+.pulse-card:hover, .pulse-card:focus-visible { border-color: var(--brand); }
+[data-pulse-motion="on"] .pulse-card { transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease; }
+[data-pulse-motion="on"] .pulse-card::before { transition: transform .7s ease; }
+[data-pulse-motion="on"] .pulse-card:hover, [data-pulse-motion="on"] .pulse-card:focus-visible { transform: translateY(-3px); box-shadow: inset 0 1px 0 #ffffff40, 0 8px 20px #00000012; }
+[data-pulse-motion="on"] .pulse-card:hover::before, [data-pulse-motion="on"] .pulse-card:focus-visible::before { transform: translateX(120%); }
+.pulse-form fieldset { display: grid; gap: 1rem; border: 0; padding: 0; min-width: 0; }
+.pulse-preview { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; padding: 1rem; border: 1px solid var(--line); border-radius: 8px; }
+.pulse-preview label { flex: 1 1 200px; }
+@media (max-width: 480px) { .pulse-thumbnail { width: 90px; height: 80px; flex-basis: 90px; } .pulse-card { gap: .55rem; padding: .6rem; } }
+@media (prefers-reduced-motion: reduce) { .pulse-card, .pulse-card::before { transition: none !important; transform: none !important; } .pulse-card::before { display: none; } }
+.pulse-existing-thumbnail { padding: 0 .8rem .8rem; display: grid; gap: .6rem; }
+.pulse-existing-thumbnail > .button { justify-self: start; }
+.pulse-existing-thumbnail label { display: flex; gap: .5rem; align-items: flex-start; }
+.pulse-story-actions { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: flex-end; }
+.admin-section-row .pulse-delete { color: #a32929; border-color: currentColor; }
+@media (max-width: 480px) { .pulse-story-editor .admin-section-row { flex-wrap: wrap; } .pulse-story-actions { justify-content: flex-start; } }
