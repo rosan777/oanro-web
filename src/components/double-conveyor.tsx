@@ -31,7 +31,7 @@ function Shelf({ entries, direction, label }: { entries: Entry[]; direction: 1 |
     const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; }); observer.observe(node);
     const animate = (time: number) => {
       const delta = Math.min(time - last || 0, 50); last = time;
-      if (visible && !hovering.current && !node.contains(document.activeElement) && !document.hidden && time > idleUntil.current) {
+      if (visible && !hovering.current && !node.matches(":focus-visible") && !node.querySelector(":focus-visible") && !document.hidden && time > idleUntil.current) {
         const width = first.getBoundingClientRect().width;
         if (width > 0) { position += direction * delta * 0.035; if (position >= width) position -= width; if (position < 0) position += width; node.scrollLeft = position; }
       } else { position = node.scrollLeft; }
