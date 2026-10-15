@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { products, services } from "@/lib/catalog";
 import { useMotion, Reveal } from "./experience";
 import { ProductPhoto } from "./shell";
@@ -19,22 +19,22 @@ export function StandardPanel() {
 export { ValueFan } from "./value-fan";
 export function Conveyor({ id, title, eyebrow, description, children }: { id: string; title: string; eyebrow: string; description: string; children: (duplicate: boolean) => ReactNode }) {
   const ref = useRef<HTMLDivElement>(null); const group = useRef<HTMLDivElement>(null); const hover = useRef(false);
-  const { allowed } = useMotion(); const [play, setPlay] = useState(true);
+  const { allowed } = useMotion(); const idleUntil = useRef(0); const touching = useRef(false);
   useEffect(() => {
-    const track = ref.current; const first = group.current; if (!track || !first || !play || !allowed) return;
+    const track = ref.current; const first = group.current; if (!track || !first || !allowed) return;
     let frame = 0; let last = 0; let onScreen = false; let position = track.scrollLeft;
     const observer = new IntersectionObserver(([entry]) => { onScreen = entry.isIntersecting; }, { threshold: 0.1 }); observer.observe(track);
     const animate = (time: number) => { const delta = Math.min(time - last || 0, 50); last = time;
-      if (onScreen && !hover.current && !document.hidden) { const width = first.getBoundingClientRect().width; position = (position + delta * 0.035) % width; track.scrollLeft = position; }
+      if (onScreen && !hover.current && !touching.current && !track.matches(":focus-visible") && !track.querySelector(":focus-visible") && !document.hidden && time > idleUntil.current) { const width = first.getBoundingClientRect().width; if (width > 0) { position = (position + delta * 0.035) % width; track.scrollLeft = position; } }
       else { position = track.scrollLeft; }
       frame = requestAnimationFrame(animate);
     };
     frame = requestAnimationFrame(animate);
     return () => { cancelAnimationFrame(frame); observer.disconnect(); };
-  }, [play, allowed]);
-  function move(direction: number) { setPlay(false); const track = ref.current; if (track) track.scrollBy({ left: direction * 340, behavior: allowed ? "smooth" : "auto" }); }
-  return <section id={id} className={`conveyor-section section-space ${id === "services" ? "services-section" : ""}`}><div className="container"><Reveal className="section-heading"><div><p className="eyebrow">{eyebrow}</p><h2>{title}</h2><p>{description}</p></div><div className="row-controls"><button type="button" className="icon-button" aria-label={`${play && allowed ? "Pause" : "Play"} ${id}`} title={play && allowed ? "Pause" : "Play"} disabled={!allowed} onClick={() => setPlay(!play)}>{play && allowed ? <Pause size={17} /> : <Play size={17} />}</button><button type="button" className="icon-button" aria-label={`Previous ${id}`} title="Previous" onClick={() => move(-1)}><ArrowLeft size={18} /></button><button type="button" className="icon-button" aria-label={`Next ${id}`} title="Next" onClick={() => move(1)}><ArrowRight size={18} /></button></div></Reveal>
-      <div className="conveyor" ref={ref} role="region" aria-label={`${id} carousel`} tabIndex={0} onMouseEnter={() => { hover.current = true; }} onMouseLeave={() => { hover.current = false; }} onPointerDown={() => setPlay(false)} onFocusCapture={() => setPlay(false)} onWheel={() => setPlay(false)} onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "ArrowLeft" || event.key === "ArrowRight")) { event.preventDefault(); move(event.key === "ArrowRight" ? 1 : -1); } }}><div className="conveyor-group" ref={group}>{children(false)}</div><div className="conveyor-group conveyor-clone" aria-hidden="true">{children(true)}</div></div>
+  }, [allowed]);
+  function move(direction: number) { idleUntil.current = performance.now() + 2500; const track = ref.current; if (track) track.scrollBy({ left: direction * 340, behavior: allowed ? "smooth" : "auto" }); }
+  return <section id={id} className={`conveyor-section section-space ${id === "services" ? "services-section" : ""}`}><div className="container"><Reveal className="section-heading"><div><p className="eyebrow">{eyebrow}</p><h2>{title}</h2><p>{description}</p></div></Reveal>
+      <div className="conveyor" ref={ref} role="region" aria-label={`${id} carousel`} tabIndex={0} onMouseEnter={() => { hover.current = true; }} onMouseLeave={() => { hover.current = false; }} onPointerDown={() => { touching.current = true; }} onPointerUp={() => { touching.current = false; idleUntil.current = performance.now() + 1500; }} onPointerCancel={() => { touching.current = false; }} onPointerLeave={() => { touching.current = false; }} onWheel={() => { idleUntil.current = performance.now() + 1500; }} onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "ArrowLeft" || event.key === "ArrowRight")) { event.preventDefault(); move(event.key === "ArrowRight" ? 1 : -1); } }}><div className="conveyor-group" ref={group}>{children(false)}</div><div className="conveyor-group conveyor-clone" aria-hidden="true">{children(true)}</div></div>
     </div></section>;
 }
 export function ProductConveyor() {
