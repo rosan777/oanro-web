@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { RotateCcw, RotateCw, Pause, Play } from "lucide-react";
 import { useMotion } from "./experience";
 
 export default function Scene({ mode = "headphones" }: { mode?: "headphones" | "universe" }) {
@@ -9,10 +8,11 @@ export default function Scene({ mode = "headphones" }: { mode?: "headphones" | "
   const rotate = useRef<(delta: number) => void>(() => {});
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
-  const [spin, setSpin] = useState(true);
+  const hovering = useRef(false);
+  const interacting = useRef(false);
   const spinning = useRef(false);
   const { allowed } = useMotion();
-  useEffect(() => { spinning.current = allowed && spin; }, [allowed, spin]);
+  useEffect(() => { spinning.current = allowed; }, [allowed]);
   useEffect(() => {
     let disposed = false;
     let cleanup = () => {};
@@ -58,15 +58,15 @@ export default function Scene({ mode = "headphones" }: { mode?: "headphones" | "
       const visibility = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; dirty = true; }); visibility.observe(node);
       rotate.current = delta => { group.rotation.y += delta; dirty = true; };
       let dragging = false; let lastX = 0;
-      const down = (event: PointerEvent) => { if (mode !== "headphones") return; dragging = true; lastX = event.clientX; renderer.domElement.setPointerCapture(event.pointerId); setSpin(false); };
+      const down = (event: PointerEvent) => { if (mode !== "headphones") return; dragging = true; lastX = event.clientX; renderer.domElement.setPointerCapture(event.pointerId); interacting.current = true; };
       const move = (event: PointerEvent) => { if (!dragging) return; rotate.current((event.clientX - lastX) * 0.012); lastX = event.clientX; };
-      const up = () => { dragging = false; };
+      const up = () => { dragging = false; interacting.current = false; };
       renderer.domElement.addEventListener("pointerdown", down); renderer.domElement.addEventListener("pointermove", move); renderer.domElement.addEventListener("pointerup", up); renderer.domElement.addEventListener("pointercancel", up);
       const draw = (time: number) => {
         frame = requestAnimationFrame(draw);
         const delta = Math.min((time - previous) / 1000 || 0, 0.05); previous = time;
         if (!visible || document.hidden || time - lastDraw < 32) return;
-        if (spinning.current) { group.rotation.y += delta * (mode === "universe" ? 0.12 : 0.4); if (mode === "universe") group.rotation.z += delta * 0.04; dirty = true; }
+        if (spinning.current && !hovering.current && !interacting.current) { group.rotation.y += delta * (mode === "universe" ? 0.12 : 0.4); if (mode === "universe") group.rotation.z += delta * 0.04; dirty = true; }
         if (dirty) { renderer.render(scene, camera); lastDraw = time; dirty = false; }
       };
       frame = requestAnimationFrame(draw); setReady(true);
@@ -79,9 +79,9 @@ export default function Scene({ mode = "headphones" }: { mode?: "headphones" | "
     }).catch(() => { if (!disposed) setFailed(true); });
     return () => { disposed = true; cleanup(); };
   }, [mode]);
-  return <div className={`scene-wrapper ${mode}`}>
+  return <div className={`scene-wrapper ${mode}`} onMouseEnter={() => { hovering.current = true; }} onMouseLeave={() => { hovering.current = false; }}>
     <div ref={host} className="scene-canvas" aria-label={mode === "headphones" ? "Interactive 3D headphone concept" : undefined} role={mode === "headphones" ? "img" : undefined} aria-hidden={mode === "universe" ? true : undefined} />
     {mode === "headphones" && <>{(!ready || failed) && <div className="scene-fallback"><div className="headphone-fallback" /><p>{failed ? "3D is unavailable on this device. The product photo remains available." : "Loading 3D concept..."}</p></div>}
-      <div className="scene-controls"><button className="icon-button" type="button" title="Rotate left" aria-label="Rotate model left" onClick={() => { setSpin(false); rotate.current(-0.35); }}><RotateCcw size={18} /></button><button className="icon-button" type="button" disabled={!allowed} title={spin ? "Pause rotation" : "Rotate automatically"} aria-label={spin ? "Pause model rotation" : "Start model rotation"} onClick={() => setSpin(!spin)}>{spin && allowed ? <Pause size={18} /> : <Play size={18} />}</button><button className="icon-button" type="button" title="Rotate right" aria-label="Rotate model right" onClick={() => { setSpin(false); rotate.current(0.35); }}><RotateCw size={18} /></button></div><p className="scene-caption">Drag to rotate / illustrative 3D concept</p></>}
+      <p className="scene-caption">Drag to rotate / illustrative 3D concept</p></>}
   </div>;
 }
