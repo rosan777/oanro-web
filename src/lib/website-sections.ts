@@ -3,22 +3,24 @@ import { and, desc, eq } from "drizzle-orm";
 import { getDb } from "./db";
 import { websiteSection, pulseStory } from "./db/schema";
 
-export const sectionCodes = ["caps", "tech-items", "global-pulse"] as const;
+export const sectionCodes = ["caps", "tech-items", "global-pulse", "services"] as const;
 export type SectionCode = typeof sectionCodes[number];
 export type SectionState = Record<SectionCode, boolean>;
 
 // Until PostgreSQL is configured, showcase the two catalog concepts only.
-const preview: SectionState = { caps: true, "tech-items": true, "global-pulse": false };
+const preview: SectionState = { caps: true, "tech-items": true, "global-pulse": false, services: true };
 export async function getSectionState(): Promise<SectionState> {
   if (!process.env.DATABASE_URL) return preview;
   try {
     const rows = await getDb().select().from(websiteSection);
     return { caps: rows.find(r => r.code === "caps")?.enabled ?? false,
       "tech-items": rows.find(r => r.code === "tech-items")?.enabled ?? false,
-      "global-pulse": rows.find(r => r.code === "global-pulse")?.enabled ?? false };
+      "global-pulse": rows.find(r => r.code === "global-pulse")?.enabled ?? false,
+      // Services were always shown before this switch existed, so a missing row means ON.
+      services: rows.find(r => r.code === "services")?.enabled ?? true };
   } catch {
     // Never publish a DB-controlled section based on a stale cached preference.
-    return { caps: false, "tech-items": false, "global-pulse": false };
+    return { caps: false, "tech-items": false, "global-pulse": false, services: false };
   }
 }
 export async function getApprovedPulseStories() {

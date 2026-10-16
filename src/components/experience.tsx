@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import Image from "next/image";
+import { Localized } from "./locale";
 
 const MotionContext = createContext({ paused: false, toggle: () => {} });
 const query = "(prefers-reduced-motion: reduce)";
@@ -17,7 +18,7 @@ export function Experience({ children }: { children: ReactNode }) {
   const [paused, setPaused] = useState(false);
   return <MotionContext.Provider value={{ paused, toggle: () => setPaused(p => !p) }}><div data-motion={paused ? "paused" : "running"}>{children}</div></MotionContext.Provider>;
 }
-export function MotionToggle() { const { paused, reduced, toggle } = useMotion(); return <button type="button" className="quiet-button" onClick={toggle} disabled={reduced}>{reduced ? "Reduced motion enabled" : paused ? "Enable motion" : "Pause motion"}</button>; }
+export function MotionToggle() { const { paused, reduced, toggle } = useMotion(); return <button type="button" className="quiet-button" onClick={toggle} disabled={reduced}>{reduced ? <Localized en="Reduced motion enabled" bn="কম অ্যানিমেশন চালু" /> : paused ? <Localized en="Enable motion" bn="অ্যানিমেশন চালু করুন" /> : <Localized en="Pause motion" bn="অ্যানিমেশন থামান" />}</button>; }
 
 export function Intro() {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -31,7 +32,7 @@ export function Intro() {
   }, []);
   function close() { dialog.current?.close(); try { sessionStorage.setItem("oanro-intro-v2", "seen"); } catch {} }
   return <dialog ref={dialog} className="intro-screen" aria-label="OANRO welcome" onCancel={close}>
-    <div className="intro-center"><div className="energy-ring" /><div className="logo-flip"><Image src="/logo.svg" alt="OANRO" width={100} height={100} /></div><p>OANRO</p><span>Preparing experience</span><div className="intro-progress"><i /></div><button onClick={close} type="button">Skip intro</button></div>
+    <div className="intro-center"><div className="energy-ring" /><div className="logo-flip"><Image src="/logo.svg" alt="OANRO" width={100} height={100} /></div><p>OANRO</p><span><Localized en="Preparing experience" bn="অভিজ্ঞতা প্রস্তুত হচ্ছে" /></span><div className="intro-progress"><i /></div><button onClick={close} type="button"><Localized en="Skip intro" bn="ইন্ট্রো বাদ দিন" /></button></div>
   </dialog>;
 }
 

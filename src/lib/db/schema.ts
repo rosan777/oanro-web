@@ -1,5 +1,7 @@
-import { bigint, boolean, check, index, integer, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import type { ProductStatus } from "../product-input";
+import type { CollectionPreset } from "../categories";
 
 const time = (name: string) => timestamp(name, { withTimezone: true });
 export const user = pgTable("auth_user", {
@@ -54,3 +56,61 @@ export const pulseStory = pgTable("pulse_story", {
   visible: boolean("visible").notNull().default(false),
   createdAt: time("created_at").notNull().defaultNow(),
 }, t => [index("pulse_story_visibility_idx").on(t.visible, t.approvedAt)]);
+// Storefront rows ("sections") that group products. Seasonal, Caps and Tech are seeded; the owner can add more.
+export const productCollection = pgTable("product_collection", {
+  id: text("id").primaryKey(), slug: text("slug").notNull().unique(),
+  preset: text("preset").$type<CollectionPreset>().notNull().default("general"),
+  status: text("status").$type<ProductStatus>().notNull().default("draft"),
+  nameEn: text("name_en").notNull(), nameBn: text("name_bn").notNull().default(""),
+  headlineEn: text("headline_en").notNull().default(""), headlineBn: text("headline_bn").notNull().default(""),
+  descriptionEn: text("description_en").notNull().default(""), descriptionBn: text("description_bn").notNull().default(""),
+  displayOrder: integer("display_order").notNull().default(0),
+  createdBy: text("created_by").references(() => user.id), updatedBy: text("updated_by").references(() => user.id),
+  createdAt: time("created_at").notNull().defaultNow(), updatedAt: time("updated_at").notNull().defaultNow(),
+  archivedAt: time("archived_at"),
+}, t => [
+  check("product_collection_status_check", sql`${t.status} in ('draft', 'published', 'hidden')`),
+  check("product_collection_preset_check", sql`${t.preset} in ('seasonal', 'caps', 'tech', 'general')`),
+]);
+// Owner-managed catalog. Rows are archived (soft-deleted) so audit history and links stay valid.
+export const product = pgTable("product", {
+  id: text("id").primaryKey(), slug: text("slug").notNull().unique(),
+  status: text("status").$type<ProductStatus>().notNull().default("draft"),
+  collectionId: text("collection_id").notNull().default("seasonal").references(() => productCollection.id),
+  nameEn: text("name_en").notNull(), nameBn: text("name_bn").notNull().default(""),
+  categoryEn: text("category_en").notNull().default(""), categoryBn: text("category_bn").notNull().default(""),
+  taglineEn: text("tagline_en").notNull().default(""), taglineBn: text("tagline_bn").notNull().default(""),
+  descriptionEn: text("description_en").notNull().default(""), descriptionBn: text("description_bn").notNull().default(""),
+  price: integer("price").notNull(), stock: integer("stock"),
+  sizes: jsonb("sizes").$type<string[]>().notNull(),
+  specsEn: jsonb("specs_en").$type<[string, string][]>().notNull(),
+  specsBn: jsonb("specs_bn").$type<[string, string][]>().notNull(),
+  imageData: text("image_data"), imagePosition: text("image_position").notNull().default("50% 50%"),
+  displayOrder: integer("display_order").notNull().default(0),
+  createdBy: text("created_by").notNull().references(() => user.id),
+  updatedBy: text("updated_by").notNull().references(() => user.id),
+  createdAt: time("created_at").notNull().defaultNow(), updatedAt: time("updated_at").notNull().defaultNow(),
+  archivedAt: time("archived_at"),
+}, t => [
+  index("product_storefront_idx").on(t.status, t.displayOrder),
+  check("product_status_check", sql`${t.status} in ('draft', 'published', 'hidden')`),
+  check("product_price_check", sql`${t.price} >= 0`),
+  check("product_stock_check", sql`${t.stock} is null or ${t.stock} >= 0`),
+]);
+// Technology services ("Tech solutions") shown on the storefront.
+export const service = pgTable("service", {
+  id: text("id").primaryKey(), slug: text("slug").notNull().unique(),
+  status: text("status").$type<ProductStatus>().notNull().default("draft"),
+  titleEn: text("title_en").notNull(), titleBn: text("title_bn").notNull().default(""),
+  word: text("word").notNull().default(""),
+  categoryEn: text("category_en").notNull().default(""), categoryBn: text("category_bn").notNull().default(""),
+  summaryEn: text("summary_en").notNull().default(""), summaryBn: text("summary_bn").notNull().default(""),
+  detailEn: text("detail_en").notNull().default(""), detailBn: text("detail_bn").notNull().default(""),
+  imageData: text("image_data"), displayOrder: integer("display_order").notNull().default(0),
+  createdBy: text("created_by").notNull().references(() => user.id), updatedBy: text("updated_by").notNull().references(() => user.id),
+  createdAt: time("created_at").notNull().defaultNow(), updatedAt: time("updated_at").notNull().defaultNow(),
+  archivedAt: time("archived_at"),
+}, t => [
+  index("service_storefront_idx").on(t.status, t.displayOrder),
+  check("service_status_check", sql`${t.status} in ('draft', 'published', 'hidden')`),
+]);

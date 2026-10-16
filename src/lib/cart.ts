@@ -1,6 +1,5 @@
 "use client";
 import { useSyncExternalStore } from "react";
-import { products } from "./catalog";
 export type CartItem = { slug: string; size: string; quantity: number };
 const empty: CartItem[] = [];
 let snapshot: CartItem[] = empty;
@@ -13,7 +12,7 @@ function read() {
   rawCache = raw;
   try {
     const data: unknown = JSON.parse(raw || "[]");
-    snapshot = Array.isArray(data) ? data.filter((item): item is CartItem => Boolean(item && typeof item === "object" && products.some(p => p.slug === item.slug && p.sizes.includes(item.size)) && Number.isInteger(item.quantity) && item.quantity > 0 && item.quantity <= 10)) : empty;
+    snapshot = Array.isArray(data) ? data.filter((item): item is CartItem => Boolean(item && typeof item === "object" && typeof item.slug === "string" && /^[a-z0-9-]{1,60}$/.test(item.slug) && typeof item.size === "string" && item.size.length <= 20 && Number.isInteger(item.quantity) && item.quantity > 0 && item.quantity <= 10)) : empty;
   } catch { snapshot = empty; }
   return snapshot;
 }

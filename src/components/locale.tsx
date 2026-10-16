@@ -23,5 +23,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 }
 
 export function useLocale() { return useContext(LocaleContext); }
+/** Picks the English or Bangla string for the current language (for props and attributes). */
+export function useT() { const { locale } = useLocale(); return (en: string, bn: string) => locale === "bn" ? bn : en; }
 export function Localized({ en, bn }: { en: ReactNode; bn: ReactNode }) { return <>{useLocale().locale === "bn" ? bn : en}</>; }
 export function LanguageSwitch() { const { locale, setLocale } = useLocale(); return <div className="language-switch" aria-label="Language"><button type="button" aria-pressed={locale === "en"} onClick={() => setLocale("en")}>EN</button><button type="button" aria-pressed={locale === "bn"} onClick={() => setLocale("bn")}>বাংলা</button></div>; }
