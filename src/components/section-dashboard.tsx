@@ -5,8 +5,9 @@ import { PulseUpload } from "./pulse-upload";
 import type { SectionState, SectionCode } from "@/lib/website-sections";
 
 type Story = { id: string; publisher: string; headline: string; url: string; visible: boolean };
-const labels: Record<SectionCode, string> = { caps: "Caps Collection", "tech-items": "Tech Items", "global-pulse": "Global Pulse" };
-export function SectionDashboard({ initial, initialStories }: { initial: SectionState; initialStories: Story[] }) {
+// Caps and Tech Items visibility moved to their collection pages (status Published/Hidden).
+const labels: Partial<Record<SectionCode, string>> = { "global-pulse": "Global Pulse news strip" }; // Services has its switch on the admin home page.
+export function SectionDashboard({ initial, initialStories, part = "all" }: { initial: SectionState; initialStories: Story[]; part?: "all" | "sections" | "pulse" }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [preview, setPreview] = useState<{ url: string; thumbnailUrl: string; previewToken: string } | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -73,14 +74,15 @@ export function SectionDashboard({ initial, initialStories }: { initial: Section
     finally { setBusy(false); }
   }
   return <div className="admin-sections">
-    <h2>Website sections</h2><p>These controls change the public presentation without deleting products or news records.</p>
-    {Object.entries(labels).map(([code, label]) => <div className="admin-section-row" key={code}><span>{label}</span><button type="button" disabled={busy} onClick={() => toggle(code as SectionCode)} aria-label={`${sections[code as SectionCode] ? "Disable" : "Enable"} ${label}`} aria-pressed={sections[code as SectionCode]}>{sections[code as SectionCode] ? "On" : "Off"}</button></div>)}
-    <h2>Global Pulse editorial</h2><p>Publish only an original publisher link and headline that you checked. Preview an optional article thumbnail, then approve its reuse. Without approval, the story uses the OANRO fallback.</p>
+    {part !== "pulse" && <><h2>Website sections</h2><p>These controls change the public presentation without deleting products or news records.</p>
+    {Object.entries(labels).map(([code, label]) => <div className="admin-section-row" key={code}><span>{label}</span><button type="button" disabled={busy} onClick={() => toggle(code as SectionCode)} aria-label={`${sections[code as SectionCode] ? "Disable" : "Enable"} ${label}`} aria-pressed={sections[code as SectionCode]}>{sections[code as SectionCode] ? "On" : "Off"}</button></div>)}</>}
+    {part !== "sections" && <><h2>Global Pulse editorial</h2><p>Publish only an original publisher link and headline that you checked. Preview an optional article thumbnail, then approve its reuse. Without approval, the story uses the OANRO fallback.</p>
     <form ref={formRef} className="pulse-form" onSubmit={publish}><fieldset disabled={busy}><label>Publisher<input name="publisher" required maxLength={80} /></label><label>Original headline<input name="headline" required maxLength={220} /></label><label>Original HTTPS article URL<input name="url" type="url" onChange={() => { setPreview(null); setApproved(false); setImageLoaded(false); }} required pattern="https://.*" /></label><button type="button" className="button" onClick={previewImage}>Find thumbnail preview</button>
       <PulseUpload disabled={busy} getUrl={() => String(new FormData(formRef.current!).get("url") ?? "").trim()} onStart={() => { setBusy(true); setPreview(null); setApproved(false); setImageLoaded(false); setNotice(""); }} onReady={(result, url) => { setPreview({ ...result, url }); setNotice("Photo ready. Review and approve it before publishing."); }} onError={setNotice} onFinish={() => setBusy(false)} />
       {preview && <div className="pulse-preview"><PulseThumbnail key={preview.previewToken} source={preview.thumbnailUrl} onLoaded={() => setImageLoaded(true)} /><label><input type="checkbox" checked={approved} disabled={!imageLoaded} onChange={event => setApproved(event.target.checked)} /> I reviewed this image and have permission to display it.</label></div>}
       <label><input name="rightsConfirmed" type="checkbox" required /> I verified the source and have permission to display this headline and link.</label><button disabled={busy} className="button brand-button">Publish reviewed story</button></fieldset></form>
     {stories.map(story => <div className="pulse-story-editor" key={story.id}><div className="admin-section-row"><span>{story.publisher}: {story.headline}</span><div className="pulse-story-actions"><button type="button" disabled={busy} onClick={() => toggleStory(story)}>{story.visible ? "Hide" : "Show"}</button><button type="button" className="pulse-delete" disabled={busy} onClick={() => deleteStory(story)}>Delete permanently</button></div></div><StoryThumbnailEditor story={story} /></div>)}
+    </>}
     <p role="status">{notice}</p>
   </div>;
 }

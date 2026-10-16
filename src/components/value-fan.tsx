@@ -4,17 +4,18 @@ import { Globe2, ShieldCheck, MessageCircle, PackageCheck } from "lucide-react";
 import { useMotion } from "./experience";
 import { valuePose } from "./value-motion";
 import styles from "./value-fan.module.css";
+import { useT } from "./locale";
 const values = [
-  { title: "Bangladesh first", icon: Globe2 },
-  { title: "Clear information", icon: ShieldCheck },
-  { title: "Thoughtful support", icon: MessageCircle },
-  { title: "Room to grow", icon: PackageCheck },
+  { title: "Bangladesh first", bn: "বাংলাদেশ প্রথম", icon: Globe2 },
+  { title: "Clear information", bn: "স্পষ্ট তথ্য", icon: ShieldCheck },
+  { title: "Thoughtful support", bn: "যত্নশীল সহায়তা", icon: MessageCircle },
+  { title: "Room to grow", bn: "বড় হওয়ার সুযোগ", icon: PackageCheck },
 ];
 export function ValueFan(props: { showProducts?: boolean }) {
   void props;
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
-  const { allowed } = useMotion();
+  const { allowed } = useMotion(); const t = useT();
   useEffect(() => {
     const node = root.current; const scene = stage.current;
     if (!node || !scene) return;
@@ -45,13 +46,13 @@ export function ValueFan(props: { showProducts?: boolean }) {
     window.addEventListener("resize", schedule); window.addEventListener("pageshow", schedule);
     return () => { cancelAnimationFrame(frame); resize.disconnect(); window.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule); window.removeEventListener("pageshow", schedule); reset(); };
   }, [allowed]);
-  return <section ref={root} className={styles.section} aria-label="The OANRO values" data-motion-enabled={allowed}>
+  return <section ref={root} className={styles.section} aria-label={t("The OANRO values", "OANRO-র মূল্যবোধ")} data-motion-enabled={allowed}>
     <div ref={stage} className={styles.stage}>
       <div className={styles.fan} role="list">
         {values.map((value, index) => <article data-value-card className={styles.item} role="listitem" key={value.title} style={{ "--slot": index - 1.5, "--depth": index } as CSSProperties}>
           <div className={styles.tilt}><div className={styles.glass}>
             <value.icon className={styles.icon} aria-hidden="true" strokeWidth={1.25} />
-          </div></div><h3>{value.title}</h3>
+          </div></div><h3>{t(value.title, value.bn)}</h3>
         </article>)}
       </div>
     </div>
