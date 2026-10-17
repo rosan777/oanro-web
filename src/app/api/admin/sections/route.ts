@@ -1,15 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { getAuth, authConfigured } from "@/lib/auth";
-import { isOwner } from "@/lib/access";
+import { authorize } from "@/lib/admin-api";
 import { getDb } from "@/lib/db";
 import { auditEvent, websiteSection } from "@/lib/db/schema";
 import { sectionCodes } from "@/lib/website-sections";
 export const runtime = "nodejs";
 export async function PATCH(request: Request) {
-  if (!authConfigured()) return Response.json({ error: "UNAVAILABLE" }, { status: 503 });
-  if (request.headers.get("origin") !== new URL(process.env.BETTER_AUTH_URL!).origin) return Response.json({ error: "ORIGIN_FORBIDDEN" }, { status: 403 });
-  const session = await getAuth().api.getSession({ headers: request.headers });
-  if (!session?.user.emailVerified || !(await isOwner(session.user.id))) return Response.json({ error: "FORBIDDEN" }, { status: 403 });
+  const actor = await authorize(request, "site.manage");
+  if (!actor) return Response.json({ error: "FORBIDDEN" }, { status: 403 });
+  const session = { user: { id: actor.userId } };
   if (Number(request.headers.get("content-length") || 0) > 4096) return Response.json({ error: "INVALID_INPUT" }, { status: 413 });
   let body: unknown;
   try { body = await request.json(); } catch { return Response.json({ error: "INVALID_INPUT" }, { status: 400 }); }

@@ -259,6 +259,33 @@ button { color: inherit; } svg { flex-shrink: 0; }
 .demo-price .stock-badge { align-self: center; }
 .product-card.is-out-of-stock .product-photo { filter: grayscale(.85); opacity: .75; }
 .sample-badge.stock-badge { background: #b42318; color: #fff; }
+.staff-admin section { display: grid; gap: .8rem; }
+.role-card { border: 1px solid var(--line); padding: .8rem 1rem; } .role-card summary { cursor: pointer; } .role-card summary small { color: var(--muted); }
+.permission-grid { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); margin: .8rem 0; }
+.permission-grid label { display: flex; gap: .5rem; align-items: flex-start; } .permission-grid span { display: grid; gap: .15rem; } .permission-grid small { color: var(--muted); font-size: .75rem; }
+.permission-sensitive b { color: #b42318; }
+.campaign-banner { background: linear-gradient(120deg, var(--brand), #0b3d2e); background-size: cover; background-position: center; color: #fff; padding: clamp(3rem, 8vw, 6rem) 0; }
+.campaign-banner-copy { display: grid; gap: .8rem; max-width: 720px; } .campaign-banner .eyebrow { color: #fffc; }
+.campaign-banner h2 { font-size: clamp(2rem, 6vw, 3.6rem); line-height: 1.05; } .campaign-banner p { max-width: 52ch; color: #ffffffe0; }
+.campaign-ends { justify-self: start; background: #fff; color: #111; font-weight: 700; font-size: .8rem; padding: .3rem .7rem; border-radius: 3px; }
+.switch-badge.small { font-size: .65rem; padding: .1rem .45rem; vertical-align: middle; margin-left: .3rem; } .switch-badge.is-scheduled { background: #b54708; }
+.campaign-pick-list { list-style: none; padding: 0; margin: 0; display: grid; gap: .5rem; }
+.inquiry-form { display: grid; gap: .9rem; border: 1px solid var(--line); padding: 1.1rem; background: var(--surface); margin-top: 1.2rem; }
+.inquiry-form label { display: grid; gap: .3rem; font-size: .9rem; }
+.inquiry-form input:not([type=checkbox]), .inquiry-form select, .inquiry-form textarea { padding: .6rem; border: 1px solid var(--line); width: 100%; font: inherit; background: var(--background); color: inherit; }
+.inquiry-form .inquiry-consent { display: flex; gap: .5rem; align-items: flex-start; font-size: .8rem; } .inquiry-consent a { text-decoration: underline; }
+.inquiry-qty { max-width: 140px; } .inquiry-about { color: var(--muted); font-size: .85rem; }
+.inquiry-trap { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; opacity: 0; }
+.inquiry-error { color: #b42318; font-size: .85rem; } .inquiry-done { border: 1px solid #12805c; padding: 1rem; margin-top: 1.2rem; display: grid; gap: .3rem; }
+.lead-filters { display: flex; flex-wrap: wrap; gap: .4rem; } .lead-filters button { border: 1px solid var(--line); padding: .35rem .7rem; border-radius: 999px; font-size: .8rem; }
+.lead-filters button[aria-pressed=true] { background: var(--brand); color: #fff; border-color: var(--brand); }
+.lead-card { border: 1px solid var(--line); padding: .7rem .9rem; } .lead-card.status-new { border-left: 5px solid #12805c; } .lead-card summary { cursor: pointer; } .lead-card summary small { color: var(--muted); }
+.lead-details { display: grid; grid-template-columns: max-content 1fr; gap: .3rem 1rem; margin: .8rem 0; font-size: .9rem; } .lead-details dt { color: var(--muted); } .lead-message { white-space: pre-wrap; }
+.lead-notes { display: grid; gap: .5rem; margin-top: .8rem; } .lead-notes p { background: var(--background); padding: .5rem .7rem; border-left: 3px solid var(--line); display: grid; gap: .15rem; } .lead-notes small { color: var(--muted); font-size: .72rem; }
+.lead-notes form { display: grid; gap: .4rem; } .lead-notes textarea { padding: .5rem; border: 1px solid var(--line); font: inherit; background: var(--background); color: inherit; }
+.legal-page { max-width: 760px; padding-block: 3rem 4rem; display: grid; gap: 1rem; }
+.legal-page h1 { font-size: clamp(2rem, 6vw, 3rem); } .legal-page h2 { font-size: 1.2rem; margin-top: 1rem; } .legal-page section { display: grid; gap: .5rem; }
+.legal-page p { line-height: 1.7; } .legal-updated { color: var(--muted); font-size: .85rem; } .legal-intro { font-size: 1.1rem; }
 .category-picker { display: grid; gap: .8rem; }
 .admin-callout { border: 1px solid var(--brand); padding: .9rem; display: grid; gap: .7rem; justify-items: start; }
 @media (max-width: 600px) { .admin-product-list .admin-section-row { flex-direction: column; align-items: stretch; } }
@@ -499,3 +526,35 @@ html:has([data-motion="paused"]) { scroll-behavior: auto; }
 .pulse-story-actions { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: flex-end; }
 .admin-section-row .pulse-delete { color: #a32929; border-color: currentColor; }
 @media (max-width: 480px) { .pulse-story-editor .admin-section-row { flex-wrap: wrap; } .pulse-story-actions { justify-content: flex-start; } }
+
+/* Homepage "Message OANRO": the form appears in the centre of the window, blurred and grey,
+   then slowly sharpens into full colour. The dialog itself is the card; margin:auto + inset:0 centres it. */
+.message-reveal-trigger { margin-top: 0; }
+/* Contact buttons (e.g. "Ask about this product" + "Email OANRO") share one equal width and height. */
+.contact-actions { align-items: stretch; }
+.contact-actions > .button { flex: 1 1 260px; max-width: 340px; min-height: 52px; margin-top: 0; justify-content: center; text-align: center; }
+/* Centred with left/top 50% + the separate `translate` property: identical in Safari, Chrome and Firefox
+   (Safari can ignore auto margins on a fit-content modal), and it doesn't clash with the transform animation. */
+dialog.message-pop { position: fixed; inset: auto; left: 50%; top: 50%; translate: -50% -50%; margin: 0; width: min(540px, calc(100vw - 2rem)); height: auto; max-height: calc(100dvh - 2rem);
+  padding: 0; border: 0; border-radius: 16px; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--background); color: var(--foreground);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand) 25%, transparent), 0 40px 90px -25px color-mix(in srgb, var(--brand) 55%, #000);
+  animation: pop-reveal .75s cubic-bezier(.22,.9,.3,1) both; }
+/* Equal parts off-white, gold and green: a soft gold glow top-left and green glow bottom-right over an off-white haze. */
+dialog.message-pop::backdrop { background:
+    radial-gradient(circle at 15% 15%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
+    radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--brand) 22%, transparent), transparent 60%),
+    color-mix(in srgb, var(--background) 72%, transparent); backdrop-filter: blur(2.4px) saturate(.85); animation: pop-fade .5s ease both; }
+dialog.message-pop > :not(.message-pop-close) { margin: 0; border: 0; }
+.message-pop-close { position: sticky; float: right; top: .7rem; margin: .7rem .7rem -3.4rem 0; z-index: 2; width: 40px; height: 40px; border-radius: 50%; border: 0;
+  background: color-mix(in srgb, var(--brand) 10%, var(--surface)); color: var(--foreground); display: grid; place-items: center; cursor: pointer; transition: background .2s, color .2s; }
+.message-pop-close:hover, .message-pop-close:focus-visible { background: var(--brand); color: #fff; outline: none; }
+dialog.message-pop.is-closing { animation: pop-hide .42s ease-in both; }
+dialog.message-pop.is-closing::backdrop { animation: pop-fade .42s ease-in reverse both; }
+@keyframes pop-reveal {
+  0% { opacity: 0; filter: blur(8px) grayscale(1); transform: scale(.94) translateY(14px); }
+  45% { opacity: .85; filter: blur(3px) grayscale(.6); }
+  100% { opacity: 1; filter: blur(0) grayscale(0); transform: none; } }
+@keyframes pop-hide { to { opacity: 0; filter: blur(6px) grayscale(1); transform: scale(.96) translateY(10px); } }
+@keyframes pop-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { dialog.message-pop, dialog.message-pop::backdrop { animation: none; } }

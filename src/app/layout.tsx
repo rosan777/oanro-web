@@ -10,10 +10,11 @@ import { getApprovedPulseStories, getSectionState } from "@/lib/website-sections
 import { GlobalPulse } from "@/components/global-pulse";
 import { ProductsProvider } from "@/components/products-context";
 import { getStoreCollections, getStoreProducts, getStoreServices } from "@/lib/store-products";
+import { siteUrl } from "@/lib/site-url";
 
 const sans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: "swap" });
 const mono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
-export const metadata: Metadata = { title: { default: "OANRO | Find your next", template: "%s | OANRO" }, description: "Seasonal products and practical technology services. Discover OANRO's first chapter.", icons: { icon: "/logo.svg" } };
+export const metadata: Metadata = { metadataBase: new URL(siteUrl()), title: { default: "OANRO | Find your next", template: "%s | OANRO" }, description: "Seasonal products and practical technology services. Discover OANRO's first chapter.", icons: { icon: "/logo.svg" }, openGraph: { type: "website", siteName: "OANRO", locale: "en_BD", alternateLocale: ["bn_BD"] } };
 export const dynamic = "force-dynamic";
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const config = getSiteConfig();
