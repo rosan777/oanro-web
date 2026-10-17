@@ -1,5 +1,7 @@
 import "server-only";
+import { cache } from "react";
 import { getDb } from "./db";
+import { storefrontCached } from "./storefront-cache";
 import { demoCollections, products as demoProducts, services as demoServices, type Product, type Service, type StoreCollection } from "./catalog";
 import { hasManagedCatalog, listOwnerCollections, listOwnerProducts, listStorefrontCollections, listStorefrontProducts, type CatalogDb, type OwnerCollection, type OwnerProduct } from "./product-store";
 import { hasManagedServices, listOwnerServices, listStorefrontServices, type OwnerService } from "./service-store";
@@ -18,24 +20,24 @@ function missingSchema(error: unknown) {
  * has not run yet, or the owner has never added a product. Other database errors fail closed (empty)
  * so hidden or archived products are never resurrected from the demo list.
  */
-export async function getStoreProducts(): Promise<Product[]> {
+const cachedProducts = storefrontCached("products", async () => { const db = catalogDb(); const [managed, list] = await Promise.all([hasManagedCatalog(db), listStorefrontProducts(db)]); return managed ? list : null; });
+const cachedServices = storefrontCached("services", async () => { const db = catalogDb(); const [managed, list] = await Promise.all([hasManagedServices(db), listStorefrontServices(db)]); return managed ? list : null; });
+const cachedCollections = storefrontCached("collections", () => listStorefrontCollections(catalogDb()));
+const cachedCampaigns = storefrontCached("campaigns", () => listActiveCampaigns(catalogDb()));
+async function loadStoreProducts(): Promise<Product[]> {
   if (!process.env.DATABASE_URL) return demoProducts;
-  try {
-    const db = catalogDb();
-    return await hasManagedCatalog(db) ? await listStorefrontProducts(db) : demoProducts;
-  } catch (error) { return missingSchema(error) ? demoProducts : []; }
+  try { return (await cachedProducts()) ?? demoProducts; }
+  catch (error) { return missingSchema(error) ? demoProducts : []; }
 }
-export async function getStoreServices(): Promise<Service[]> {
+async function loadStoreServices(): Promise<Service[]> {
   if (!process.env.DATABASE_URL) return demoServices;
-  try {
-    const db = catalogDb();
-    return await hasManagedServices(db) ? await listStorefrontServices(db) : demoServices;
-  } catch (error) { return missingSchema(error) ? demoServices : []; }
+  try { return (await cachedServices()) ?? demoServices; }
+  catch (error) { return missingSchema(error) ? demoServices : []; }
 }
 /** Published product rows (sections), in display order. Before the migration, mirrors the old Caps/Tech switches. */
-export async function getStoreCollections(): Promise<StoreCollection[]> {
+async function loadStoreCollections(): Promise<StoreCollection[]> {
   if (process.env.DATABASE_URL) {
-    try { return await listStorefrontCollections(catalogDb()); }
+    try { return await cachedCollections(); }
     catch (error) { if (!missingSchema(error)) return []; }
   }
   const sections = await getSectionState();
@@ -59,11 +61,19 @@ export async function getOwnerServices(): Promise<OwnerServices> {
   } catch { return { ready: false, managed: false, services: [] }; }
 }
 /** Campaigns running now (Dhaka-time schedule is stored as exact instants). Fails closed. */
-export async function getActiveCampaigns(): Promise<StoreCampaign[]> {
+async function loadActiveCampaigns(): Promise<StoreCampaign[]> {
   if (!process.env.DATABASE_URL) return [];
-  try { return await listActiveCampaigns(catalogDb()); } catch { return []; }
+  try { return await cachedCampaigns(); } catch { return []; }
 }
 export async function getOwnerCampaigns(): Promise<{ ready: boolean; campaigns: OwnerCampaign[] }> {
   if (!process.env.DATABASE_URL) return { ready: false, campaigns: [] };
   try { return { ready: true, campaigns: await listOwnerCampaigns(catalogDb()) }; } catch { return { ready: false, campaigns: [] }; }
 }
+/** Cached per request: layout and page share one database round trip. */
+export const getStoreProducts = cache(loadStoreProducts);
+/** Cached per request: layout and page share one database round trip. */
+export const getStoreServices = cache(loadStoreServices);
+/** Cached per request: layout and page share one database round trip. */
+export const getStoreCollections = cache(loadStoreCollections);
+/** Cached per request: layout and page share one database round trip. */
+export const getActiveCampaigns = cache(loadActiveCampaigns);

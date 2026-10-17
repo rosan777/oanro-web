@@ -3,9 +3,10 @@ import { useState } from "react";
 import { permissions, permissionInfo, type Permission } from "@/lib/permissions";
 import type { StaffOverview } from "@/lib/rbac";
 import { useAdminCall } from "./admin-ui";
+import { formatDhaka } from "@/lib/dhaka-time";
 
 const fieldLabel: Record<string, string> = { email: "Email", roleId: "Role", name: "Role name", userId: "Staff member" };
-const extra: Record<string, string> = { OWNER_ONLY: "Only the owner can do this: edit roles, or give or change “Staff & roles” access.", ALREADY_STAFF: "That person is already the owner or a staff member.", INVALID_EMAIL: "Enter a valid email address.", ROLE_NOT_FOUND: "That role no longer exists. Refresh the page.", SELF_CHANGE: "You can't change your own access.", ROLE_IN_USE: "Move staff and pending invites off this role before deleting it.", INVALID_ROLE: "Role name is required (max 40 characters).", INVALID_PERMISSIONS: "Unknown permission selected." };
+const extra: Record<string, string> = { OWNER_ONLY: "Only the owner can do this: edit roles, or give or change “Staff & roles”, report, profit or cost access.", ALREADY_STAFF: "That person is already the owner or a staff member.", INVALID_EMAIL: "Enter a valid email address.", ROLE_NOT_FOUND: "That role no longer exists. Refresh the page.", SELF_CHANGE: "You can't change your own access.", ROLE_IN_USE: "Move staff and pending invites off this role before deleting it.", INVALID_ROLE: "Role name is required (max 40 characters).", INVALID_PERMISSIONS: "Unknown permission selected." };
 
 export function StaffDashboard({ initial, selfId }: { initial: StaffOverview; selfId: string }) {
   const [data, setData] = useState(initial);
@@ -41,7 +42,7 @@ export function StaffDashboard({ initial, selfId }: { initial: StaffOverview; se
         <small>Tell them to sign up at <b>/sign-in</b> with exactly this email. Once their email is verified, they get this role automatically. Invites expire after 14 days.</small>
         <div className="product-form-actions"><button className="button brand-button" disabled={busy}>Save invite</button></div>
       </form>
-      {data.invites.length > 0 && <ul className="admin-product-list">{data.invites.map(i => <li key={i.id} className="admin-section-row"><div><strong>{i.email}</strong><small>Pending · {roleName(i.roleId)} · expires {new Date(i.expiresAt).toLocaleDateString("en-GB", { timeZone: "Asia/Dhaka" })}</small></div><button type="button" disabled={busy} onClick={() => run("DELETE", { action: "invite", id: i.id }, `Invite for ${i.email} revoked.`)}>Revoke</button></li>)}</ul>}
+      {data.invites.length > 0 && <ul className="admin-product-list">{data.invites.map(i => <li key={i.id} className="admin-section-row"><div><strong>{i.email}</strong><small>Pending · {roleName(i.roleId)} · expires {formatDhaka(i.expiresAt, "en", { year: true, time: false })}</small></div><button type="button" disabled={busy} onClick={() => run("DELETE", { action: "invite", id: i.id }, `Invite for ${i.email} revoked.`)}>Revoke</button></li>)}</ul>}
     </section>
 
     <section><h2>Roles</h2><p>A role is a set of permissions. Changes apply immediately to everyone with that role.</p>

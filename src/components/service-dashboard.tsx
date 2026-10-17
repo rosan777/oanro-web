@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { serviceCategories } from "@/lib/categories";
 import { slugify, type ProductStatus } from "@/lib/product-input";
 import type { OwnerServices } from "@/lib/store-products";
+import { ActionIcon } from "./action-icon";
 import { CategoryPicker, PhotoPicker, StatusSelect, statusLabel, useAdminCall } from "./admin-ui";
 
 type Item = OwnerServices["services"][number];
@@ -52,8 +53,8 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
       <div><strong>{item.titleEn}</strong><small>{item.categoryEn || "No category"}{item.hasImage ? " · thumbnail" : ""} · {statusLabel[item.status]}</small></div>
       <div className="admin-product-actions">
         <StatusSelect label="" value={item.status} disabled={busy} onChange={status => call("PATCH", { id: item.id, status }, `${item.titleEn}: ${statusLabel[status].toLowerCase()}.`)} />
-        <button type="button" disabled={busy} onClick={() => open(item)}>Edit</button>
-        <button type="button" disabled={busy} onClick={() => { if (window.confirm(`Archive “${item.titleEn}”?`)) void call("DELETE", { id: item.id }, `${item.titleEn} archived.`); }}>Archive</button>
+        <button type="button" className="btn btn-neutral" disabled={busy} onClick={() => open(item)}><ActionIcon name="edit" />Edit</button>
+        <button type="button" className="btn btn-danger" disabled={busy} onClick={() => { if (window.confirm(`Archive “${item.titleEn}”?`)) void call("DELETE", { id: item.id }, `${item.titleEn} archived.`); }}><ActionIcon name="archive" />Archive</button>
       </div>
     </li>)}</ul>
     <p role="status" aria-live="polite">{notice}</p>

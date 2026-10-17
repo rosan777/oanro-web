@@ -4,6 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import { useMotion } from "./experience";
 import { PulseThumbnail } from "./pulse-thumbnail";
 import { Localized } from "./locale";
+import { formatDhaka } from "@/lib/dhaka-time";
 
 export type PulseStory = { id: string; publisher: string; headline: string; url: string; publishedAt?: string | null; thumbnailUrl?: string | null };
 export function GlobalPulse({ stories, autoScroll = true, speed = 28 }: { stories: PulseStory[]; autoScroll?: boolean; speed?: number }) {
@@ -35,7 +36,7 @@ export function GlobalPulse({ stories, autoScroll = true, speed = 28 }: { storie
   if (!stories.length) return null;
   const render = (copy: boolean) => stories.map(story => <a key={story.id} href={story.url} target="_blank" rel="noopener noreferrer" className="pulse-card" tabIndex={copy ? -1 : undefined}>
     <PulseThumbnail source={story.thumbnailUrl} />
-    <span><strong>{story.publisher}</strong><span className="pulse-headline">{story.headline}</span>{story.publishedAt && <time dateTime={story.publishedAt}>{new Date(story.publishedAt).toLocaleDateString()}</time>}</span><ArrowUpRight size={17} aria-hidden="true" />
+    <span><strong>{story.publisher}</strong><span className="pulse-headline">{story.headline}</span>{story.publishedAt && <time dateTime={story.publishedAt}>{formatDhaka(story.publishedAt, "en", { year: true, time: false })}</time>}</span><ArrowUpRight size={17} aria-hidden="true" />
   </a>);
   return <section className="pulse-section" data-pulse-motion={allowed ? "on" : "off"} aria-labelledby="pulse-title"><div className="container pulse-heading"><div><p className="eyebrow"><Localized en="Global Pulse" bn="গ্লোবাল পালস" /></p><h2 id="pulse-title"><Localized en="Around the world of technology." bn="প্রযুক্তি জগতের খবর।" /></h2></div></div>
     <div className="pulse-track" ref={track} role="region" aria-label="Global Pulse news" tabIndex={0} onMouseEnter={() => { blocked.current = true; }} onMouseLeave={() => { blocked.current = false; }} onPointerDown={() => { touching.current = true; }} onPointerUp={() => { touching.current = false; idleUntil.current = performance.now() + 1500; }} onPointerCancel={() => { touching.current = false; }} onPointerLeave={() => { touching.current = false; }} onWheel={() => { idleUntil.current = performance.now() + 1500; }}><div className="pulse-group" ref={first}>{render(false)}</div>{stories.length > 1 && <div className="pulse-group" aria-hidden="true">{render(true)}</div>}</div>

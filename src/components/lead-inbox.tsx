@@ -2,11 +2,12 @@
 import { useState } from "react";
 import type { InboxLead, LeadStatus } from "@/lib/lead-store";
 import { useAdminCall } from "./admin-ui";
+import { formatDhaka } from "@/lib/dhaka-time";
 
 const statuses: LeadStatus[] = ["new", "contacted", "qualified", "won", "lost", "closed"];
 const statusText: Record<LeadStatus, string> = { new: "New", contacted: "Contacted", qualified: "Interested", won: "Won (sale made)", lost: "Lost", closed: "Closed" };
 const kindText: Record<InboxLead["kind"], string> = { product: "Product inquiry", restock: "Notify when back", service: "Service inquiry", general: "General message", privacy: "Privacy request" };
-const when = (iso: string) => new Date(iso).toLocaleString("en-GB", { timeZone: "Asia/Dhaka", dateStyle: "medium", timeStyle: "short" });
+const when = (iso: string) => formatDhaka(iso, "en", { year: true });
 
 export function LeadInbox({ initial, people, canManage }: { initial: InboxLead[]; people: { id: string; name: string }[]; canManage: boolean }) {
   const [leads, setLeads] = useState(initial);
@@ -23,7 +24,7 @@ export function LeadInbox({ initial, people, canManage }: { initial: InboxLead[]
     {shown.length === 0 && <p>No inquiries here.</p>}
     <ul className="admin-product-list">{shown.map(l => <li key={l.id} className={`lead-card status-${l.status}`}>
       <details>
-        <summary><span className={`switch-badge small ${l.status === "new" ? "is-on" : "is-off"}`}>{statusText[l.status]}</span> <strong>{l.name}</strong> · {kindText[l.kind]}{l.subject ? ` · ${l.subject.replace(/^privacy:/, "")}` : ""}<small> · {when(l.createdAt)}</small></summary>
+        <summary><span className={`switch-badge small ${l.status === "new" ? "is-on" : "is-off"}`}>{statusText[l.status]}</span> <strong>{l.name}</strong> · {kindText[l.kind]}{l.subject ? ` · ${l.subject.startsWith("payment") ? `Payment / refund${l.subject.includes(":") ? ` · ${l.subject.slice(8)}` : ""}` : l.subject.replace(/^privacy:/, "")}` : ""}<small> · {when(l.createdAt)}</small></summary>
         <dl className="lead-details">
           {l.phone && <><dt>Phone</dt><dd><a href={`tel:${l.phone}`}>{l.phone}</a>{l.preferredContact === "whatsapp" && <> · <a href={`https://wa.me/${l.phone.replace(/\D/g, "").replace(/^0/, "880")}`} target="_blank" rel="noreferrer">WhatsApp</a></>}</dd></>}
           {l.email && <><dt>Email</dt><dd><a href={`mailto:${l.email}`}>{l.email}</a></dd></>}

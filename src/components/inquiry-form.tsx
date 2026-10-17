@@ -10,15 +10,19 @@ export function InquiryForm({ kind, productSlug, productName, size, services = [
   const { locale } = useLocale(); const bn = locale === "bn";
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState("");
+  const [topic, setTopic] = useState("");
   const fieldText: Record<string, [string, string]> = {
     phone: ["Enter a phone number we can reach (or an email).", "যোগাযোগের জন্য একটি ফোন নম্বর (অথবা ইমেইল) দিন।"], email: ["Check the email address.", "ইমেইল ঠিকানাটি দেখে নিন।"],
     name: ["Please enter your name.", "আপনার নাম লিখুন।"], message: ["Please write a short message.", "একটি ছোট বার্তা লিখুন।"], consent: ["Please agree to the privacy notice.", "প্রাইভেসি নোটিশে সম্মতি দিন।"],
-    quantity: ["Quantity must be between 1 and 100.", "পরিমাণ ১ থেকে ১০০-এর মধ্যে হতে হবে।"], requestType: ["Choose what you'd like us to do.", "আপনি কী চান তা বেছে নিন।"],
+    quantity: ["Quantity must be between 1 and 100.", "পরিমাণ ১ থেকে ১০০-এর মধ্যে হতে হবে।"], orderCode: ["Order numbers look like OA-XXXXXXXX. Leave it empty if you're not sure.", "অর্ডার নম্বর দেখতে OA-XXXXXXXX এর মতো। নিশ্চিত না হলে খালি রাখুন।"], requestType: ["Choose what you'd like us to do.", "আপনি কী চান তা বেছে নিন।"],
   };
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(""); setState("sending");
     const form = new FormData(event.currentTarget);
-    const body = { ...Object.fromEntries(form.entries()), kind: kind === "general" && form.get("serviceSlug") ? "service" : kind, productSlug, size: size ?? form.get("size") ?? "", consent: form.get("consent") === "on", locale };
+    // "__payment" is a topic of a general message, not a service.
+    const payment = form.get("serviceSlug") === "__payment";
+    const entries = Object.fromEntries(form.entries()); if (payment) { delete entries.serviceSlug; entries.topic = "payment"; }
+    const body = { ...entries, kind: kind === "general" && form.get("serviceSlug") && !payment ? "service" : kind, productSlug, size: size ?? form.get("size") ?? "", consent: form.get("consent") === "on", locale };
     try {
       const response = await fetch("/api/inquiries", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const result = await response.json().catch(() => ({})) as { error?: string; field?: string };
@@ -36,7 +40,8 @@ export function InquiryForm({ kind, productSlug, productName, size, services = [
     {/* Honeypot: hidden from people, bots tend to fill it in. */}
     <input type="text" name="website" tabIndex={-1} autoComplete="off" className="inquiry-trap" aria-hidden="true" />
     {kind === "privacy" && <label>{L(bn, "What would you like us to do?", "আপনি কী চান?")}<select name="requestType" required defaultValue=""><option value="" disabled>{L(bn, "Choose…", "বেছে নিন…")}</option><option value="access">{L(bn, "Send me a copy of my data", "আমার তথ্যের কপি পাঠান")}</option><option value="correct">{L(bn, "Correct my data", "আমার তথ্য সংশোধন করুন")}</option><option value="delete">{L(bn, "Delete my data", "আমার তথ্য মুছে ফেলুন")}</option></select></label>}
-    {kind === "general" && services.length > 0 && <label>{L(bn, "About (optional)", "বিষয় (ঐচ্ছিক)")}<select name="serviceSlug" defaultValue=""><option value="">{L(bn, "General question", "সাধারণ প্রশ্ন")}</option>{services.map(s => <option key={s.slug} value={s.slug}>{s.title}</option>)}</select></label>}
+    {kind === "general" && <label>{L(bn, "About (optional)", "বিষয় (ঐচ্ছিক)")}<select name="serviceSlug" value={topic} onChange={e => setTopic(e.target.value)}><option value="">{L(bn, "General question", "সাধারণ প্রশ্ন")}</option><option value="__payment">{L(bn, "Payment, refund or order question", "পেমেন্ট, রিফান্ড বা অর্ডার সংক্রান্ত প্রশ্ন")}</option>{services.map(s => <option key={s.slug} value={s.slug}>{s.title}</option>)}</select></label>}
+    {kind === "general" && topic === "__payment" && <label>{L(bn, "Order number (optional)", "অর্ডার নম্বর (ঐচ্ছিক)")}<input name="orderCode" maxLength={20} autoCapitalize="characters" placeholder="OA-XXXXXXXX" /><small>{L(bn, "Find it in My account → My orders. Please don't write your bKash/Nagad PIN or password here.", "My account → My orders-এ পাবেন। এখানে কখনো bKash/Nagad-এর PIN বা পাসওয়ার্ড লিখবেন না।")}</small></label>}
     <div className="product-form-row">
       <label>{L(bn, "Your name", "আপনার নাম")}<input name="name" required maxLength={80} autoComplete="name" /></label>
       <label>{L(bn, "Phone / WhatsApp", "ফোন / হোয়াটসঅ্যাপ")}<input name="phone" type="tel" maxLength={20} autoComplete="tel" placeholder="01XXXXXXXXX" /></label>
