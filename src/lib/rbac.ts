@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { and, asc, count, eq, gt, inArray, isNull } from "drizzle-orm";
 import { auditEvent, role, rolePermission, session, staffInvite, staffMember, systemOwner, user } from "./db/schema";
-import { permissions, type Permission } from "./permissions";
+import { permissions, sensitivePermissions, type Permission } from "./permissions";
 import { ProductStoreError, type CatalogDb } from "./product-store";
 
 export type Access = { owner: boolean; permissions: Set<Permission> };
@@ -39,9 +39,9 @@ export async function claimInvite(db: CatalogDb, u: { id: string; email: string;
 }
 
 // ---- Management (requires staff.manage, enforced by the API layer) ----
-/** True when the role grants staff.manage. Used to keep staff-admin power owner-controlled. */
+/** True when the role grants staff.manage or another sensitive permission (profit, costs, reports). Only the owner hands those out. */
 export async function roleGrantsStaffAdmin(db: CatalogDb, roleId: string) {
-  const [row] = await db.select({ roleId: rolePermission.roleId }).from(rolePermission).where(and(eq(rolePermission.roleId, roleId), eq(rolePermission.permission, "staff.manage"))).limit(1);
+  const [row] = await db.select({ roleId: rolePermission.roleId }).from(rolePermission).where(and(eq(rolePermission.roleId, roleId), inArray(rolePermission.permission, sensitivePermissions))).limit(1);
   return Boolean(row);
 }
 /** True when this staff member currently holds staff.manage through their role. */

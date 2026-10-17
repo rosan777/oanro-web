@@ -1,7 +1,8 @@
 // Technology services ("Tech solutions") data access; mirrors product-store.
 import { randomUUID } from "node:crypto";
-import { and, asc, count, desc, eq, isNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, getTableColumns, isNull } from "drizzle-orm";
 import { auditEvent, service } from "./db/schema";
+import { withImageFlag } from "./db/light";
 import { services as demoServices, type Service } from "./catalog";
 import { categoryBn } from "./categories";
 import type { ProductStatus, ServiceInput } from "./product-input";
@@ -10,7 +11,7 @@ import { ProductStoreError, type CatalogDb } from "./product-store";
 const fields = ["slug", "status", "titleEn", "titleBn", "word", "categoryEn", "categoryBn", "summaryEn", "summaryBn", "detailEn", "detailBn", "displayOrder"] as const;
 export type OwnerService = ServiceInput & { id: string; hasImage: boolean };
 export async function listOwnerServices(db: CatalogDb): Promise<OwnerService[]> {
-  const rows = await db.select().from(service).where(isNull(service.archivedAt)).orderBy(asc(service.displayOrder), desc(service.createdAt)).limit(200);
+  const rows = await db.select(withImageFlag(getTableColumns(service))).from(service).where(isNull(service.archivedAt)).orderBy(asc(service.displayOrder), desc(service.createdAt)).limit(200);
   return rows.map(r => ({ id: r.id, slug: r.slug, status: r.status, titleEn: r.titleEn, titleBn: r.titleBn, word: r.word, categoryEn: r.categoryEn, categoryBn: r.categoryBn,
     summaryEn: r.summaryEn, summaryBn: r.summaryBn, detailEn: r.detailEn, detailBn: r.detailBn, displayOrder: r.displayOrder, hasImage: Boolean(r.imageData) }));
 }
@@ -19,7 +20,7 @@ export async function hasManagedServices(db: CatalogDb) {
   return Number(row?.n ?? 0) > 0;
 }
 export async function listStorefrontServices(db: CatalogDb): Promise<Service[]> {
-  const rows = await db.select().from(service).where(and(eq(service.status, "published"), isNull(service.archivedAt))).orderBy(asc(service.displayOrder), desc(service.createdAt)).limit(100);
+  const rows = await db.select(withImageFlag(getTableColumns(service))).from(service).where(and(eq(service.status, "published"), isNull(service.archivedAt))).orderBy(asc(service.displayOrder), desc(service.createdAt)).limit(100);
   return rows.map(r => ({ slug: r.slug, title: r.titleEn, word: r.word || r.titleEn.split(/\s+/)[0].toUpperCase().slice(0, 12), text: r.summaryEn, detail: r.detailEn, category: r.categoryEn,
     image: r.imageData ? `/api/services/${encodeURIComponent(r.slug)}/image?v=${r.updatedAt.getTime()}` : null,
     bn: r.titleBn ? { title: r.titleBn, text: r.summaryBn || r.summaryEn, detail: r.detailBn || r.detailEn } : null }));

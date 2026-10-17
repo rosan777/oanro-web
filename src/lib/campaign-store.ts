@@ -1,7 +1,8 @@
 // Seasonal campaigns: scheduled banners with hand-picked products (attach, pin, reorder, remove without deleting).
 import { randomUUID } from "node:crypto";
-import { and, asc, eq, gt, inArray, isNull, lte, or } from "drizzle-orm";
+import { and, asc, eq, getTableColumns, gt, inArray, isNull, lte, or } from "drizzle-orm";
 import { auditEvent, campaign, campaignProduct, product } from "./db/schema";
+import { withImageFlag } from "./db/light";
 import type { StoreCampaign } from "./catalog";
 import type { CampaignInput, ProductStatus } from "./product-input";
 import { ProductStoreError, type CatalogDb } from "./product-store";
@@ -16,7 +17,7 @@ function phase(status: ProductStatus, startsAt: Date | null, endsAt: Date | null
   return "running";
 }
 export async function listOwnerCampaigns(db: CatalogDb, now = new Date()): Promise<OwnerCampaign[]> {
-  const rows = await db.select().from(campaign).where(isNull(campaign.archivedAt)).orderBy(asc(campaign.displayOrder), asc(campaign.createdAt));
+  const rows = await db.select(withImageFlag(getTableColumns(campaign))).from(campaign).where(isNull(campaign.archivedAt)).orderBy(asc(campaign.displayOrder), asc(campaign.createdAt));
   const items = rows.length ? await db.select().from(campaignProduct).where(inArray(campaignProduct.campaignId, rows.map(r => r.id))).orderBy(asc(campaignProduct.displayOrder)) : [];
   return rows.map(r => ({
     id: r.id, slug: r.slug, status: r.status, nameEn: r.nameEn, nameBn: r.nameBn, headlineEn: r.headlineEn, headlineBn: r.headlineBn,
@@ -28,7 +29,7 @@ export async function listOwnerCampaigns(db: CatalogDb, now = new Date()): Promi
 const live = (now: Date) => and(eq(campaign.status, "published"), isNull(campaign.archivedAt), or(isNull(campaign.startsAt), lte(campaign.startsAt, now)), or(isNull(campaign.endsAt), gt(campaign.endsAt, now)));
 /** Campaigns running right now, with their product slugs (pinned first). Products' own visibility is applied by the storefront. */
 export async function listActiveCampaigns(db: CatalogDb, now = new Date()): Promise<StoreCampaign[]> {
-  const rows = await db.select().from(campaign).where(live(now)).orderBy(asc(campaign.displayOrder), asc(campaign.startsAt)).limit(5);
+  const rows = await db.select(withImageFlag(getTableColumns(campaign))).from(campaign).where(live(now)).orderBy(asc(campaign.displayOrder), asc(campaign.startsAt)).limit(5);
   if (!rows.length) return [];
   const items = await db.select({ campaignId: campaignProduct.campaignId, slug: product.slug, pinned: campaignProduct.pinned, order: campaignProduct.displayOrder })
     .from(campaignProduct).innerJoin(product, eq(product.id, campaignProduct.productId))

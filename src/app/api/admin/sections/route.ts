@@ -3,10 +3,12 @@ import { authorize } from "@/lib/admin-api";
 import { getDb } from "@/lib/db";
 import { auditEvent, websiteSection } from "@/lib/db/schema";
 import { sectionCodes } from "@/lib/website-sections";
+import { storefrontChanged } from "@/lib/storefront-cache";
 export const runtime = "nodejs";
 export async function PATCH(request: Request) {
   const actor = await authorize(request, "site.manage");
   if (!actor) return Response.json({ error: "FORBIDDEN" }, { status: 403 });
+  storefrontChanged();
   const session = { user: { id: actor.userId } };
   if (Number(request.headers.get("content-length") || 0) > 4096) return Response.json({ error: "INVALID_INPUT" }, { status: 413 });
   let body: unknown;

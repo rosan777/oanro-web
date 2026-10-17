@@ -1,11 +1,12 @@
 "use client";
+import { ActionIcon } from "./action-icon";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { useLocale } from "./locale";
 
 type Mode = "login" | "signup" | "forgot" | "reset";
-export function AuthPanel({ google, resetToken }: { google: boolean; resetToken?: string }) {
+export function AuthPanel({ google, resetToken, next = "/account" }: { google: boolean; resetToken?: string; next?: string }) {
   const router = useRouter();
   const { locale } = useLocale();
   const bn = locale === "bn";
@@ -25,12 +26,12 @@ export function AuthPanel({ google, resetToken }: { google: boolean; resetToken?
         const result = await authClient.resetPassword({ newPassword: password, token: resetToken! });
         setMessage(result.error ? (bn ? "লিংকটি ব্যবহার করা যায়নি। নতুন reset link নিন।" : "Unable to reset. Request a new reset link.") : (bn ? "Password বদলেছে। এখন sign in করুন।" : "Password changed. You can now sign in."));
       } else if (mode === "signup") {
-        const result = await authClient.signUp.email({ name: String(form.get("name") ?? "").trim(), email, password, callbackURL: "/account" });
+        const result = await authClient.signUp.email({ name: String(form.get("name") ?? "").trim(), email, password, callbackURL: next });
         setMessage(result.error ? (bn ? "অ্যাকাউন্ট তৈরি করা যায়নি। তথ্য যাচাই করুন অথবা sign in/reset ব্যবহার করুন।" : "Unable to create account. Check your details or use sign in/password reset.") : (bn ? "ইমেইলের verification link খুলে তারপর sign in করুন।" : "Open the verification link in your email, then sign in."));
       } else {
         const result = await authClient.signIn.email({ email, password });
         if (result.error) setMessage(bn ? "Sign in হয়নি। তথ্য ও email verification যাচাই করুন।" : "Sign in failed. Check your details and email verification.");
-        else { router.replace("/account"); router.refresh(); }
+        else { router.replace(next); router.refresh(); }
       }
     } catch { setMessage(bn ? "সংযোগে সমস্যা হয়েছে। আবার চেষ্টা করুন।" : "Connection failed. Please try again."); }
     finally { setBusy(false); }
@@ -38,7 +39,7 @@ export function AuthPanel({ google, resetToken }: { google: boolean; resetToken?
   async function googleLogin() {
     setBusy(true); setMessage("");
     try {
-      const result = await authClient.signIn.social({ provider: "google", callbackURL: "/account", errorCallbackURL: "/sign-in" });
+      const result = await authClient.signIn.social({ provider: "google", callbackURL: next, errorCallbackURL: "/sign-in" });
       if (result.error) setMessage(bn ? "Google sign in হয়নি। আবার চেষ্টা করুন।" : "Google sign in failed. Please try again.");
     } catch { setMessage(bn ? "সংযোগে সমস্যা হয়েছে।" : "Connection failed."); }
     finally { setBusy(false); }
@@ -61,9 +62,9 @@ export function SignOut() {
   const { locale } = useLocale();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
-  return <><button className="button" disabled={busy} onClick={async () => {
+  return <><button type="button" className="account-btn is-signout" disabled={busy} onClick={async () => {
     setBusy(true); setFailed(false);
     try { const result = await authClient.signOut(); if (result.error) setFailed(true); else { router.replace("/sign-in"); router.refresh(); } }
     catch { setFailed(true); } finally { setBusy(false); }
-  }}>{locale === "bn" ? "সাইন আউট" : "Sign out"}</button>{failed && <p role="alert">{locale === "bn" ? "সাইন আউট হয়নি। আবার চেষ্টা করুন।" : "Sign out failed. Please retry."}</p>}</>;
+  }}><ActionIcon name="signout" />{busy ? (locale === "bn" ? "সাইন আউট হচ্ছে…" : "Signing out…") : locale === "bn" ? "সাইন আউট" : "Sign out"}</button>{failed && <p role="alert">{locale === "bn" ? "সাইন আউট হয়নি। আবার চেষ্টা করুন।" : "Sign out failed. Please retry."}</p>}</>;
 }

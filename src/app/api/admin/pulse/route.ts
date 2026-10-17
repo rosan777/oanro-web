@@ -5,6 +5,7 @@ import { getDb } from "@/lib/db";
 import { auditEvent, pulseStory } from "@/lib/db/schema";
 import { validateUploadedImage } from "@/lib/pulse-upload";
 import { publicUrl as validPublicUrl, discoverThumbnail, signPreview, readPreview, readObject } from "@/lib/pulse-thumbnail";
+import { storefrontChanged } from "@/lib/storefront-cache";
 export const runtime = "nodejs";
 async function owner(request: Request) {
   return (await authorize(request, "pulse.manage"))?.userId ?? null;
@@ -12,6 +13,7 @@ async function owner(request: Request) {
 export async function POST(request: Request) {
   const ownerId = await owner(request);
   if (!ownerId) return Response.json({ error: "FORBIDDEN" }, { status: 403 });
+  storefrontChanged();
   let data: Record<string, unknown>;
   try { data = await readObject(request); } catch { return Response.json({ error: "INVALID_INPUT" }, { status: 400 }); }
   if (data.action === "upload") {
@@ -47,6 +49,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const ownerId = await owner(request);
   if (!ownerId) return Response.json({ error: "FORBIDDEN" }, { status: 403 });
+  storefrontChanged();
   let data: Record<string, unknown>;
   try { data = await readObject(request); } catch { return Response.json({ error: "INVALID_INPUT" }, { status: 400 }); }
   if (data.action === "thumbnail") {
@@ -76,6 +79,7 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   const ownerId = await owner(request);
   if (!ownerId) return Response.json({ error: "FORBIDDEN" }, { status: 403 });
+  storefrontChanged();
   let data: Record<string, unknown>;
   try { data = await readObject(request, 8192); } catch { return Response.json({ error: "INVALID_INPUT" }, { status: 400 }); }
   if (typeof data.id !== "string" || !/^[0-9a-f-]{36}$/.test(data.id) || data.confirmDelete !== true) return Response.json({ error: "CONFIRMATION_REQUIRED" }, { status: 400 });

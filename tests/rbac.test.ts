@@ -32,7 +32,7 @@ test("RBAC: deny by default, owner bypass, invites, roles, deactivation", async 
     await rejects(createInvite(db, "owner", "x@example.com", "nope"), "ROLE_NOT_FOUND");
     assert.equal(await claimInvite(db, { id: "ana", email: "ana@example.com", emailVerified: true }), true);
     assert.equal(await claimInvite(db, { id: "ana", email: "ana@example.com", emailVerified: true }), false, "claim once");
-    assert.deepEqual([...(await getAccess(db, "ana")).permissions].sort(), ["leads.manage", "leads.read"]);
+    assert.deepEqual([...(await getAccess(db, "ana")).permissions].sort(), ["leads.manage", "leads.read", "orders.read"]); // Sales: inquiries + view orders (cannot approve payments)
 
     // Unverified emails can't claim; revoked invites can't be claimed.
     const bobInvite = await createInvite(db, "owner", "bob@example.com", "manager");

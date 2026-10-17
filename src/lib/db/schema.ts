@@ -82,6 +82,10 @@ export const product = pgTable("product", {
   taglineEn: text("tagline_en").notNull().default(""), taglineBn: text("tagline_bn").notNull().default(""),
   descriptionEn: text("description_en").notNull().default(""), descriptionBn: text("description_bn").notNull().default(""),
   price: integer("price").notNull(), stock: integer("stock"),
+  /** What one unit costs the business (৳). Private: only staff with "costs.manage" see or change it. */
+  costPrice: integer("cost_price"),
+  /** Restock alert threshold: warn when tracked stock is at or below this (null = default 5). */
+  lowStockAt: integer("low_stock_at"),
   sizes: jsonb("sizes").$type<string[]>().notNull(),
   specsEn: jsonb("specs_en").$type<[string, string][]>().notNull(),
   specsBn: jsonb("specs_bn").$type<[string, string][]>().notNull(),
@@ -96,6 +100,8 @@ export const product = pgTable("product", {
   check("product_status_check", sql`${t.status} in ('draft', 'published', 'hidden')`),
   check("product_price_check", sql`${t.price} >= 0`),
   check("product_stock_check", sql`${t.stock} is null or ${t.stock} >= 0`),
+  check("product_cost_check", sql`${t.costPrice} is null or ${t.costPrice} >= 0`),
+  check("product_low_stock_check", sql`${t.lowStockAt} is null or ${t.lowStockAt} >= 0`),
 ]);
 // Technology services ("Tech solutions") shown on the storefront.
 export const service = pgTable("service", {
@@ -187,3 +193,76 @@ export const leadNote = pgTable("lead_note", {
   authorId: text("author_id").notNull().references(() => user.id), body: text("body").notNull(),
   createdAt: time("created_at").notNull().defaultNow(),
 }, t => [index("lead_note_lead_idx").on(t.leadId, t.createdAt)]);
+
+// ---- Orders: logged-in checkout with manual bKash/Nagad "Send Money" + transaction ID, approved by staff.
+export const orderStatuses = ["pending", "paid", "rejected"] as const;
+export type OrderStatus = typeof orderStatuses[number];
+export const paymentMethods = ["bkash", "nagad"] as const;
+export type PaymentMethod = typeof paymentMethods[number];
+/** prepaid = whole amount paid by bKash/Nagad; cod = only the delivery charge is prepaid, the rest is cash at the door. */
+export const paymentTypes = ["prepaid", "cod"] as const;
+export type PaymentType = typeof paymentTypes[number];
+/** Delivery steps after payment is approved, in order. "returned" ends a failed delivery. */
+export const deliveryStages = ["processing", "shipped", "out_for_delivery", "delivered", "returned"] as const;
+export type DeliveryStage = typeof deliveryStages[number];
+/** Small owner-managed key/value settings (e.g. the personal bKash and Nagad numbers customers pay to). */
+export const storeSetting = pgTable("store_setting", {
+  key: text("key").primaryKey(), value: text("value").notNull(),
+  updatedBy: text("updated_by").references(() => user.id), updatedAt: time("updated_at").notNull().defaultNow(),
+});
+export const shopOrder = pgTable("shop_order", {
+  id: text("id").primaryKey(), code: text("code").notNull().unique(),
+  userId: text("user_id").notNull().references(() => user.id),
+  status: text("status").$type<OrderStatus>().notNull().default("pending"),
+  method: text("method").$type<PaymentMethod>().notNull(),
+  payTo: text("pay_to").notNull(), payerNumber: text("payer_number").notNull(), trxId: text("trx_id").notNull(),
+  imageData: text("screenshot_data"), total: integer("total").notNull(),
+  customerName: text("customer_name").notNull(), phone: text("phone").notNull(), address: text("address").notNull(), note: text("note").notNull().default(""),
+  rejectReason: text("reject_reason"), reviewedBy: text("reviewed_by").references(() => user.id), reviewedAt: time("reviewed_at"),
+  deliveryStatus: text("delivery_status").$type<DeliveryStage>(), courier: text("courier"), trackingCode: text("tracking_code"),
+  paymentType: text("payment_type").$type<PaymentType>().notNull().default("prepaid"),
+  /** Delivery charge the customer paid (non-refundable). Included in "total" (money received by bKash/Nagad). */
+  deliveryCharge: integer("delivery_charge").notNull().default(0),
+  /** Cash on delivery: product amount the courier collects; counts as revenue only once codCollectedAt is set. */
+  codDue: integer("cod_due").notNull().default(0),
+  codCollectedAt: time("cod_collected_at"), codCollectedBy: text("cod_collected_by").references(() => user.id),
+  /** What the business paid the courier for this order (৳). Used for net profit. */
+  shippingCost: integer("shipping_cost"),
+  createdAt: time("created_at").notNull().defaultNow(), updatedAt: time("updated_at").notNull().defaultNow(),
+}, t => [
+  check("shop_order_delivery_check", sql`${t.deliveryStatus} is null or ${t.deliveryStatus} in ('processing', 'shipped', 'out_for_delivery', 'delivered', 'returned')`),
+  uniqueIndex("shop_order_trx_idx").on(t.method, t.trxId),
+  index("shop_order_status_idx").on(t.status, t.createdAt), index("shop_order_reviewed_idx").on(t.status, t.reviewedAt), index("shop_order_user_idx").on(t.userId, t.createdAt),
+  check("shop_order_status_check", sql`${t.status} in ('pending', 'paid', 'rejected')`),
+  check("shop_order_method_check", sql`${t.method} in ('bkash', 'nagad')`),
+  check("shop_order_total_check", sql`${t.total} >= 0`),
+  check("shop_order_payment_type_check", sql`${t.paymentType} in ('prepaid', 'cod')`),
+  check("shop_order_cod_check", sql`${t.deliveryCharge} >= 0 and ${t.codDue} >= 0`),
+  check("shop_order_shipping_cost_check", sql`${t.shippingCost} is null or ${t.shippingCost} >= 0`),
+]);
+export const orderItem = pgTable("order_item", {
+  orderId: text("order_id").notNull().references(() => shopOrder.id, { onDelete: "cascade" }),
+  productId: text("product_id").notNull().references(() => product.id),
+  slug: text("slug").notNull(), name: text("name").notNull(), size: text("size").notNull(),
+  quantity: integer("quantity").notNull(), unitPrice: integer("unit_price").notNull(),
+  /** Cost price copied at order time, so later cost changes don't rewrite past profit. */
+  unitCost: integer("unit_cost"),
+  /** True when this line took units from a tracked stock count (so a rejection puts them back). */
+  stockReserved: boolean("stock_reserved").notNull().default(false),
+}, t => [primaryKey({ columns: [t.orderId, t.productId, t.size] }), check("order_item_quantity_check", sql`${t.quantity} between 1 and 10`)]);
+/** Customer-visible timeline of an order: placed, paid/rejected, then each delivery step. */
+export const orderEvent = pgTable("order_event", {
+  id: text("id").primaryKey(),
+  orderId: text("order_id").notNull().references(() => shopOrder.id, { onDelete: "cascade" }),
+  stage: text("stage").notNull(), note: text("note").notNull().default(""),
+  actorId: text("actor_id").references(() => user.id), createdAt: time("created_at").notNull().defaultNow(),
+}, t => [index("order_event_order_idx").on(t.orderId, t.createdAt)]);
+/** Customer's own saved details, editable on "My account" and used to prefill checkout. */
+export const customerProfile = pgTable("customer_profile", {
+  userId: text("user_id").primaryKey().references(() => user.id, { onDelete: "cascade" }),
+  phone: text("phone").notNull().default(""), altPhone: text("alt_phone").notNull().default(""),
+  address: text("address").notNull().default(""), area: text("area").notNull().default(""),
+  city: text("city").notNull().default(""), postcode: text("postcode").notNull().default(""),
+  permanentAddress: text("permanent_address").notNull().default(""), company: text("company").notNull().default(""),
+  updatedAt: time("updated_at").notNull().defaultNow(),
+});

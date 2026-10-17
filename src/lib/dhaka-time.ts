@@ -15,10 +15,15 @@ export function toDhakaInput(value: Date | string | null): string {
 }
 const months = { en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], bn: ["জানু", "ফেব্রু", "মার্চ", "এপ্রি", "মে", "জুন", "জুলাই", "আগ", "সেপ্টে", "অক্টো", "নভে", "ডিসে"] };
 const bnDigits = "০১২৩৪৫৬৭৮৯";
-/** "25 Dec, 11:59 PM" in Dhaka time; deterministic on server and browser (no Intl). */
-export function formatDhaka(value: Date | string, locale: "en" | "bn" = "en") {
+/**
+ * "25 Dec, 11:59 PM" in Dhaka time (add the year with `year: true`, or drop the time with `time: false`).
+ * Deterministic on server and browser: never uses Intl/toLocaleString, whose output differs between
+ * Node and browsers and causes React hydration errors.
+ */
+export function formatDhaka(value: Date | string, locale: "en" | "bn" = "en", opts: { year?: boolean; time?: boolean } = {}) {
   const d = new Date(new Date(value).getTime() + OFFSET_MS);
   const h = d.getUTCHours(), m = String(d.getUTCMinutes()).padStart(2, "0");
-  const text = `${d.getUTCDate()} ${months[locale][d.getUTCMonth()]}, ${h % 12 || 12}:${m} ${h < 12 ? "AM" : "PM"}`;
+  const date = `${d.getUTCDate()} ${months[locale][d.getUTCMonth()]}${opts.year ? ` ${d.getUTCFullYear()}` : ""}`;
+  const text = opts.time === false ? date : `${date}, ${h % 12 || 12}:${m} ${h < 12 ? "AM" : "PM"}`;
   return locale === "bn" ? text.replace(/\d/g, x => bnDigits[Number(x)]).replace("AM", "পূর্বাহ্ণ").replace("PM", "অপরাহ্ণ") : text;
 }

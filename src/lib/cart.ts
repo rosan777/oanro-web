@@ -22,3 +22,4 @@ function write(items: CartItem[]) { snapshot = items; try { const raw = JSON.str
 export function addToCart(slug: string, size: string) { const current = read(); const match = current.find(x => x.slug === slug && x.size === size); write(match ? current.map(x => x === match ? { ...x, quantity: Math.min(10, x.quantity + 1) } : x) : [...current, { slug, size, quantity: 1 }]); }
 export function changeQuantity(slug: string, size: string, delta: number) { write(read().map(x => x.slug === slug && x.size === size ? { ...x, quantity: Math.min(10, x.quantity + delta) } : x).filter(x => x.quantity > 0)); }
 export function removeItem(slug: string, size: string) { write(read().filter(x => x.slug !== slug || x.size !== size)); }
+export function clearCart() { write([]); }

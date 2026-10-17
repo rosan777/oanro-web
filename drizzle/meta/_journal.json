@@ -43,6 +43,34 @@
       "when": 1792140356104,
       "tag": "0005_staff_campaigns_leads",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792250000000,
+      "tag": "0006_orders",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792260000000,
+      "tag": "0007_delivery_tracking",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792270000000,
+      "tag": "0008_analytics",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792280000000,
+      "tag": "0009_cash_on_delivery",
+      "breakpoints": true
     }
   ]
 }

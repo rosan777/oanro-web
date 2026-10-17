@@ -1,23 +1,24 @@
 // Catalog data access. Takes a Drizzle database so routes (node-postgres) and tests (PGlite) share it.
 import { randomUUID } from "node:crypto";
-import { and, asc, count, desc, eq, isNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, getTableColumns, isNull } from "drizzle-orm";
 import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
 import * as schema from "./db/schema";
+import { withImageFlag } from "./db/light";
 import { auditEvent, product, productCollection } from "./db/schema";
 import { collectionAnchor, products as demoProducts, type Product, type StoreCollection } from "./catalog";
 import type { CollectionInput, ProductInput, ProductStatus } from "./product-input";
 
 export type CatalogDb = PgDatabase<PgQueryResultHKT, typeof schema>;
 export class ProductStoreError extends Error {}
-const fields = ["slug", "status", "collectionId", "nameEn", "nameBn", "categoryEn", "categoryBn", "taglineEn", "taglineBn", "descriptionEn", "descriptionBn", "price", "stock", "sizes", "specsEn", "specsBn", "displayOrder"] as const;
+const fields = ["slug", "status", "collectionId", "nameEn", "nameBn", "categoryEn", "categoryBn", "taglineEn", "taglineBn", "descriptionEn", "descriptionBn", "price", "stock", "lowStockAt", "sizes", "specsEn", "specsBn", "displayOrder"] as const;
 
 export type OwnerProduct = ProductInput & { id: string; hasImage: boolean; imagePosition: string; updatedAt: string };
 export async function listOwnerProducts(db: CatalogDb): Promise<OwnerProduct[]> {
-  const rows = await db.select().from(product).where(isNull(product.archivedAt)).orderBy(asc(product.displayOrder), desc(product.createdAt)).limit(200);
+  const rows = await db.select(withImageFlag(getTableColumns(product))).from(product).where(isNull(product.archivedAt)).orderBy(asc(product.displayOrder), desc(product.createdAt)).limit(200);
   return rows.map(row => ({
     id: row.id, slug: row.slug, status: row.status, collectionId: row.collectionId, nameEn: row.nameEn, nameBn: row.nameBn, categoryEn: row.categoryEn, categoryBn: row.categoryBn,
     taglineEn: row.taglineEn, taglineBn: row.taglineBn, descriptionEn: row.descriptionEn, descriptionBn: row.descriptionBn,
-    price: row.price, stock: row.stock, sizes: row.sizes, specsEn: row.specsEn, specsBn: row.specsBn, displayOrder: row.displayOrder,
+    price: row.price, stock: row.stock, lowStockAt: row.lowStockAt, sizes: row.sizes, specsEn: row.specsEn, specsBn: row.specsBn, displayOrder: row.displayOrder,
     hasImage: Boolean(row.imageData), imagePosition: row.imagePosition, updatedAt: row.updatedAt.toISOString(),
   }));
 }
@@ -28,7 +29,7 @@ export async function hasManagedCatalog(db: CatalogDb) {
 }
 export async function listStorefrontProducts(db: CatalogDb): Promise<Product[]> {
   // Products are public only when both the product and its section are published.
-  const rows = (await db.select({ row: product }).from(product).innerJoin(productCollection, eq(productCollection.id, product.collectionId))
+  const rows = (await db.select({ row: withImageFlag(getTableColumns(product)) }).from(product).innerJoin(productCollection, eq(productCollection.id, product.collectionId))
     .where(and(eq(product.status, "published"), isNull(product.archivedAt), eq(productCollection.status, "published"), isNull(productCollection.archivedAt)))
     .orderBy(asc(product.displayOrder), desc(product.createdAt)).limit(500)).map(r => r.row);
   return rows.map(row => ({ collectionId: row.collectionId,

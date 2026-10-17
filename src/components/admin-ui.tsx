@@ -10,13 +10,17 @@ const errorText: Record<string, string> = {
   NOT_FOUND: "This item no longer exists. Refresh the page.", CATALOG_NOT_EMPTY: "Demo items can only be imported while the list is empty.",
   COLLECTION_NOT_FOUND: "That section no longer exists. Refresh the page.", COLLECTION_NOT_EMPTY: "Move or archive the products in this section first.",
   BUILT_IN: "Built-in sections can be hidden but not archived, and their web address can't change.",
-  FORBIDDEN: "Your session expired or you are not the owner. Sign in again.",
+  FORBIDDEN: "Your session expired or you don't have permission. Sign in again.",
+  NOT_PENDING: "This order was already reviewed. Refresh the page.", REASON_REQUIRED: "Write a short reason for rejecting.",
+  OWNER_ONLY: "Only the owner can do this.", NOT_ALLOWED: "Your role doesn't allow this. Ask the owner for the right permission.",
+  NOT_DRAFT: "Only drafts can be edited with your role. Ask someone to hide or unpublish it first.", COURIER_REQUIRED: "Choose or type the courier name.",
+  INVALID_STEP: "That delivery step is no longer possible (someone may have updated it). Refresh the page.",
 };
 /** POST/PATCH/DELETE to an admin endpoint with shared busy state and readable error messages. */
 export function useAdminCall<T>(endpoint: string, labels: Record<string, string>, onData: (data: T) => void) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
-  async function call(method: "POST" | "PATCH" | "DELETE", body: Record<string, unknown>, success: string) {
+  async function call(method: "POST" | "PATCH" | "PUT" | "DELETE", body: Record<string, unknown>, success: string) {
     setBusy(true); setNotice("");
     try {
       const response = await fetch(endpoint, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -31,8 +35,9 @@ export function useAdminCall<T>(endpoint: string, labels: Record<string, string>
   }
   return { busy, setBusy, notice, setNotice, call };
 }
-export function StatusSelect({ value, onChange, disabled, id, label = "Status" }: { value: ProductStatus; onChange: (s: ProductStatus) => void; disabled?: boolean; id?: string; label?: string }) {
-  return <label>{label}<select id={id} value={value} disabled={disabled} onChange={e => onChange(e.target.value as ProductStatus)}>{productStatuses.map(s => <option key={s} value={s}>{statusLabel[s]}</option>)}</select></label>;
+/** allowed: statuses this person may switch TO (the current one always stays visible). */
+export function StatusSelect({ value, onChange, disabled, id, label = "Status", allowed }: { value: ProductStatus; onChange: (s: ProductStatus) => void; disabled?: boolean; id?: string; label?: string; allowed?: ProductStatus[] }) {
+  return <label>{label}<select id={id} value={value} disabled={disabled} onChange={e => onChange(e.target.value as ProductStatus)}>{productStatuses.filter(s => s === value || !allowed || allowed.includes(s)).map(s => <option key={s} value={s}>{statusLabel[s]}</option>)}</select></label>;
 }
 /** Category dropdown from a fixed list, with "Other…" for a custom label. Sets English and Bangla together. */
 export function CategoryPicker({ options, en, bn, disabled, onChange }: { options: Option[]; en: string; bn: string; disabled?: boolean; onChange: (en: string, bn: string) => void }) {

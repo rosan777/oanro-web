@@ -8,7 +8,7 @@ export type ProductInput = {
   slug: string; status: ProductStatus; collectionId: string;
   nameEn: string; nameBn: string; categoryEn: string; categoryBn: string;
   taglineEn: string; taglineBn: string; descriptionEn: string; descriptionBn: string;
-  price: number; stock: number | null; sizes: string[];
+  price: number; stock: number | null; lowStockAt: number | null; sizes: string[];
   specsEn: [string, string][]; specsBn: [string, string][]; displayOrder: number;
 };
 export class ProductInputError extends Error {
@@ -73,6 +73,7 @@ export function parseProductInput(data: Record<string, unknown>): ProductInput {
     taglineEn: text(data, "taglineEn", 140), taglineBn: text(data, "taglineBn", 140),
     descriptionEn: text(data, "descriptionEn", 2000), descriptionBn: text(data, "descriptionBn", 2000),
     price: int(data.price, "price", 0, 10_000_000), stock, sizes: sizes(data.sizes),
+    lowStockAt: data.lowStockAt === null || data.lowStockAt === undefined || data.lowStockAt === "" ? null : int(data.lowStockAt, "lowStockAt", 0, 100_000),
     specsEn: specs(data.specsEn, "specsEn"), specsBn: specs(data.specsBn, "specsBn"),
     displayOrder: order(data),
   };
@@ -157,6 +158,11 @@ export function parseLeadInput(data: Record<string, unknown>): LeadInput {
   if (kind === "privacy") {
     if (typeof data.requestType !== "string" || !privacyRequestTypes.includes(data.requestType as typeof privacyRequestTypes[number])) throw new ProductInputError("requestType");
     subject = `privacy:${data.requestType}`;
+  }
+  if (kind === "general" && data.topic === "payment") {
+    const code = typeof data.orderCode === "string" ? data.orderCode.trim().toUpperCase() : "";
+    if (code && !/^OA-[A-Z0-9]{4,16}$/.test(code)) throw new ProductInputError("orderCode");
+    subject = code ? `payment:${code}` : "payment";
   }
   const quantity = productSlug && data.quantity !== undefined && data.quantity !== "" ? int(data.quantity, "quantity", 1, 100) : null;
   const size = productSlug ? text(data, "size", 20) || null : null;
