@@ -1,33 +1,40 @@
 import "server-only";
 import { getAuth, authConfigured } from "./auth";
-import { isOwner } from "./access";
 import { readObject } from "./pulse-thumbnail";
 import { validateUploadedImage } from "./pulse-upload";
 import { ProductInputError } from "./product-input";
 import { ProductStoreError } from "./product-store";
+import { claimInvite, getAccess, type Access } from "./rbac";
+import { catalogDb } from "./store-products";
+import type { Permission } from "./permissions";
 
 export const noStore = { "Cache-Control": "no-store" };
 export const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-async function owner(request: Request) {
+/** Same-origin, signed-in, verified user with the required permission; otherwise null (deny by default). */
+export async function authorize(request: Request, permission: Permission): Promise<{ userId: string; access: Access } | null> {
   if (!authConfigured()) return null;
   if (request.headers.get("origin") !== new URL(process.env.BETTER_AUTH_URL!).origin) return null;
   const session = await getAuth().api.getSession({ headers: request.headers });
-  return session?.user.emailVerified && await isOwner(session.user.id) ? session.user.id : null;
+  if (!session?.user.emailVerified) return null;
+  const db = catalogDb();
+  await claimInvite(db, session.user);
+  const access = await getAccess(db, session.user.id);
+  return access.permissions.has(permission) ? { userId: session.user.id, access } : null;
 }
 function fail(error: unknown) {
   if (error instanceof ProductInputError) return Response.json({ error: "INVALID_INPUT", field: error.field }, { status: 400, headers: noStore });
-  if (error instanceof ProductStoreError) return Response.json({ error: error.message }, { status: error.message === "NOT_FOUND" ? 404 : 409, headers: noStore });
+  if (error instanceof ProductStoreError) return Response.json({ error: error.message }, { status: error.message === "NOT_FOUND" ? 404 : error.message === "OWNER_ONLY" ? 403 : 409, headers: noStore });
   if (error instanceof Error && error.message === "INVALID_IMAGE") return Response.json({ error: "INVALID_INPUT", field: "image" }, { status: 400, headers: noStore });
   return Response.json({ error: "UPDATE_FAILED" }, { status: 503, headers: noStore });
 }
-/** Owner session + same-origin check + bounded JSON body; maps validation/store errors to HTTP codes. */
-export function ownerHandler(handler: (ownerId: string, data: Record<string, unknown>) => Promise<Response>) {
+/** Permission check + bounded JSON body; maps validation/store errors to HTTP codes. */
+export function adminHandler(permission: Permission, handler: (userId: string, data: Record<string, unknown>, access: Access) => Promise<Response>) {
   return async (request: Request) => {
-    const ownerId = await owner(request);
-    if (!ownerId) return Response.json({ error: "FORBIDDEN" }, { status: 403, headers: noStore });
+    const actor = await authorize(request, permission);
+    if (!actor) return Response.json({ error: "FORBIDDEN" }, { status: 403, headers: noStore });
     let data: Record<string, unknown>;
     try { data = await readObject(request, 400000); } catch { return Response.json({ error: "INVALID_INPUT" }, { status: 400, headers: noStore }); }
-    try { return await handler(ownerId, data); } catch (error) { return fail(error); }
+    try { return await handler(actor.userId, data, actor.access); } catch (error) { return fail(error); }
   };
 }
 export function requireUuid(value: unknown): string {

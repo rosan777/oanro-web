@@ -56,3 +56,5 @@ export const demoCollections: StoreCollection[] = [
   { id: "caps", slug: "caps", preset: "caps", name: "Caps collection", headline: "Find your fit.", description: "Cap styles we're exploring. Product details and availability will appear when confirmed.", anchor: "caps" },
   { id: "tech", slug: "tech", preset: "tech", name: "Tech items", headline: "Everyday technology.", description: "A preview of technology categories. Products will appear as they are confirmed.", anchor: "tech-items" },
 ];
+/** A running seasonal campaign as shown on the storefront. */
+export type StoreCampaign = { id: string; slug: string; name: string; headline: string; description: string; image: string | null; endsAt: string | null; productSlugs: string[]; bn?: { name: string; headline: string; description: string } | null };

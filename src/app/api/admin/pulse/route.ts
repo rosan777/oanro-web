@@ -1,17 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
-import { getAuth, authConfigured } from "@/lib/auth";
-import { isOwner } from "@/lib/access";
+import { authorize } from "@/lib/admin-api";
 import { getDb } from "@/lib/db";
 import { auditEvent, pulseStory } from "@/lib/db/schema";
 import { validateUploadedImage } from "@/lib/pulse-upload";
 import { publicUrl as validPublicUrl, discoverThumbnail, signPreview, readPreview, readObject } from "@/lib/pulse-thumbnail";
 export const runtime = "nodejs";
 async function owner(request: Request) {
-  if (!authConfigured()) return null;
-  if (request.headers.get("origin") !== new URL(process.env.BETTER_AUTH_URL!).origin) return null;
-  const session = await getAuth().api.getSession({ headers: request.headers });
-  return session?.user.emailVerified && await isOwner(session.user.id) ? session.user.id : null;
+  return (await authorize(request, "pulse.manage"))?.userId ?? null;
 }
 export async function POST(request: Request) {
   const ownerId = await owner(request);

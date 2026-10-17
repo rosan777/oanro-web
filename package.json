@@ -13,7 +13,7 @@
     "owner:bootstrap": "node --import tsx scripts/bootstrap-owner.ts",
     "test:foundation": "node --import tsx --test tests/foundation.test.ts",
     "test:products": "node --import tsx --test tests/product-catalog.test.ts",
-    "test": "node --import tsx --test tests/foundation.test.ts tests/pulse-thumbnail.test.ts tests/pulse-upload.test.ts tests/product-catalog.test.ts",
+    "test": "node --import tsx --test tests/*.test.ts",
     "seed:samples": "node --import tsx scripts/seed-samples.ts"
   },
   "dependencies": {

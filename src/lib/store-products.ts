@@ -4,6 +4,8 @@ import { demoCollections, products as demoProducts, services as demoServices, ty
 import { hasManagedCatalog, listOwnerCollections, listOwnerProducts, listStorefrontCollections, listStorefrontProducts, type CatalogDb, type OwnerCollection, type OwnerProduct } from "./product-store";
 import { hasManagedServices, listOwnerServices, listStorefrontServices, type OwnerService } from "./service-store";
 import { getSectionState } from "./website-sections";
+import { listActiveCampaigns, listOwnerCampaigns, type OwnerCampaign } from "./campaign-store";
+import type { StoreCampaign } from "./catalog";
 
 export const catalogDb = () => getDb() as unknown as CatalogDb;
 function missingSchema(error: unknown) {
@@ -55,4 +57,13 @@ export async function getOwnerServices(): Promise<OwnerServices> {
     const db = catalogDb();
     return { ready: true, managed: await hasManagedServices(db), services: await listOwnerServices(db) };
   } catch { return { ready: false, managed: false, services: [] }; }
+}
+/** Campaigns running now (Dhaka-time schedule is stored as exact instants). Fails closed. */
+export async function getActiveCampaigns(): Promise<StoreCampaign[]> {
+  if (!process.env.DATABASE_URL) return [];
+  try { return await listActiveCampaigns(catalogDb()); } catch { return []; }
+}
+export async function getOwnerCampaigns(): Promise<{ ready: boolean; campaigns: OwnerCampaign[] }> {
+  if (!process.env.DATABASE_URL) return { ready: false, campaigns: [] };
+  try { return { ready: true, campaigns: await listOwnerCampaigns(catalogDb()) }; } catch { return { ready: false, campaigns: [] }; }
 }

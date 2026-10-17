@@ -1,5 +1,6 @@
 // Pure validation for owner catalog edits (products, sections, services). Shared by the admin API and tests; no server-only imports.
 import { collectionPresets, type CollectionPreset } from "./categories";
+import { fromDhakaInput } from "./dhaka-time";
 export const productStatuses = ["draft", "published", "hidden"] as const;
 export type ProductStatus = typeof productStatuses[number];
 
@@ -105,4 +106,63 @@ export function parseServiceInput(data: Record<string, unknown>): ServiceInput {
 }
 export function slugify(name: string) {
   return name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+}
+export type CampaignInput = {
+  slug: string; status: ProductStatus; nameEn: string; nameBn: string; headlineEn: string; headlineBn: string;
+  descriptionEn: string; descriptionBn: string; startsAt: Date | null; endsAt: Date | null; displayOrder: number;
+};
+/** startsAt/endsAt arrive as Dhaka-time "YYYY-MM-DDTHH:mm" strings (or empty for "no limit"). */
+export function parseCampaignInput(data: Record<string, unknown>): CampaignInput {
+  const when = (field: "startsAt" | "endsAt") => {
+    const value = data[field] ?? "";
+    if (typeof value !== "string") throw new ProductInputError(field);
+    try { return fromDhakaInput(value); } catch { throw new ProductInputError(field); }
+  };
+  const startsAt = when("startsAt"), endsAt = when("endsAt");
+  if (startsAt && endsAt && endsAt <= startsAt) throw new ProductInputError("endsAt");
+  return {
+    slug: slugField(data), status: statusField(data), nameEn: text(data, "nameEn", 80, true), nameBn: text(data, "nameBn", 80),
+    headlineEn: text(data, "headlineEn", 120), headlineBn: text(data, "headlineBn", 120),
+    descriptionEn: text(data, "descriptionEn", 400), descriptionBn: text(data, "descriptionBn", 400), startsAt, endsAt, displayOrder: order(data),
+  };
+}
+
+// ---- Customer inquiries (public input: strict limits, at least one way to reply, explicit consent)
+export const leadContactMethods = ["phone", "whatsapp", "email", "messenger"] as const;
+export const privacyRequestTypes = ["access", "correct", "delete"] as const;
+export type LeadInput = {
+  kind: "product" | "restock" | "service" | "general" | "privacy"; productSlug: string | null; serviceSlug: string | null;
+  subject: string; size: string | null; quantity: number | null; name: string; phone: string; email: string; message: string;
+  preferredContact: typeof leadContactMethods[number]; locale: "en" | "bn";
+};
+export function parseLeadInput(data: Record<string, unknown>): LeadInput {
+  const kind = data.kind;
+  if (typeof kind !== "string" || !["product", "restock", "service", "general", "privacy"].includes(kind)) throw new ProductInputError("kind");
+  if (data.consent !== true) throw new ProductInputError("consent");
+  const phone = text(data, "phone", 20);
+  if (phone && !/^\+?[0-9][0-9 -]{6,18}$/.test(phone)) throw new ProductInputError("phone");
+  const email = text(data, "email", 200).toLowerCase();
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) throw new ProductInputError("email");
+  if (!phone && !email) throw new ProductInputError("phone");
+  const preferred = data.preferredContact ?? (phone ? "phone" : "email");
+  if (typeof preferred !== "string" || !leadContactMethods.includes(preferred as LeadInput["preferredContact"])) throw new ProductInputError("preferredContact");
+  const slug = (field: "productSlug" | "serviceSlug", required: boolean) => {
+    const v = data[field];
+    if (v === undefined || v === null || v === "") { if (required) throw new ProductInputError(field); return null; }
+    if (typeof v !== "string" || v.length > 60 || !slugPattern.test(v)) throw new ProductInputError(field);
+    return v;
+  };
+  const productSlug = slug("productSlug", kind === "product" || kind === "restock");
+  let subject = "";
+  if (kind === "privacy") {
+    if (typeof data.requestType !== "string" || !privacyRequestTypes.includes(data.requestType as typeof privacyRequestTypes[number])) throw new ProductInputError("requestType");
+    subject = `privacy:${data.requestType}`;
+  }
+  const quantity = productSlug && data.quantity !== undefined && data.quantity !== "" ? int(data.quantity, "quantity", 1, 100) : null;
+  const size = productSlug ? text(data, "size", 20) || null : null;
+  return {
+    kind: kind as LeadInput["kind"], productSlug, serviceSlug: slug("serviceSlug", kind === "service"), subject, size, quantity,
+    name: text(data, "name", 80, true), phone, email, message: text(data, "message", 1000, kind === "general" || kind === "service" || kind === "privacy"),
+    preferredContact: preferred as LeadInput["preferredContact"], locale: data.locale === "bn" ? "bn" : "en",
+  };
 }
