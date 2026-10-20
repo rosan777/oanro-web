@@ -18,7 +18,7 @@ export function organizationJsonLd(contact: { contactEmail: string; messengerUrl
   return {
     "@context": "https://schema.org", "@type": "Organization", "@id": `${base}/#organization`,
     name: SITE_NAME, url: base, logo: absoluteUrl("/logo.svg"), description: DEFAULT_DESCRIPTION,
-    address: { "@type": "PostalAddress", addressLocality: "Chatmohar", addressRegion: "Pabna", postalCode: "6630", addressCountry: "BD" },
+    address: { "@type": "PostalAddress", addressCountry: "BD" },
     areaServed: { "@type": "Country", name: "Bangladesh" },
     ...(contact.contactEmail ? { email: contact.contactEmail } : {}),
     ...(contact.messengerUrl ? { sameAs: [contact.messengerUrl] } : {}),
