@@ -1013,14 +1013,18 @@ h2 { font-size: clamp(1.8rem, 3.4vw, 2.5rem); }
   .footer-grid { grid-template-columns: 1fr; }
 }
 
-/* Hero brand story: OANRO, its tagline, and what the five letters stand for (keywords stay in the lede for Google) */
-.hero-title { display: grid; gap: 0.35rem; max-width: none; }
-.hero-brand { font-size: clamp(3rem, 7vw, 5.2rem); line-height: 0.95; letter-spacing: 0.02em; }
-.hero-tagline { font-size: clamp(1.25rem, 2.4vw, 1.8rem); font-weight: 500; color: var(--brand); letter-spacing: 0; }
-.hero-lede { margin-top: 1rem; font-size: 1rem; color: #4a4a45; max-width: 52ch; line-height: 1.7; }
-.hero-acronym { list-style: none; padding: 0; margin: 1.2rem 0 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.hero-acronym li { display: inline-flex; align-items: center; gap: 0.5rem; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 0.3rem 0.85rem 0.3rem 0.35rem; font-size: 0.85rem; }
-.hero-acronym b { width: 26px; height: 26px; border-radius: 50%; background: var(--brand); color: var(--surface); display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+/* Hero brand headline: OANRO letters light up one by one, "Built on <word>" names what each stands for */
+.opening-brand .brand-headline { display: grid; gap: 0.6rem; max-width: none; font-weight: 600; }
+.brand-letters { display: flex; gap: 0.12em; font-size: clamp(3.2rem, 7.5vw, 5.8rem); line-height: 0.95; letter-spacing: 0.02em; }
+.brand-letters span { color: #c9c9c2; transition: color 0.45s ease; }
+.brand-letters span.is-active { color: var(--brand); }
+.brand-tagline { font-size: clamp(1.4rem, 2.6vw, 2rem); line-height: 1.15; font-weight: 500; color: var(--foreground); }
+.brand-tagline em, .brand-word { font-family: var(--font-accent), Georgia, serif; font-style: italic; font-weight: 400; color: var(--brand); }
+.brand-built { display: flex; align-items: baseline; gap: 0.7rem; min-height: 3.6rem; margin-top: 0.4rem; font-size: 1.15rem; color: var(--muted); overflow: hidden; }
+.brand-word { display: inline-block; font-size: clamp(2rem, 4vw, 3.1rem); line-height: 1.15; border-bottom: 2px solid var(--accent); }
+.hero-lede { margin-top: 0.8rem; font-size: 1rem; color: #4a4a45; max-width: 52ch; line-height: 1.7; }
+:lang(bn) .brand-tagline em, :lang(bn) .brand-word { font-family: var(--font-bangla), sans-serif; font-style: normal; font-weight: 600; }
 @media (prefers-reduced-motion: no-preference) {
-  .hero-acronym li { animation: enter 500ms ease-out both; animation-delay: calc(var(--i) * 90ms + 200ms); }
+  .brand-word { animation: word-in 0.55s cubic-bezier(.2,.7,.2,1) both; }
 }
+@keyframes word-in { from { opacity: 0; transform: translateY(60%); } to { opacity: 1; transform: none; } }
