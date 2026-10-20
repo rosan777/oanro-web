@@ -1047,3 +1047,9 @@ h2 { font-size: clamp(1.8rem, 3.4vw, 2.5rem); }
   .opening-brand .eyebrow { font-size: 0.7rem; }
   .opening .standard-panel { min-height: 260px; }
 }
+
+/* Keyword line inside the H1 + welcome line moved into the standard panel */
+.brand-headline .hero-eyebrow-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.4rem; }
+.brand-headline .eyebrow { font-size: 0.75rem; letter-spacing: 0.1em; line-height: 1.5; }
+.holographic-mark.is-small { display: grid; place-items: center; }
+.opening .standard-welcome { font-size: 0.8rem; color: #b9b9b2; margin-bottom: -1rem; }

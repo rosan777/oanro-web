@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useMotion } from "./experience";
 import { useLocale } from "./locale";
 
@@ -10,7 +10,7 @@ const meaning = {
   bn: ["নিজস্বতা", "উচ্চাকাঙ্ক্ষা", "ভবিষ্যৎমুখী উদ্ভাবন", "নির্ভরযোগ্যতা", "নতুন সম্ভাবনা"],
 };
 
-export function BrandHeadline() {
+export function BrandHeadline({ mark }: { mark?: ReactNode }) {
   const { locale } = useLocale(); const bn = locale === "bn";
   const { allowed } = useMotion();
   const [active, setActive] = useState(0);
@@ -22,6 +22,8 @@ export function BrandHeadline() {
   const words = bn ? meaning.bn : meaning.en;
   return <>
     <h1 className="brand-headline">
+      {/* Search keywords sit inside the H1 (Google weighs it most), styled as the small line beside the logo card. */}
+      <span className="hero-eyebrow-row">{mark}<span className="eyebrow">{bn ? "বাংলাদেশে শীতের পোশাক · টেক সলিউশন · আইটি সেবা" : "Winter clothing · Tech solutions · IT services in Bangladesh"}</span></span>
       <span className="brand-letters">{"OANRO".split("").map((ch, i) => <span key={i} className={i === active ? "is-active" : undefined}>{ch}</span>)}</span>
       <span className="brand-tagline">{bn ? <>ভবিষ্যতের জন্য গড়া <em>একটি ব্র্যান্ড।</em></> : <>A brand built for <em>what&apos;s next.</em></>}</span>
     </h1>
