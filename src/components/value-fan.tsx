@@ -6,7 +6,7 @@ import { valuePose } from "./value-motion";
 import styles from "./value-fan.module.css";
 import { useT } from "./locale";
 const values = [
-  { title: "Bangladesh first", bn: "বাংলাদেশ প্রথম", icon: Globe2 },
+  { title: "Bangladesh to the world", bn: "বাংলাদেশ থেকে বিশ্বে", icon: Globe2 },
   { title: "Clear information", bn: "স্পষ্ট তথ্য", icon: ShieldCheck },
   { title: "Thoughtful support", bn: "যত্নশীল সহায়তা", icon: MessageCircle },
   { title: "Room to grow", bn: "বড় হওয়ার সুযোগ", icon: PackageCheck },

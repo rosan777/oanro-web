@@ -7,8 +7,8 @@ type Guide = { heading: string; paragraphs: string[] };
 
 const presetCopy: Record<CollectionPreset, { en: string; bn: string }> = {
   seasonal: {
-    en: "Seasonal clothing works best when it fits the weather you actually live in. Bangladesh winters are short but can be sharp, especially in the north and in the early mornings, so this collection focuses on layers you can add or remove through the day: knitwear, overshirts, scarves and other warm essentials. Each product page lists the available sizes and details so you can choose with confidence.",
-    bn: "যে আবহাওয়ায় আপনি থাকেন, তার সঙ্গে মানানসই মৌসুমি পোশাকই সবচেয়ে কাজের। বাংলাদেশের শীত ছোট হলেও কখনো বেশ তীব্র, বিশেষ করে উত্তরাঞ্চলে ও ভোরবেলায়। তাই এই কালেকশনে রাখা হয়েছে এমন লেয়ার, যা দিনের মধ্যে পরা বা খুলে রাখা যায়: নিটওয়্যার, ওভারশার্ট, স্কার্ফ ও অন্যান্য গরম পোশাক। প্রতিটি পণ্যের পেজে সাইজ ও বিস্তারিত তথ্য দেওয়া আছে, যাতে নিশ্চিন্তে বেছে নিতে পারেন।",
+    en: "Seasonal clothing works best when it fits the weather you actually live in. Winters can be short but sharp, especially in the early mornings, so this collection focuses on layers you can add or remove through the day: knitwear, overshirts, scarves and other warm essentials. Each product page lists the available sizes and details so you can choose with confidence.",
+    bn: "যে আবহাওয়ায় আপনি থাকেন, তার সঙ্গে মানানসই মৌসুমি পোশাকই সবচেয়ে কাজের। শীত ছোট হলেও কখনো বেশ তীব্র, বিশেষ করে ভোরবেলায়। তাই এই কালেকশনে রাখা হয়েছে এমন লেয়ার, যা দিনের মধ্যে পরা বা খুলে রাখা যায়: নিটওয়্যার, ওভারশার্ট, স্কার্ফ ও অন্যান্য গরম পোশাক। প্রতিটি পণ্যের পেজে সাইজ ও বিস্তারিত তথ্য দেওয়া আছে, যাতে নিশ্চিন্তে বেছে নিতে পারেন।",
   },
   caps: {
     en: "A good cap is about fit, fabric and how often you will actually wear it. This collection brings together everyday caps for sun, sport and casual outfits, from classic baseball shapes to snapbacks and seasonal styles. Check each product page for colours, sizing and fabric details before you order.",
@@ -34,8 +34,8 @@ export function categoryGuide(preset: CollectionPreset, name: string, locale: Lo
     heading: bn ? `${name} কেনার আগে জেনে নিন` : `Buying ${name} from OANRO`,
     paragraphs: [
       bn ? presetCopy[preset].bn : presetCopy[preset].en,
-      bn ? `OANRO বাংলাদেশের গ্রাহকদের জন্য অনলাইনে ${name} বিক্রি করে। পছন্দের পণ্যটি ব্যাগে যোগ করুন, চেকআউটে ঠিকানা দিন, আর ডেলিভারি ও পেমেন্টের অপশন সেখানেই দেখতে পাবেন। ডেলিভারির সময়, চার্জ ও রিটার্নের নিয়ম জানতে আমাদের ডেলিভারি ও রিটার্ন পেজ দেখুন। কোনো পণ্য নিয়ে প্রশ্ন থাকলে মেসেঞ্জার বা ইমেইলে যোগাযোগ করুন, আমরা সাধারণত এক কর্মদিবসের মধ্যে উত্তর দিই।`
-         : `OANRO sells ${name} online to customers in Bangladesh. Add what you like to your bag, enter your address at checkout, and you will see the delivery and payment options there. For delivery times, charges and returns, see our Delivery & Returns page. If you have a question about any product, message us on Messenger or by email and we usually reply within one working day.`,
+      bn ? `OANRO অনলাইনে ${name} বিক্রি করে; বর্তমানে ডেলিভারি সারা বাংলাদেশে। পছন্দের পণ্যটি ব্যাগে যোগ করুন, চেকআউটে ঠিকানা দিন, আর ডেলিভারি ও পেমেন্টের অপশন সেখানেই দেখতে পাবেন। ডেলিভারির সময়, চার্জ ও রিটার্নের নিয়ম জানতে আমাদের ডেলিভারি ও রিটার্ন পেজ দেখুন। কোনো পণ্য নিয়ে প্রশ্ন থাকলে মেসেঞ্জার বা ইমেইলে যোগাযোগ করুন, আমরা সাধারণত এক কর্মদিবসের মধ্যে উত্তর দিই।`
+         : `OANRO sells ${name} online, with delivery currently available across Bangladesh. Add what you like to your bag, enter your address at checkout, and you will see the delivery and payment options there. For delivery times, charges and returns, see our Delivery & Returns page. If you have a question about any product, message us on Messenger or by email and we usually reply within one working day.`,
     ],
   };
 }
@@ -46,13 +46,13 @@ export function serviceGuide(title: string, locale: Locale): Guide {
     heading: `OANRO-র সঙ্গে ${title} কীভাবে কাজ করে`,
     paragraphs: [
       "প্রতিটি প্রজেক্ট শুরু হয় একটি ছোট আলোচনা দিয়ে: আপনার ব্যবসা কী করে, কারা আপনার গ্রাহক, আর আপনি কী অর্জন করতে চান। এরপর আমরা একটি পরিষ্কার পরিকল্পনা দিই, যেখানে কাজের পরিধি, ধাপ ও সময় লেখা থাকে, যাতে শুরু করার আগেই সব বুঝে নিতে পারেন।",
-      "আমরা বাংলাদেশের ছোট ও নতুন ব্যবসার সঙ্গে কাজ করি, এবং বাংলা ও ইংরেজি দুই ভাষাতেই যোগাযোগ করি। আপনার প্রয়োজন জানাতে মেসেজ বা ইনকোয়ারি পাঠান, আমরা সাধারণত এক কর্মদিবসের মধ্যে উত্তর দিই।",
+      "আমরা বাংলাদেশ ও বিশ্বের যেকোনো জায়গার ছোট ও নতুন ব্যবসার সঙ্গে কাজ করি, এবং বাংলা ও ইংরেজি দুই ভাষাতেই যোগাযোগ করি। আপনার প্রয়োজন জানাতে মেসেজ বা ইনকোয়ারি পাঠান, আমরা সাধারণত এক কর্মদিবসের মধ্যে উত্তর দিই।",
     ],
   } : {
     heading: `How ${title} works with OANRO`,
     paragraphs: [
       "Every project starts with a short conversation about what your business does, who your customers are and what you want to achieve. We then give you a clear plan with the scope, the steps and the timeline written down, so you know exactly what you are getting before any work begins.",
-      "We work with small and growing businesses in Bangladesh and communicate in both Bangla and English. Send a message or an inquiry describing what you need, and we usually reply within one working day.",
+      "We work with small and growing businesses in Bangladesh and around the world, and communicate in both Bangla and English. Send a message or an inquiry describing what you need, and we usually reply within one working day.",
     ],
   };
 }

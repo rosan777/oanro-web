@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!service) return { title: "Not available", robots: { index: false } };
   const { locale } = await requestLocale(); const bn = locale === "bn";
   const copy = copyFor(service, bn);
-  const title = bn ? `${copy.title} – বাংলাদেশে সেবা` : `${copy.title} Services in Bangladesh`;
+  const title = bn ? `${copy.title} – বিশ্বজুড়ে সেবা` : `${copy.title} Services for Clients Worldwide`;
   const description = ([copy.text, copy.detail].filter(Boolean).join(" ") || title).slice(0, 158);
   const path = `/services/${service.slug}`;
   return { title, description, alternates: alternatesFor(path, locale),
@@ -42,7 +42,7 @@ export default async function ServicePage({ params }: Props) {
   const guide = serviceGuide(copy.title, locale);
   const pageUrl = absoluteUrl(localePath(`/services/${service.slug}`, locale));
   const schema = { "@context": "https://schema.org", "@type": "Service", name: copy.title, description: copy.detail || copy.text, url: pageUrl, serviceType: service.category || copy.title,
-    provider: { "@id": `${siteUrl()}/#organization` }, areaServed: { "@type": "Country", name: "Bangladesh" } };
+    provider: { "@id": `${siteUrl()}/#organization` }, areaServed: "Worldwide" };
   const breadcrumb = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
     { "@type": "ListItem", position: 1, name: bn ? "হোম" : "Home", item: absoluteUrl(localePath("/", locale)) },
     { "@type": "ListItem", position: 2, name: copy.title, item: pageUrl } ] };

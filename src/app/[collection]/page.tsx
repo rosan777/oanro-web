@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!data) return { title: "Not available", robots: { index: false } };
   const { locale } = await requestLocale(); const bn = locale === "bn";
   const copy = copyFor(data.collection, bn);
-  const title = bn ? `${copy.name} – বাংলাদেশে অনলাইনে কিনুন` : `${copy.name} – Shop Online in Bangladesh`;
+  const title = bn ? `${copy.name} – অনলাইনে কিনুন` : `${copy.name} – Shop Online`;
   const fallback = bn ? `OANRO থেকে ${copy.name} অনলাইনে কিনুন। ছবি, সাইজ ও বিস্তারিত দেখুন, সারা বাংলাদেশে ডেলিভারি।` : `Shop ${copy.name} online from OANRO. See photos, sizes and details, with delivery across Bangladesh.`;
   const description = ([copy.headline, copy.description].filter(Boolean).join(". ") || fallback).slice(0, 158);
   const path = `/${data.collection.slug}`;

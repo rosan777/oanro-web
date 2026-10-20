@@ -11,7 +11,7 @@ import styles from "./conveyor-effects.module.css";
 
 type Entry = { title: string; category: string; detail: string; href: string; position?: string; image?: string | null; word?: string; icon?: typeof Globe2 };
 const principles = (t: (en: string, bn: string) => string): Entry[] => [
-  { title: t("Bangladesh first", "বাংলাদেশ প্রথম"), category: t("Our approach", "আমাদের পদ্ধতি"), detail: t("Starting locally, with room to grow.", "স্থানীয়ভাবে শুরু, বড় হওয়ার সুযোগসহ।"), href: "/#about", icon: Globe2 },
+  { title: t("Bangladesh to the world", "বাংলাদেশ থেকে বিশ্বে"), category: t("Our approach", "আমাদের পদ্ধতি"), detail: t("Starting locally, with room to grow.", "স্থানীয়ভাবে শুরু, বড় হওয়ার সুযোগসহ।"), href: "/#about", icon: Globe2 },
   { title: t("Clear information", "স্পষ্ট তথ্য"), category: t("Our commitment", "আমাদের অঙ্গীকার"), detail: t("Understand what you are choosing.", "আপনি কী বেছে নিচ্ছেন, তা বুঝুন।"), href: "/#about", icon: ShieldCheck },
   { title: t("Thoughtful support", "যত্নশীল সহায়তা"), category: t("Our commitment", "আমাদের অঙ্গীকার"), detail: t("People behind the experience.", "অভিজ্ঞতার পেছনে আছেন মানুষ।"), href: "/#contact", icon: MessageCircle },
   { title: t("Useful by design", "নকশাতেই কার্যকর"), category: t("Our approach", "আমাদের পদ্ধতি"), detail: t("Practical products and technology.", "কাজের পণ্য ও প্রযুক্তি।"), href: "/#about", icon: PackageCheck },
