@@ -2,42 +2,89 @@ import Image from "next/image";
 import Link from "@/components/locale-link";
 import { ArrowUpRight, Mail } from "lucide-react";
 import { getSiteConfig } from "@/lib/site-config";
-import { FeatureStory, ServiceConveyor, StandardPanel, ValueFan } from "@/components/home-experience";
-import { Reveal } from "@/components/experience";
-import { DoubleConveyor } from "@/components/double-conveyor";
 import { Localized } from "@/components/locale";
-import { CollectionConveyor } from "@/components/collection-conveyor";
-import { getActiveCampaigns, getStoreCollections } from "@/lib/store-products";
+import { getActiveCampaigns } from "@/lib/store-products";
 import { CampaignShowcase } from "@/components/campaign-showcase";
 import { MessageReveal } from "@/components/message-reveal";
 import { getSectionState } from "@/lib/website-sections";
-import { CategoryTiles } from "@/components/category-tiles";
-import { BrandHeadline } from "@/components/brand-headline";
-import { HomeFaq, HowWeWork, TrustStrip } from "@/components/home-trust";
+import { HomeFaq } from "@/components/home-trust";
 import { requestLocale } from "@/lib/request-locale";
-import { publicRules } from "@/lib/public-rules";
+import { bnDigits, publicRules } from "@/lib/public-rules";
+import { formatPrice } from "@/lib/catalog";
+import { storeLive } from "@/lib/seo";
+import { DeliveryChecker, ShopTabs, StudioTerminal, ValueLetters } from "@/components/home-v2";
 
+// Homepage, design "I1 · Final homepage" (canvas). Every number shown comes from the admin rules or the live catalog:
+// no placeholder prices, no invented reviews. Sections without real data (reviews, free-delivery bar) are left out until they exist.
 export default async function Home() {
   const env = getSiteConfig();
   const config = { ...env, services: env.services && (await getSectionState()).services };
-  const [collections, campaigns] = config.products ? await Promise.all([getStoreCollections(), getActiveCampaigns()]) : [[], []];
+  const campaigns = config.products ? await getActiveCampaigns() : [];
   const [{ locale }, rules] = await Promise.all([requestLocale(), publicRules()]);
+  const bn = locale === "bn";
+  const cod = rules.codLimit > 0;
+  const live = storeLive();
   return <main id="main-content">
-    <section className="opening"><div className="container opening-layout"><Reveal className="opening-brand"><div><BrandHeadline mark={<span className="holographic-mark is-small"><Image src="/logo.svg" alt="" width={44} height={44} /></span>} /><p className="hero-lede"><Localized en="From Bangladesh, for the world: winter clothing, tech items and IT services from a versatile, forward-looking business spanning technology services and carefully selected products." bn="বাংলাদেশ থেকে, বিশ্বের জন্য: শীতের পোশাক, টেক পণ্য ও আইটি সেবা, প্রযুক্তি সেবা ও যত্নে বেছে নেওয়া পণ্য নিয়ে একটি বহুমুখী, ভবিষ্যৎমুখী প্রতিষ্ঠান।" /></p><div className="hero-actions">{config.products && <Link className="button brand-button" href="#products"><Localized en="Shop the collection" bn="কালেকশন দেখুন" /><ArrowUpRight size={17} /></Link>}{config.services && <Link className="button light-button" href="#services"><Localized en="Get a website" bn="ওয়েবসাইট বানাতে চাই" /><ArrowUpRight size={17} /></Link>}</div><ul className="hero-ticks"><li><Localized en="bKash & Nagad" bn="বিকাশ ও নগদ" /></li>{rules.codLimit > 0 && <li><Localized en="Cash on delivery" bn="ক্যাশ অন ডেলিভারি" /></li>}<li><Localized en="Delivery across Bangladesh" bn="সারা বাংলাদেশে ডেলিভারি" /></li><li><Localized en="IT services worldwide" bn="বিশ্বজুড়ে আইটি সেবা" /></li></ul></div></Reveal><StandardPanel /></div></section>
-    <ValueFan showProducts={config.products} />
-    {config.products && <CategoryTiles />}
-    <nav className="discovery-nav container" aria-label="Explore OANRO">{config.products && <Link href="#products"><Localized en="Explore products" bn="পণ্য দেখুন" /><ArrowUpRight size={17} /></Link>}{config.services && <Link href="#services"><Localized en="Explore services" bn="সেবা দেখুন" /><ArrowUpRight size={17} /></Link>}<Link href="#about"><Localized en="Discover OANRO" bn="OANRO জানুন" /><ArrowUpRight size={17} /></Link></nav>
-    {config.features && <FeatureStory />}
+    <section className="v2-hero" aria-labelledby="hero-title">
+      <div className="v2-hero-copy">
+        <p className="v2-eyebrow v2-fade"><Localized en="Bangladesh-born · Worldwide" bn="বাংলাদেশে জন্ম · বিশ্বের জন্য" /></p>
+        <h1 id="hero-title" className="v2-h1 v2-track" style={{ marginTop: "1.2rem" }}><Localized en="Built for what's next" bn="আগামীর জন্য তৈরি" /></h1>
+        <p className="v2-lede v2-fade" style={{ animationDelay: "1.2s" }}><Localized en="Shop winter clothing, caps, tech and jewelry with cash on delivery — or hire OANRO Studio for software, website and app development." bn="শীতের পোশাক, ক্যাপ, টেক ও জুয়েলারি কিনুন ক্যাশ অন ডেলিভারিতে — অথবা সফটওয়্যার, ওয়েবসাইট ও অ্যাপ বানাতে OANRO স্টুডিওকে বলুন।" /></p>
+        <div className="v2-actions v2-fade" style={{ animationDelay: "1.5s" }}>
+          {config.products && <Link className="v2-btn v2-btn-light" href="#products"><Localized en="Shop the collection" bn="কালেকশন দেখুন" /><ArrowUpRight size={17} /></Link>}
+          {config.services && <Link className="v2-btn v2-btn-ghost" href="#studio"><Localized en="Get a free quote" bn="ফ্রি কোট নিন" /><ArrowUpRight size={17} /></Link>}
+        </div>
+      </div>
+      <div className="v2-planet" aria-hidden="true" />
+    </section>
+
+    {(config.products || config.services) && <ShopTabs showServices={config.services} chips={<>
+      <span><Localized en="Delivery across Bangladesh" bn="সারা বাংলাদেশে ডেলিভারি" /></span>
+      {cod && <span><Localized en="Cash on delivery" bn="ক্যাশ অন ডেলিভারি" /></span>}
+      <span className="is-bkash"><Localized en="bKash" bn="বিকাশ" /></span>
+      <span className="is-nagad"><Localized en="Nagad" bn="নগদ" /></span>
+      {rules.returnDays > 0 && <span>{bn ? `${bnDigits(String(rules.returnDays))} দিনের মধ্যে সমাধান` : `Problem? Fixed within ${rules.returnDays} days`}</span>}
+      <span><Localized en="Licensed business · 002039" bn="লাইসেন্সপ্রাপ্ত · ০০২০৩৯" /></span>
+    </>} />}
+
+    {config.products && <div className="container v2-help-row">
+      <DeliveryChecker rules={rules} />
+      <div className="v2-panel">
+        <h2 className="v2-h3">{bn ? "যেভাবে খুশি পেমেন্ট করুন" : "Pay the way you like"}</h2>
+        <ul className="v2-panel-list">
+          <li>{bn ? "বিকাশ বা নগদে পেমেন্ট" : "Pay with bKash or Nagad"}</li>
+          {cod && <li>{bn ? `${formatPrice(rules.codLimit, locale)} পর্যন্ত ক্যাশ অন ডেলিভারি` : `Cash on delivery up to ${formatPrice(rules.codLimit, locale)}`}</li>}
+          {rules.returnDays > 0 && <li>{bn ? `ভুল বা ক্ষতিগ্রস্ত পণ্য? ${bnDigits(String(rules.returnDays))} দিনের মধ্যে জানান` : `Wrong or damaged item? Tell us within ${rules.returnDays} days`}</li>}
+        </ul>
+        <Link className="v2-link" href="/delivery-returns" style={{ display: "inline-block", marginTop: "1rem" }}>{bn ? "ডেলিভারি ও রিটার্নের সব তথ্য →" : "Delivery & returns details →"}</Link>
+      </div>
+    </div>}
+
     {campaigns.map(c => <CampaignShowcase key={c.id} campaign={c} />)}
-    {collections.map(collection => <CollectionConveyor key={collection.id} collection={collection} />)}
-    {config.products && <TrustStrip rules={rules} locale={locale} />}
-    {config.services && <ServiceConveyor />}
-    {config.services && <HowWeWork locale={locale} />}
-    <DoubleConveyor showProducts={config.products} showServices={config.services} />
-    {config.partners && <section id="partners" className="partners-section section-space"><Reveal className="container partner-layout"><div><p className="eyebrow"><Localized en="Partner Picks" bn="পার্টনার পছন্দ" /></p><h2><Localized en={<>Good finds.<br />Wider possibilities.</>} bn={<>ভালো পছন্দ।<br />বিস্তৃত সম্ভাবনা।</>} /></h2></div><div><span className="outline-label"><Localized en="A separate selection" bn="আলাদা একটি নির্বাচন" /></span><p><Localized en="A dedicated space for selected partner offerings, brought together through OANRO." bn="OANRO-র মাধ্যমে বেছে নেওয়া পার্টনার অফারগুলোর জন্য একটি আলাদা জায়গা।" /></p><small><Localized en="Our first partner selection is taking shape." bn="আমাদের প্রথম পার্টনার নির্বাচন তৈরি হচ্ছে।" /></small></div></Reveal></section>}
-    {config.products && <HomeFaq rules={rules} locale={locale} services={config.services} />}
-    <section id="about" className="about-section section-space"><div className="container"><Reveal className="section-heading"><div><p className="eyebrow"><Localized en="Our approach" bn="আমাদের পদ্ধতি" /></p><h2><Localized en="Thoughtful from the start." bn="শুরু থেকেই চিন্তাশীল।" /></h2></div><p><Localized en={<>Useful choices. Clear information.<br />People at the center.</>} bn={<>কাজের পছন্দ। পরিষ্কার তথ্য।<br />মানুষ সবার কেন্দ্রে।</>} /></p></Reveal><div className="about-grid"><article><h3><Localized en="Clarity first." bn="আগে স্বচ্ছতা।" /></h3><p><Localized en="Understand what you are choosing and what happens next." bn="আপনি কী বেছে নিচ্ছেন এবং এরপর কী হবে, তা বুঝুন।" /></p></article><article><h3><Localized en="Useful by design." bn="নকশাতেই কার্যকর।" /></h3><p><Localized en="Products and technology with a practical place in everyday life." bn="দৈনন্দিন জীবনে বাস্তব কাজে লাগে এমন পণ্য ও প্রযুক্তি।" /></p></article><article><h3><Localized en="Room to grow." bn="বড় হওয়ার সুযোগ।" /></h3><p><Localized en="Based in Bangladesh, working for the world." bn="বাংলাদেশে প্রতিষ্ঠিত, কাজ করি বিশ্বের জন্য।" /></p></article></div>
-      <div id="contact" className="contact-section"><div><p className="eyebrow"><Localized en="Contact OANRO" bn="OANRO-তে যোগাযোগ" /></p><h2><Localized en={<>Let&apos;s start<br />a conversation.</>} bn={<>চলুন শুরু করি<br />একটি কথোপকথন।</>} /></h2></div><div><p><Localized en="Have a question about a product, a service, or a partnership?" bn="পণ্য, সেবা বা পার্টনারশিপ নিয়ে কোনো প্রশ্ন আছে?" /></p><div className="contact-actions"><MessageReveal />{config.contactEmail && <a className="button light-button" href={`mailto:${config.contactEmail}`}><Mail size={17} />{config.contactEmail}</a>}</div>{!config.whatsappUrl && <p className="contact-pending"><Localized en="WhatsApp contact is being prepared." bn="WhatsApp যোগাযোগ প্রস্তুত করা হচ্ছে।" /></p>}<small><Localized en="Design preview: sample products and images. Ordering is not yet open." bn="ডিজাইন প্রিভিউ: এখানে নমুনা পণ্য ও ছবি আছে। অর্ডার এখনো চালু হয়নি।" /></small></div></div>
+
+    <section id="about" className="container v2-brand" aria-labelledby="about-title">
+      <div className="v2-orbit-wrap" aria-hidden="true"><div className="v2-orbit"><div className="ring1" /><div className="ring2" /><div className="core"><Image src="/logo.svg" alt="" width={56} height={56} /></div></div></div>
+      <div className="v2-brand-copy">
+        <p className="v2-eyebrow"><Localized en="Who we are" bn="আমরা কারা" /></p>
+        <h2 id="about-title" className="v2-h2" style={{ marginTop: "0.6rem" }}><Localized en="We are OANRO." bn="আমরা OANRO।" /></h2>
+        <p className="v2-body"><Localized en="A Bangladesh-born brand built for what's next. We hand-pick every product we sell, and we build websites and apps the way we'd want them built for ourselves — fast, honest and made to last." bn="বাংলাদেশে জন্ম নেওয়া, আগামীর জন্য তৈরি একটি ব্র্যান্ড। আমরা প্রতিটি পণ্য নিজেরা বেছে নিই, আর ওয়েবসাইট ও অ্যাপ বানাই ঠিক যেভাবে নিজেদের জন্য বানাতাম — দ্রুত, সৎ ও টেকসই।" /></p>
+        <p className="v2-sign"><Localized en="— Team OANRO" bn="— টিম OANRO" /></p>
+      </div>
+    </section>
+
+    <ValueLetters />
+
+    {config.services && <StudioTerminal />}
+
+    <section id="contact" className="container" aria-labelledby="contact-title"><div className="v2-contact">
+      <div>
+        <h2 id="contact-title" className="v2-h2"><Localized en="Let's start a conversation" bn="চলুন কথা শুরু করি" /></h2>
+        <p><Localized en="A question about a product, a service or a project? A real person from our team replies." bn="পণ্য, সেবা বা প্রজেক্ট নিয়ে প্রশ্ন? আমাদের টিমের একজন মানুষ উত্তর দেবেন।" /></p>
+        {!live && <p style={{ fontSize: "0.85rem" }}><Localized en="Design preview: sample products and images. Ordering opens soon." bn="ডিজাইন প্রিভিউ: নমুনা পণ্য ও ছবি। অর্ডার শিগগিরই চালু হবে।" /></p>}
+      </div>
+      <div className="contact-actions"><MessageReveal />{config.contactEmail && <a className="button light-button" href={`mailto:${config.contactEmail}`}><Mail size={17} />{config.contactEmail}</a>}</div>
     </div></section>
+
+    {config.products && <HomeFaq rules={rules} locale={locale} services={config.services} />}
   </main>;
 }

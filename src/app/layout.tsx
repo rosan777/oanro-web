@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Geist, Hind_Siliguri, Instrument_Serif } from "next/font/google";
+import { Barlow_Condensed, Caveat, Geist, Hind_Siliguri, Instrument_Serif, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { TrustBar } from "@/components/trust-bar";
 import { publicRules } from "@/lib/public-rules";
 import { Experience, Intro } from "@/components/experience";
@@ -8,6 +8,9 @@ import { Header, Footer } from "@/components/shell";
 import { LocaleProvider } from "@/components/locale";
 import { getSiteConfig } from "@/lib/site-config";
 import "./globals.css";
+import "./v2.css";
+import { CookieNotice, FloatingHelp } from "@/components/site-extras";
+import { storeLive } from "@/lib/seo";
 import { getApprovedPulseStories, getSectionState } from "@/lib/website-sections";
 import { GlobalPulse } from "@/components/global-pulse";
 import { ProductsProvider } from "@/components/products-context";
@@ -15,7 +18,6 @@ import { getStoreCollections, getStoreProducts, getStoreServices } from "@/lib/s
 import { siteUrl } from "@/lib/site-url";
 import { popularSlugs } from "@/lib/product-views";
 import { JsonLd } from "@/components/json-ld";
-import { Analytics } from "@/components/analytics";
 import { requestLocale, alternatesFor } from "@/lib/request-locale";
 import { DEFAULT_DESCRIPTION, DEFAULT_DESCRIPTION_BN, DEFAULT_OG_IMAGE, DEFAULT_TITLE, DEFAULT_TITLE_BN, SITE_NAME, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 
@@ -23,6 +25,11 @@ const sans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display:
 // Bangla glyphs: Geist has none, so Bangla text falls through to Hind Siliguri.
 const bangla = Hind_Siliguri({ variable: "--font-bangla", subsets: ["bengali"], weight: ["400", "500", "600"], display: "swap" });
 // Accent serif for the brand words only (italic).
+// New brand fonts (I1 design): condensed headings, grotesk body, mono labels, handwritten signature.
+const display = Barlow_Condensed({ variable: "--font-display", subsets: ["latin"], weight: ["400", "500", "600"], display: "swap" });
+const body = Space_Grotesk({ variable: "--font-body", subsets: ["latin"], weight: ["400", "500", "700"], display: "swap" });
+const mono = JetBrains_Mono({ variable: "--font-label", subsets: ["latin"], weight: ["400", "500"], display: "swap" });
+const script = Caveat({ variable: "--font-script", subsets: ["latin"], weight: "600", display: "swap" });
 const accent = Instrument_Serif({ variable: "--font-accent", subsets: ["latin"], weight: "400", style: ["normal", "italic"], display: "swap" });
 export async function generateMetadata(): Promise<Metadata> {
   const { locale, path } = await requestLocale();
@@ -43,5 +50,5 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // The admin Services switch hides services everywhere (rows, menu, search), on top of the environment switch.
   const site = { ...config, services: config.services && sections.services };
   const [stories, catalog, serviceList, lines, popular] = await Promise.all([sections["global-pulse"] ? getApprovedPulseStories() : [], config.products ? getStoreProducts() : [], site.services ? getStoreServices() : [], config.products ? getStoreCollections() : [], config.products && process.env.DATABASE_URL ? popularSlugs() : []]);
-  return <html lang={locale} data-scroll-behavior="smooth" className={`${sans.variable} ${bangla.variable} ${accent.variable}`}><body><JsonLd data={organizationJsonLd(config)} /><JsonLd data={websiteJsonLd()} /><Analytics /><LocaleProvider initialLocale={locale}><ProductsProvider products={catalog} services={serviceList} collections={lines} popular={popular}><Experience><a className="skip-link" href="#main-content">Skip to content</a><div id="top" />{config.intro && <Intro />}<TrustBar rules={rules} locale={locale} /><Header config={site} />{children}<GlobalPulse stories={stories} /><Footer config={site} /></Experience></ProductsProvider></LocaleProvider></body></html>;
+  return <html lang={locale} data-scroll-behavior="smooth" className={`${sans.variable} ${bangla.variable} ${accent.variable} ${display.variable} ${body.variable} ${mono.variable} ${script.variable}`}><body><JsonLd data={organizationJsonLd(config)} /><JsonLd data={websiteJsonLd()} /><LocaleProvider initialLocale={locale}><ProductsProvider products={catalog} services={serviceList} collections={lines} popular={popular}><Experience><a className="skip-link" href="#main-content">Skip to content</a><div id="top" />{config.intro && <Intro />}<TrustBar rules={rules} locale={locale} live={storeLive()} services={site.services} /><Header config={site} />{children}<GlobalPulse stories={stories} /><Footer config={site} /><FloatingHelp whatsappUrl={config.whatsappUrl} /><CookieNotice gaId={process.env.NEXT_PUBLIC_GA_ID ?? ""} /></Experience></ProductsProvider></LocaleProvider></body></html>;
 }
