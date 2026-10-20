@@ -1012,3 +1012,15 @@ h2 { font-size: clamp(1.8rem, 3.4vw, 2.5rem); }
   .hero-actions .button { flex: 1 1 100%; }
   .footer-grid { grid-template-columns: 1fr; }
 }
+
+/* Hero brand story: OANRO, its tagline, and what the five letters stand for (keywords stay in the lede for Google) */
+.hero-title { display: grid; gap: 0.35rem; max-width: none; }
+.hero-brand { font-size: clamp(3rem, 7vw, 5.2rem); line-height: 0.95; letter-spacing: 0.02em; }
+.hero-tagline { font-size: clamp(1.25rem, 2.4vw, 1.8rem); font-weight: 500; color: var(--brand); letter-spacing: 0; }
+.hero-lede { margin-top: 1rem; font-size: 1rem; color: #4a4a45; max-width: 52ch; line-height: 1.7; }
+.hero-acronym { list-style: none; padding: 0; margin: 1.2rem 0 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.hero-acronym li { display: inline-flex; align-items: center; gap: 0.5rem; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 0.3rem 0.85rem 0.3rem 0.35rem; font-size: 0.85rem; }
+.hero-acronym b { width: 26px; height: 26px; border-radius: 50%; background: var(--brand); color: var(--surface); display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .hero-acronym li { animation: enter 500ms ease-out both; animation-delay: calc(var(--i) * 90ms + 200ms); }
+}
