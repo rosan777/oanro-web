@@ -101,6 +101,19 @@ export async function setStaffActive(db: CatalogDb, actorId: string, userId: str
     await audit(tx, actorId, active ? "staff.reactivate" : "staff.deactivate", userId, active ? "reactivated" : "deactivated; sessions revoked");
   });
 }
+/**
+ * Remove someone from staff for good: their staff record and role go, and they're signed out everywhere.
+ * Their customer account, orders and the activity log stay. Old invites are already used up,
+ * so to come back they need a brand-new invite.
+ */
+export async function removeStaff(db: CatalogDb, actorId: string, userId: string) {
+  const m = await requireStaff(db, actorId, userId);
+  await db.transaction(async tx => {
+    await tx.delete(staffMember).where(eq(staffMember.userId, userId));
+    await tx.delete(session).where(eq(session.userId, userId));
+    await audit(tx, actorId, "staff.remove", userId, `removed from staff (was ${m.roleId}, ${m.status}); sessions revoked`);
+  });
+}
 function cleanPermissions(list: unknown): Permission[] {
   if (!Array.isArray(list) || list.some(p => !(permissions as readonly unknown[]).includes(p))) throw new ProductStoreError("INVALID_PERMISSIONS");
   return [...new Set(list as Permission[])];

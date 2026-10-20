@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { twoFactor } from "better-auth/plugins/two-factor";
 import * as schema from "./db/schema";
 
 type Settings = {
@@ -25,5 +26,7 @@ export function createAuth(db: Parameters<typeof drizzleAdapter>[0], settings: S
     account: { accountLinking: { enabled: false } },
     session: { cookieCache: { enabled: false }, expiresIn: 60 * 60 * 24 * 7, updateAge: 60 * 60 * 24 },
     rateLimit: { enabled: true, storage: "database", window: 60, max: 30 },
+    // Authenticator-app codes (TOTP) for email+password sign-in. Google sign-ins rely on Google's own 2-Step Verification.
+    plugins: [twoFactor({ issuer: "OANRO" })],
   });
 }

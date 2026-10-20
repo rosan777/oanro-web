@@ -5,8 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, ChevronDown, Menu, Search, ShoppingBag, X, Plus, Minus, Trash2 } from "lucide-react";
 import type { SiteConfig } from "@/lib/site-config";
-import { formatPrice } from "@/lib/catalog";
-import { useProductLines, useProducts, useServices } from "./products-context";
+import { formatPrice, lineFits, optionLabel, variantSoldOut } from "@/lib/catalog";
+import { usePopularProducts, useProductLines, useProducts, useServices } from "./products-context";
+import { rank } from "@/lib/smart-search";
 import { useCart, changeQuantity, removeItem } from "@/lib/cart";
 import { MotionToggle } from "./experience";
 import { LanguageSwitch, Localized, useLocale } from "./locale";
@@ -15,6 +16,12 @@ export function ProductPhoto({ position, label, className = "", image }: { posit
   // Owner photos are same-origin URLs built by the server (/api/products/<slug>/image); otherwise use the sample sprite.
   const style = image?.startsWith("/api/products/") ? { backgroundImage: `url("${image}")`, backgroundSize: "cover", backgroundPosition: "center" } : { backgroundPosition: position };
   return <div className={`product-photo ${className}`} role="img" aria-label={label} style={style} />;
+}
+
+/** Price, with the original price crossed out and the saving when the product is on sale. */
+export function PriceTag({ price, compareAt, locale = "en", className = "" }: { price: number; compareAt?: number | null; locale?: "en" | "bn"; className?: string }) {
+  const sale = compareAt && compareAt > price ? compareAt : null;
+  return <span className={`price-tag ${className}`}><strong>{formatPrice(price, locale)}</strong>{sale && <><s aria-label={locale === "bn" ? `আগের দাম ${formatPrice(sale, locale)}` : `Was ${formatPrice(sale, locale)}`}>{formatPrice(sale, locale)}</s><span className="sale-badge">-{Math.round((sale - price) / sale * 100)}%</span></>}</span>;
 }
 
 export function Header({ config }: { config: SiteConfig }) {
@@ -29,11 +36,22 @@ export function Header({ config }: { config: SiteConfig }) {
   const cart = useCart();
   const products = useProducts(); const services = useServices();
   // Ignore saved bag items whose product or size is no longer offered.
-  const bag = cart.flatMap(item => { const product = products.find(p => p.slug === item.slug && p.sizes.includes(item.size)); return product ? [{ item, product }] : []; });
+  const bag = cart.flatMap(item => { const product = products.find(p => p.slug === item.slug && lineFits(p, item.size, item.color)); return product ? [{ item, product, gone: variantSoldOut(product, item.size, item.color) }] : []; });
   const count = bag.reduce((sum, { item }) => sum + item.quantity, 0);
-  const total = bag.reduce((sum, { item, product }) => sum + (product.inStock === false ? 0 : product.price * item.quantity), 0);
-  const filteredProducts = config.products ? products.filter(p => `${p.name} ${p.category} ${p.bn?.name ?? ""} ${p.bn?.category ?? ""}`.toLowerCase().includes(query.toLowerCase().trim())) : [];
-  const filteredServices = config.services ? services.filter(s => `${s.title} ${s.text} ${s.bn?.title ?? ""}`.toLowerCase().includes(query.toLowerCase().trim())) : [];
+  const total = bag.reduce((sum, { item, product, gone }) => sum + (gone ? 0 : product.price * item.quantity), 0);
+  const popular = usePopularProducts(4);
+  const sectionName = (id?: string) => { const c = lines.find(l => l.collection.id === (id ?? "seasonal"))?.collection; return c ? `${c.name} ${c.bn?.name ?? ""}` : ""; };
+  const searching = query.trim().length > 0;
+  // Smart search: every word is matched on its own (exact, start of word, small typos, English/Bangla synonyms).
+  const matchedProducts = searching && config.products ? rank(query, products, p => [
+    { text: `${p.name} ${p.bn?.name ?? ""}`, weight: 3 }, { text: `${p.category} ${p.bn?.category ?? ""} ${sectionName(p.collectionId)}`, weight: 2 },
+    { text: `${p.tagline} ${p.bn?.tagline ?? ""}`, weight: 1 }]).slice(0, 12) : [];
+  const matchedServices = searching && config.services ? rank(query, services, s => [
+    { text: `${s.title} ${s.bn?.title ?? ""}`, weight: 3 }, { text: `${s.category ?? ""} ${s.word}`, weight: 2 }, { text: `${s.text} ${s.bn?.text ?? ""}`, weight: 1 }]).slice(0, 6) : [];
+  const noMatch = searching && !matchedProducts.length && !matchedServices.length;
+  // Before typing (or when nothing matches) show a few popular picks instead of an empty list.
+  const filteredProducts = !config.products ? [] : searching && !noMatch ? matchedProducts : popular;
+  const filteredServices = matchedServices;
   const closeMenu = () => { setMega(null); setMobile(false); };
   const groups = [...(config.products ? ["Products"] : []), ...(config.services ? ["Services"] : []), "About"];
   const label = (value: string) => locale === "bn" ? ({ Products: "পণ্য", Services: "সেবা", About: "আমাদের কথা" }[value] || value) : value;
@@ -65,20 +83,20 @@ export function Header({ config }: { config: SiteConfig }) {
     <dialog ref={searchDialog} className="search-dialog" aria-labelledby="search-title" onClick={e => { if (e.target === e.currentTarget) searchDialog.current?.close(); }}>
       <div className="dialog-content"><div className="dialog-heading"><h2 id="search-title"><Localized en="Find something good." bn="ভালো কিছু খুঁজুন।" /></h2><button type="button" className="icon-button" title="Close search" aria-label="Close search" onClick={() => searchDialog.current?.close()}><X /></button></div>
         <label className="search-field"><Search size={20} /><span className="sr-only"><Localized en="Search products and services" bn="পণ্য ও সেবা খুঁজুন" /></span><input type="search" placeholder={t("Search products or services", "পণ্য বা সেবা খুঁজুন")} value={query} onChange={e => setQuery(e.target.value)} /></label>
-        <p className="small-note" role="status">{filteredProducts.length + filteredServices.length} results</p>
+        <p className="small-note" role="status">{!searching ? t("Popular right now", "এখন জনপ্রিয়") : noMatch ? t(`No exact match for “${query.trim()}”. You might like these:`, `“${query.trim()}” এর সাথে হুবহু কিছু মেলেনি। এগুলো দেখতে পারেন:`) : t(`${filteredProducts.length + filteredServices.length} results`, `${filteredProducts.length + filteredServices.length}টি ফলাফল`)}</p>
         <div className="search-results">{filteredProducts.map(p => <Link key={p.slug} href={`/products/${p.slug}`} onClick={() => searchDialog.current?.close()}><ProductPhoto position={p.position} image={p.image} label={p.name} /><span><strong>{bn && p.bn ? p.bn.name : p.name}</strong><small>{bn && p.bn ? p.bn.category : p.category}{p.inStock === false ? t(" / Out of stock", " / স্টক শেষ") : ""}</small></span><ArrowUpRight size={18} /></Link>)}
-          {filteredServices.map(s => <Link key={s.slug} href={`/#service-${s.slug}`} onClick={() => searchDialog.current?.close()}><span className="service-search-mark">{s.word}</span><span><strong>{s.title}</strong><small><Localized en="Technology service" bn="প্রযুক্তি সেবা" /></small></span><ArrowUpRight size={18} /></Link>)}
-          {!filteredProducts.length && !filteredServices.length && <p className="empty-state"><Localized en="No matches yet. Try “winter”, “web”, or “headphones”." bn="এখনো কিছু মেলেনি। “ক্যাপ”, “ওয়েব” বা “হেডফোন” লিখে দেখুন।" /></p>}</div>
+          {filteredServices.map(s => <Link key={s.slug} href={`/#service-${s.slug}`} onClick={() => searchDialog.current?.close()}><span className="service-search-mark">{s.word}</span><span><strong>{bn && s.bn ? s.bn.title : s.title}</strong><small><Localized en="Technology service" bn="প্রযুক্তি সেবা" /></small></span><ArrowUpRight size={18} /></Link>)}
+          {!filteredProducts.length && !filteredServices.length && <p className="empty-state"><Localized en="Try “winter”, “web”, or “headphones”." bn="“ক্যাপ”, “ওয়েব” বা “হেডফোন” লিখে দেখুন।" /></p>}</div>
       </div>
     </dialog>
     <dialog ref={cartDialog} className="cart-dialog" aria-labelledby="bag-title" onClick={e => { if (e.target === e.currentTarget) cartDialog.current?.close(); }}>
       <div className="dialog-content"><div className="dialog-heading"><h2 id="bag-title"><Localized en="Your bag" bn="আপনার ব্যাগ" /></h2><button type="button" className="icon-button" title="Close bag" aria-label="Close bag" onClick={() => cartDialog.current?.close()}><X /></button></div><p className="demo-notice"><Localized en="Sign in at checkout to place your order." bn="অর্ডার দিতে চেকআউটে সাইন ইন করুন।" /></p>
-        {!bag.length ? <div className="empty-state"><ShoppingBag size={32} /><h3><Localized en="A little room for discovery." bn="আবিষ্কারের জন্য একটু জায়গা।" /></h3><p><Localized en="Your bag is empty." bn="আপনার ব্যাগ খালি।" /></p><Link className="button brand-button" href="/#products" onClick={() => cartDialog.current?.close()}><Localized en="Explore products" bn="পণ্য দেখুন" /><ArrowUpRight size={16} /></Link></div> : <><div className="bag-items">{bag.map(({ item, product }) => { return <article className="bag-item" key={`${item.slug}-${item.size}`}><ProductPhoto position={product.position} image={product.image} label={product.name} /><div><Link href={`/products/${product.slug}`} onClick={() => cartDialog.current?.close()}>{bn && product.bn ? product.bn.name : product.name}</Link><small>{item.size} / {product.inStock === false ? <strong className="stock-badge"><Localized en="Out of stock" bn="স্টক শেষ" /></strong> : formatPrice(product.price)}</small><div className="quantity-controls"><button type="button" title="Decrease quantity" aria-label={`Decrease ${product.name}`} onClick={() => changeQuantity(item.slug, item.size, -1)}><Minus size={14} /></button><span>{item.quantity}</span><button type="button" title="Increase quantity" disabled={item.quantity >= 10 || product.inStock === false} aria-label={`Increase ${product.name}`} onClick={() => changeQuantity(item.slug, item.size, 1)}><Plus size={14} /></button><button type="button" title="Remove item" aria-label={`Remove ${product.name}`} onClick={() => removeItem(item.slug, item.size)}><Trash2 size={14} /></button></div></div></article>; })}</div><div className="bag-total"><span><Localized en="Subtotal" bn="সাবটোটাল" /></span><strong>{formatPrice(total, locale)}</strong></div><Link className="button brand-button bag-checkout" href="/checkout" onClick={() => cartDialog.current?.close()}><Localized en="Checkout" bn="চেকআউট" /><ArrowUpRight size={16} /></Link><p className="small-note"><Localized en="Pay with bKash or Nagad. Delivery charges are confirmed with your order." bn="bKash বা Nagad-এ পেমেন্ট করুন। ডেলিভারি চার্জ অর্ডারের সাথে নিশ্চিত করা হবে।" /></p></>}
+        {!bag.length ? <div className="empty-state"><ShoppingBag size={32} /><h3><Localized en="A little room for discovery." bn="আবিষ্কারের জন্য একটু জায়গা।" /></h3><p><Localized en="Your bag is empty." bn="আপনার ব্যাগ খালি।" /></p><Link className="button brand-button" href="/#products" onClick={() => cartDialog.current?.close()}><Localized en="Explore products" bn="পণ্য দেখুন" /><ArrowUpRight size={16} /></Link></div> : <><div className="bag-items">{bag.map(({ item, product, gone }) => { return <article className="bag-item" key={`${item.slug}-${item.size}-${item.color}`}><ProductPhoto position={product.position} image={product.image} label={product.name} /><div><Link href={`/products/${product.slug}`} onClick={() => cartDialog.current?.close()}>{bn && product.bn ? product.bn.name : product.name}</Link><small>{optionLabel(product, item.size, item.color, bn)} / {gone ? <strong className="stock-badge"><Localized en="Out of stock" bn="স্টক শেষ" /></strong> : formatPrice(product.price)}</small><div className="quantity-controls"><button type="button" title="Decrease quantity" aria-label={`Decrease ${product.name}`} onClick={() => changeQuantity(item.slug, item.size, -1, item.color)}><Minus size={14} /></button><span>{item.quantity}</span><button type="button" title="Increase quantity" disabled={item.quantity >= 10 || gone} aria-label={`Increase ${product.name}`} onClick={() => changeQuantity(item.slug, item.size, 1, item.color)}><Plus size={14} /></button><button type="button" title="Remove item" aria-label={`Remove ${product.name}`} onClick={() => removeItem(item.slug, item.size, item.color)}><Trash2 size={14} /></button></div></div></article>; })}</div><div className="bag-total"><span><Localized en="Subtotal" bn="সাবটোটাল" /></span><strong>{formatPrice(total, locale)}</strong></div><Link className="button brand-button bag-checkout" href="/checkout" onClick={() => cartDialog.current?.close()}><Localized en="Checkout" bn="চেকআউট" /><ArrowUpRight size={16} /></Link><p className="small-note"><Localized en="Pay with bKash or Nagad. Delivery charges are confirmed with your order." bn="bKash বা Nagad-এ পেমেন্ট করুন। ডেলিভারি চার্জ অর্ডারের সাথে নিশ্চিত করা হবে।" /></p></>}
       </div>
     </dialog>
   </>;
 }
 
 export function Footer({ config }: { config: SiteConfig }) {
-  return <footer className="site-footer"><div className="container"><div className="footer-main"><Link className="brand" href="/"><Image src="/logo.svg" alt="" width={42} height={42} />OANRO</Link><p><Localized en="Find your next. Build what&apos;s next." bn="আপনার পরেরটা খুঁজুন। আগামীকে গড়ুন।" /></p><a href="#top" className="text-link"><Localized en="Back to top" bn="উপরে ফিরে যান" /><ArrowUpRight size={16} /></a></div><div className="footer-bottom"><span><Localized en="Bangladesh first. Possibilities beyond." bn="বাংলাদেশ প্রথম। সম্ভাবনা আরও দূরে।" /></span><nav aria-label="Footer">{config.products && <Link href="/#products"><Localized en="Products" bn="পণ্য" /></Link>}{config.services && <Link href="/#services"><Localized en="Services" bn="সেবা" /></Link>}<Link href="/contact"><Localized en="Contact" bn="যোগাযোগ" /></Link><Link href="/privacy"><Localized en="Privacy" bn="প্রাইভেসি" /></Link><Link href="/terms"><Localized en="Terms" bn="শর্তাবলি" /></Link></nav><MotionToggle /></div></div></footer>;
+  return <footer className="site-footer"><div className="container"><div className="footer-main"><Link className="brand" href="/"><Image src="/logo.svg" alt="" width={42} height={42} />OANRO</Link><p><Localized en="Find your next. Build what&apos;s next." bn="আপনার পরেরটা খুঁজুন। আগামীকে গড়ুন।" /></p><a href="#top" className="text-link"><Localized en="Back to top" bn="উপরে ফিরে যান" /><ArrowUpRight size={16} /></a></div><div className="footer-bottom"><span><Localized en="Bangladesh first. Possibilities beyond." bn="বাংলাদেশ প্রথম। সম্ভাবনা আরও দূরে।" /></span><nav aria-label="Footer">{config.products && <Link href="/#products"><Localized en="Products" bn="পণ্য" /></Link>}{config.services && <Link href="/#services"><Localized en="Services" bn="সেবা" /></Link>}<Link href="/contact"><Localized en="Contact" bn="যোগাযোগ" /></Link><Link href="/privacy"><Localized en="Privacy" bn="প্রাইভেসি" /></Link><Link href="/delivery-returns"><Localized en="Delivery & returns" bn="ডেলিভারি ও রিটার্ন" /></Link><Link href="/terms"><Localized en="Terms" bn="শর্তাবলি" /></Link></nav><MotionToggle /></div></div></footer>;
 }

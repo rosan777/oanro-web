@@ -71,6 +71,34 @@
       "when": 1792280000000,
       "tag": "0009_cash_on_delivery",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792290000000,
+      "tag": "0010_jewelry_section_type",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792300000000,
+      "tag": "0011_two_factor",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792310000000,
+      "tag": "0012_product_views",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792320000000,
+      "tag": "0013_variants_refunds",
+      "breakpoints": true
     }
   ]
 }

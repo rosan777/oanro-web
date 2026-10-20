@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { useLocale } from "./locale";
 
-type Mode = "login" | "signup" | "forgot" | "reset";
+type Mode = "login" | "signup" | "forgot" | "reset" | "code";
 export function AuthPanel({ google, resetToken, next = "/account" }: { google: boolean; resetToken?: string; next?: string }) {
   const router = useRouter();
   const { locale } = useLocale();
@@ -13,6 +13,19 @@ export function AuthPanel({ google, resetToken, next = "/account" }: { google: b
   const [mode, setMode] = useState<Mode>(resetToken ? "reset" : "login");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [backup, setBackup] = useState(false);
+  // Step 2 of sign-in for accounts with two-factor on: a 6-digit code from the authenticator app, or a backup code.
+  async function verifyCode(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setBusy(true); setMessage("");
+    const form = new FormData(event.currentTarget);
+    const code = String(form.get("code") ?? "").replace(/\s/g, "");
+    try {
+      const result = backup ? await authClient.twoFactor.verifyBackupCode({ code }) : await authClient.twoFactor.verifyTotp({ code, trustDevice: form.get("trust") === "on" });
+      if (result.error) setMessage(bn ? "কোডটি সঠিক নয় বা মেয়াদ শেষ। আবার চেষ্টা করুন।" : "That code didn't work. Check it and try again.");
+      else { router.replace(next); router.refresh(); }
+    } catch { setMessage(bn ? "সংযোগে সমস্যা হয়েছে। আবার চেষ্টা করুন।" : "Connection failed. Please try again."); }
+    finally { setBusy(false); }
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setMessage("");
     const form = new FormData(event.currentTarget);
@@ -31,6 +44,7 @@ export function AuthPanel({ google, resetToken, next = "/account" }: { google: b
       } else {
         const result = await authClient.signIn.email({ email, password });
         if (result.error) setMessage(bn ? "Sign in হয়নি। তথ্য ও email verification যাচাই করুন।" : "Sign in failed. Check your details and email verification.");
+        else if (result.data && "twoFactorRedirect" in result.data && result.data.twoFactorRedirect) { setMode("code"); setBackup(false); }
         else { router.replace(next); router.refresh(); }
       }
     } catch { setMessage(bn ? "সংযোগে সমস্যা হয়েছে। আবার চেষ্টা করুন।" : "Connection failed. Please try again."); }
@@ -44,6 +58,17 @@ export function AuthPanel({ google, resetToken, next = "/account" }: { google: b
     } catch { setMessage(bn ? "সংযোগে সমস্যা হয়েছে।" : "Connection failed."); }
     finally { setBusy(false); }
   }
+  if (mode === "code") return <section className="auth-card">
+    <h1>{bn ? "দুই ধাপের যাচাই" : "Two-step verification"}</h1>
+    <p>{backup ? (bn ? "আপনার সেভ করা backup code-গুলোর একটি লিখুন।" : "Enter one of the backup codes you saved.") : (bn ? "Authenticator অ্যাপে OANRO-র ৬ সংখ্যার কোডটি লিখুন।" : "Enter the 6-digit code for OANRO from your authenticator app.")}</p>
+    <form onSubmit={verifyCode}>
+      <label>{backup ? "Backup code" : (bn ? "৬ সংখ্যার কোড" : "6-digit code")}<input key={String(backup)} name="code" required autoFocus autoComplete="one-time-code" inputMode={backup ? "text" : "numeric"} pattern={backup ? undefined : "[0-9]{6}"} maxLength={backup ? 20 : 6} /></label>
+      {!backup && <label className="inquiry-consent"><input type="checkbox" name="trust" /><span>{bn ? "এই ডিভাইসে ৩০ দিন আর জিজ্ঞাসা করবে না" : "Don't ask again on this device for 30 days"}</span></label>}
+      <button className="button brand-button" disabled={busy}>{busy ? (bn ? "অপেক্ষা করুন…" : "Please wait…") : bn ? "যাচাই করুন" : "Verify"}</button>
+    </form>
+    <div className="auth-links"><button disabled={busy} onClick={() => { setBackup(b => !b); setMessage(""); }}>{backup ? (bn ? "অ্যাপের কোড ব্যবহার করুন" : "Use the app code") : (bn ? "ফোন নেই? Backup code ব্যবহার করুন" : "No phone? Use a backup code")}</button><button disabled={busy} onClick={() => { setMode("login"); setMessage(""); }}>{bn ? "ফিরে যান" : "Back"}</button></div>
+    <p role="status" aria-live="polite">{message}</p>
+  </section>;
   return <section className="auth-card">
     <h1>{mode === "signup" ? (bn ? "অ্যাকাউন্ট তৈরি করুন" : "Create account") : mode === "forgot" || mode === "reset" ? (bn ? "Password reset" : "Reset password") : (bn ? "OANRO-তে sign in" : "Sign in to OANRO")}</h1>
     <form onSubmit={submit}>

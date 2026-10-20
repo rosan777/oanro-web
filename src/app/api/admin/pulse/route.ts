@@ -65,6 +65,18 @@ export async function PATCH(request: Request) {
       return Response.json({ id: data.id });
     } catch { return Response.json({ error: "PREVIEW_EXPIRED_OR_UNAVAILABLE" }, { status: 400 }); }
   }
+  if ((data.action === "archive" || data.action === "restore") && typeof data.id === "string" && /^[0-9a-f-]{36}$/.test(data.id)) {
+    const archive = data.action === "archive";
+    try {
+      await getDb().transaction(async tx => {
+        // Archiving also hides the story; restoring brings it back hidden, so the owner decides when it shows again.
+        const changed = await tx.update(pulseStory).set({ archivedAt: archive ? new Date() : null, visible: false }).where(eq(pulseStory.id, data.id as string)).returning({ headline: pulseStory.headline });
+        if (!changed.length) throw new Error("NOT_FOUND");
+        await tx.insert(auditEvent).values({ id: randomUUID(), actorId: ownerId, action: archive ? "pulse.archive" : "pulse.restore", targetId: data.id as string, reason: changed[0].headline.slice(0, 200) });
+      });
+      return Response.json({ id: data.id, archived: archive });
+    } catch { return Response.json({ error: "NOT_FOUND_OR_UNAVAILABLE" }, { status: 404 }); }
+  }
   if (typeof data.id !== "string" || !/^[0-9a-f-]{36}$/.test(data.id) || typeof data.visible !== "boolean") return Response.json({ error: "INVALID_INPUT" }, { status: 400 });
   try {
     await getDb().transaction(async tx => {

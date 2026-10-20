@@ -1,12 +1,13 @@
 import { bigint, boolean, check, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import type { ProductStatus } from "../product-input";
+import type { ProductColor, ProductStatus } from "../product-input";
 import type { CollectionPreset } from "../categories";
 
 const time = (name: string) => timestamp(name, { withTimezone: true });
 export const user = pgTable("auth_user", {
   id: text("id").primaryKey(), name: text("name").notNull(),
   email: text("email").notNull().unique(), emailVerified: boolean("email_verified").notNull().default(false),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false),
   image: text("image"), createdAt: time("created_at").notNull().defaultNow(), updatedAt: time("updated_at").notNull().defaultNow(),
 });
 export const session = pgTable("auth_session", {
@@ -26,6 +27,12 @@ export const verification = pgTable("auth_verification", {
   id: text("id").primaryKey(), identifier: text("identifier").notNull(), value: text("value").notNull(),
   expiresAt: time("expires_at").notNull(), createdAt: time("created_at").notNull().defaultNow(), updatedAt: time("updated_at").notNull().defaultNow(),
 }, t => [index("verification_identifier_idx").on(t.identifier)]);
+/** better-auth two-factor (authenticator app). Secrets and backup codes are stored encrypted by better-auth. */
+export const twoFactor = pgTable("auth_two_factor", {
+  id: text("id").primaryKey(), secret: text("secret").notNull(), backupCodes: text("backup_codes").notNull(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  verified: boolean("verified").default(true), failedVerificationCount: integer("failed_verification_count").default(0), lockedUntil: time("locked_until"),
+}, t => [index("two_factor_user_idx").on(t.userId), index("two_factor_secret_idx").on(t.secret)]);
 export const rateLimit = pgTable("auth_rate_limit", {
   id: text("id").primaryKey(), key: text("key").notNull().unique(), count: integer("count").notNull(),
   lastRequest: bigint("last_request", { mode: "number" }).notNull(),
@@ -55,6 +62,8 @@ export const pulseStory = pgTable("pulse_story", {
   rightsConfirmed: boolean("rights_confirmed").notNull().default(false),
   visible: boolean("visible").notNull().default(false),
   createdAt: time("created_at").notNull().defaultNow(),
+  /** Archived stories leave the storefront and the main list but are kept (restorable). */
+  archivedAt: time("archived_at"),
 }, t => [index("pulse_story_visibility_idx").on(t.visible, t.approvedAt)]);
 // Storefront rows ("sections") that group products. Seasonal, Caps and Tech are seeded; the owner can add more.
 export const productCollection = pgTable("product_collection", {
@@ -70,7 +79,7 @@ export const productCollection = pgTable("product_collection", {
   archivedAt: time("archived_at"),
 }, t => [
   check("product_collection_status_check", sql`${t.status} in ('draft', 'published', 'hidden')`),
-  check("product_collection_preset_check", sql`${t.preset} in ('seasonal', 'caps', 'tech', 'general')`),
+  check("product_collection_preset_check", sql`${t.preset} in ('seasonal', 'caps', 'tech', 'jewelry', 'general')`),
 ]);
 // Owner-managed catalog. Rows are archived (soft-deleted) so audit history and links stay valid.
 export const product = pgTable("product", {
@@ -82,6 +91,10 @@ export const product = pgTable("product", {
   taglineEn: text("tagline_en").notNull().default(""), taglineBn: text("tagline_bn").notNull().default(""),
   descriptionEn: text("description_en").notNull().default(""), descriptionBn: text("description_bn").notNull().default(""),
   price: integer("price").notNull(), stock: integer("stock"),
+  /** Original price shown crossed out (a sale). Only shown when higher than price. */
+  compareAtPrice: integer("compare_at_price"),
+  /** Colour choices: id (url-safe), English/Bangla names and a swatch colour. Empty = no colour choice. */
+  colors: jsonb("colors").$type<ProductColor[]>().notNull().default([]),
   /** What one unit costs the business (৳). Private: only staff with "costs.manage" see or change it. */
   costPrice: integer("cost_price"),
   /** Restock alert threshold: warn when tracked stock is at or below this (null = default 5). */
@@ -102,7 +115,21 @@ export const product = pgTable("product", {
   check("product_stock_check", sql`${t.stock} is null or ${t.stock} >= 0`),
   check("product_cost_check", sql`${t.costPrice} is null or ${t.costPrice} >= 0`),
   check("product_low_stock_check", sql`${t.lowStockAt} is null or ${t.lowStockAt} >= 0`),
+  check("product_compare_at_check", sql`${t.compareAtPrice} is null or ${t.compareAtPrice} >= 0`),
 ]);
+/**
+ * Stock per colour × size. When a product has rows here, these counts are the real stock and
+ * product.stock is kept equal to their sum (for lists and reports). color is "" for size-only products.
+ */
+export const productVariant = pgTable("product_variant", {
+  productId: text("product_id").notNull().references(() => product.id, { onDelete: "cascade" }),
+  color: text("color").notNull().default(""), size: text("size").notNull(), stock: integer("stock").notNull(),
+}, t => [primaryKey({ columns: [t.productId, t.color, t.size] }), check("product_variant_stock_check", sql`${t.stock} >= 0`)]);
+/** A photo for one colour of a product (shown when the shopper picks that colour). */
+export const productColorImage = pgTable("product_color_image", {
+  productId: text("product_id").notNull().references(() => product.id, { onDelete: "cascade" }),
+  color: text("color").notNull(), imageData: text("image_data").notNull(), updatedAt: time("updated_at").notNull().defaultNow(),
+}, t => [primaryKey({ columns: [t.productId, t.color] })]);
 // Technology services ("Tech solutions") shown on the storefront.
 export const service = pgTable("service", {
   id: text("id").primaryKey(), slug: text("slug").notNull().unique(),
@@ -228,6 +255,8 @@ export const shopOrder = pgTable("shop_order", {
   codCollectedAt: time("cod_collected_at"), codCollectedBy: text("cod_collected_by").references(() => user.id),
   /** What the business paid the courier for this order (৳). Used for net profit. */
   shippingCost: integer("shipping_cost"),
+  /** Money sent back to the customer after approval (partial refund, damaged item…). Reduces revenue. */
+  refundAmount: integer("refund_amount").notNull().default(0), refundNote: text("refund_note"), refundedAt: time("refunded_at"),
   createdAt: time("created_at").notNull().defaultNow(), updatedAt: time("updated_at").notNull().defaultNow(),
 }, t => [
   check("shop_order_delivery_check", sql`${t.deliveryStatus} is null or ${t.deliveryStatus} in ('processing', 'shipped', 'out_for_delivery', 'delivered', 'returned')`),
@@ -239,17 +268,20 @@ export const shopOrder = pgTable("shop_order", {
   check("shop_order_payment_type_check", sql`${t.paymentType} in ('prepaid', 'cod')`),
   check("shop_order_cod_check", sql`${t.deliveryCharge} >= 0 and ${t.codDue} >= 0`),
   check("shop_order_shipping_cost_check", sql`${t.shippingCost} is null or ${t.shippingCost} >= 0`),
+  check("shop_order_refund_check", sql`${t.refundAmount} >= 0`),
 ]);
 export const orderItem = pgTable("order_item", {
   orderId: text("order_id").notNull().references(() => shopOrder.id, { onDelete: "cascade" }),
   productId: text("product_id").notNull().references(() => product.id),
   slug: text("slug").notNull(), name: text("name").notNull(), size: text("size").notNull(),
+  /** Colour id chosen ("" when the product has no colours). */
+  color: text("color").notNull().default(""),
   quantity: integer("quantity").notNull(), unitPrice: integer("unit_price").notNull(),
   /** Cost price copied at order time, so later cost changes don't rewrite past profit. */
   unitCost: integer("unit_cost"),
   /** True when this line took units from a tracked stock count (so a rejection puts them back). */
   stockReserved: boolean("stock_reserved").notNull().default(false),
-}, t => [primaryKey({ columns: [t.orderId, t.productId, t.size] }), check("order_item_quantity_check", sql`${t.quantity} between 1 and 10`)]);
+}, t => [primaryKey({ columns: [t.orderId, t.productId, t.size, t.color] }), check("order_item_quantity_check", sql`${t.quantity} between 1 and 10`)]);
 /** Customer-visible timeline of an order: placed, paid/rejected, then each delivery step. */
 export const orderEvent = pgTable("order_event", {
   id: text("id").primaryKey(),
@@ -266,3 +298,9 @@ export const customerProfile = pgTable("customer_profile", {
   permanentAddress: text("permanent_address").notNull().default(""), company: text("company").notNull().default(""),
   updatedAt: time("updated_at").notNull().defaultNow(),
 });
+
+/** How many times each product page was opened per Dhaka day. Counts only: no user, IP or device is stored. */
+export const productViewDaily = pgTable("product_view_daily", {
+  productId: text("product_id").notNull().references(() => product.id, { onDelete: "cascade" }),
+  day: text("day").notNull(), views: integer("views").notNull().default(0),
+}, t => [primaryKey({ columns: [t.productId, t.day] }), index("product_view_day_idx").on(t.day)]);

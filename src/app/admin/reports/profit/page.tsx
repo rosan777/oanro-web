@@ -1,3 +1,4 @@
+import { FeeSetting } from "@/components/fee-setting";
 import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { catalogDb } from "@/lib/store-products";
@@ -18,12 +19,12 @@ export default async function ProfitReportPage({ searchParams }: { searchParams:
   const losses = r.rows.filter(x => x.loss);
   const csv: (string | number | null)[][] = [["Product", "Section", "Selling price (BDT)", "Cost price (BDT)", "Units sold", "Revenue (BDT)", "Product cost (BDT)", "Profit (BDT)", "Margin %"],
     ...r.rows.map(x => [x.name, x.section, x.price, x.costPrice, x.sold, x.revenue, x.cost, x.profit, x.margin]),
-    [], ["Total revenue", r.totals.revenue], ["Product cost", r.totals.productCost], ["Delivery charges collected", r.totals.delivery], ["Courier charges", r.totals.shipping], ["Net profit", r.totals.net], ["Net margin %", r.totals.margin]];
+    [], ["Total revenue", r.totals.revenue], ["Product cost", r.totals.productCost], ["Delivery charges collected", r.totals.delivery], ["Courier charges", r.totals.shipping], [`Payment fees (${r.feePercent}%)`, r.totals.fees], ["Refunds", r.totals.refunds], ["Net profit", r.totals.net], ["Net margin %", r.totals.margin]];
   const tone = r.totals.net < 0 ? "bad" : "good";
   return <main id="main-content" className="container auth-page admin-report">
     <AdminBack />
     <header className="report-head">
-      <div><p className="eyebrow">Analytics · private</p><h1>Profit &amp; performance</h1><p>Profit = selling price − cost price for every unit sold, plus delivery charges collected, minus what you paid couriers. Cash on delivery counts only after the cash is received. Uses the cost saved on each order, so changing a cost later does not rewrite past profit.</p></div>
+      <div><p className="eyebrow">Analytics · private</p><h1>Profit &amp; performance</h1><p>Profit = selling price − cost price for every unit sold, plus delivery charges collected, minus what you paid couriers, bKash/Nagad fees and refunds. Cash on delivery counts only after the cash is received. Uses the cost saved on each order, so changing a cost later does not rewrite past profit.</p></div>
       <CsvButton filename={`oanro-profit-${range}.csv`} rows={csv} />
     </header>
     <RangeTabs base="/admin/reports/profit" current={range} />
@@ -38,9 +39,11 @@ export default async function ProfitReportPage({ searchParams }: { searchParams:
       <StatCard icon="coin" tone="brand" label="Revenue" value={formatPrice(r.totals.revenue)} now={r.totals.revenue} before={r.previous?.revenue} />
       <StatCard icon="box" label="Product cost" value={formatPrice(r.totals.productCost)} hint={`Gross profit ${formatPrice(r.totals.gross)}`} />
       <StatCard icon="courier" label="Delivery: charged − courier" value={formatPrice(r.totals.delivery - r.totals.shipping)} tone={r.totals.delivery - r.totals.shipping < 0 ? "bad" : "neutral"} hint={`Charged ${formatPrice(r.totals.delivery)} · paid courier ${formatPrice(r.totals.shipping)}`} />
+      <StatCard icon="alert" label="Fees & refunds" value={formatPrice(r.totals.fees + r.totals.refunds)} tone={r.totals.fees + r.totals.refunds > 0 ? "bad" : "neutral"} hint={`Payment fees ${formatPrice(r.totals.fees)} (${r.feePercent}%) · refunds ${formatPrice(r.totals.refunds)}`} />
       <StatCard icon="wallet" tone={tone} label="Net profit" value={formatPrice(r.totals.net)} now={r.totals.net} before={r.previous?.net} hint={r.totals.margin === null ? "No sales yet" : `${r.totals.margin}% margin`} />
     </section>
 
+    {access.permissions.has("costs.manage") && <FeeSetting percent={r.feePercent} />}
     {sold.length > 0 && <section className="highlight-grid" aria-label="Highlights">
       <div className="highlight is-good"><ActionIcon name="trend-up" size={18} /><small>Best seller</small><strong>{byUnits[0].name}</strong><span>{fmtCount(byUnits[0].sold)} sold</span></div>
       <div className="highlight is-good"><ActionIcon name="coin" size={18} /><small>Most profit</small><strong>{byProfit[0].name}</strong><span>{formatPrice(byProfit[0].profit)}</span></div>

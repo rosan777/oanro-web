@@ -5,8 +5,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { addToCart } from "@/lib/cart";
-import { type Product, formatPrice } from "@/lib/catalog";
-import { ProductPhoto } from "./shell";
+import { type Product } from "@/lib/catalog";
+import { PriceTag, ProductPhoto } from "./shell";
 import { useLocale } from "./locale";
 
 function QuickAdd({ product, bn }: { product: Product; bn: boolean }) {
@@ -37,9 +37,9 @@ function Shelf({ title, items, bn }: { title: string; items: Product[]; bn: bool
         // The photo link is a mouse/touch shortcut; keyboard and screen readers use the name link (no button inside a link).
         return <div key={p.slug} className={`shelf-card${p.inStock === false ? " is-out-of-stock" : ""}`} style={{ "--i": i } as React.CSSProperties}>
           <div className="shelf-photo"><Link href={`/products/${p.slug}`} tabIndex={-1} aria-hidden="true"><ProductPhoto position={p.position} image={p.image} label={name} /></Link>
-            {p.sizes.length > 1 && p.inStock !== false ? <Link href={`/products/${p.slug}`} className="shelf-quick" tabIndex={-1} aria-hidden="true">{bn ? "সাইজ বেছে নিন" : "Choose size"}</Link> : <QuickAdd product={p} bn={bn} />}</div>
+            {(p.sizes.length > 1 || (p.colors?.length ?? 0) > 0) && p.inStock !== false ? <Link href={`/products/${p.slug}`} className="shelf-quick" tabIndex={-1} aria-hidden="true">{p.colors?.length ? (bn ? "অপশন বেছে নিন" : "Choose options") : bn ? "সাইজ বেছে নিন" : "Choose size"}</Link> : <QuickAdd product={p} bn={bn} />}</div>
           <Link href={`/products/${p.slug}`} className="shelf-name">{name}</Link>
-          <span className="shelf-price">{formatPrice(p.price, bn ? "bn" : "en")}</span>
+          <PriceTag className="shelf-price" price={p.price} compareAt={p.compareAt} locale={bn ? "bn" : "en"} />
         </div>; })}
     </div>
   </section>;

@@ -8,6 +8,8 @@ import { ProductInputError } from "@/lib/product-input";
 import { ProductStoreError } from "@/lib/product-store";
 import { catalogDb } from "@/lib/store-products";
 import { storefrontChanged } from "@/lib/storefront-cache";
+import { after } from "next/server";
+import { notifyNewOrder } from "@/lib/order-notify";
 export const runtime = "nodejs";
 
 /** Place an order. Requires a signed-in customer with a verified email, from this site only. */
@@ -23,12 +25,14 @@ export async function POST(request: Request) {
     const screenshot = data.screenshot == null || data.screenshot === "" ? null : validateUploadedImage(data.screenshot);
     const order = await createOrder(catalogDb(), { id: session.user.id }, input, screenshot);
     storefrontChanged(); // stock went down; refresh "out of stock" badges for shoppers
+    // Email the owner and payment approvers after the response is sent (never delays or breaks the order).
+    after(() => notifyNewOrder(catalogDb(), order.id).catch(() => {}));
     return Response.json(order, { status: 201, headers: noStore });
   } catch (error) {
     if (error instanceof ProductInputError) return Response.json({ error: "INVALID_INPUT", field: error.field }, { status: 400, headers: noStore });
     if (error instanceof ProductStoreError) {
-      const [kind, slug, available] = error.message.split(":");
-      return Response.json({ error: kind, slug, ...(available !== undefined && /^\d+$/.test(available) ? { available: Number(available) } : {}) }, { status: 409, headers: noStore });
+      const [kind, slug, available, color, size] = error.message.split(":");
+      return Response.json({ error: kind, slug, ...(available !== undefined && /^\d+$/.test(available) ? { available: Number(available) } : {}), ...(size !== undefined ? { color, size: decodeURIComponent(size) } : {}) }, { status: 409, headers: noStore });
     }
     if (error instanceof Error && error.message === "INVALID_IMAGE") return Response.json({ error: "INVALID_INPUT", field: "screenshot" }, { status: 400, headers: noStore });
     return Response.json({ error: "ORDER_FAILED" }, { status: 503, headers: noStore });

@@ -1,10 +1,12 @@
 "use client";
 import { useSyncExternalStore } from "react";
-export type CartItem = { slug: string; size: string; quantity: number };
+/** color is the colour id ("" for products without colours). */
+export type CartItem = { slug: string; size: string; color: string; quantity: number };
 const empty: CartItem[] = [];
 let snapshot: CartItem[] = empty;
 let rawCache: string | null | undefined;
 const key = "oanro-demo-cart-v2";
+const same = (x: CartItem, slug: string, size: string, color: string) => x.slug === slug && x.size === size && x.color === color;
 function read() {
   let raw: string | null;
   try { raw = localStorage.getItem(key); } catch { return snapshot; }
@@ -12,14 +14,15 @@ function read() {
   rawCache = raw;
   try {
     const data: unknown = JSON.parse(raw || "[]");
-    snapshot = Array.isArray(data) ? data.filter((item): item is CartItem => Boolean(item && typeof item === "object" && typeof item.slug === "string" && /^[a-z0-9-]{1,60}$/.test(item.slug) && typeof item.size === "string" && item.size.length <= 20 && Number.isInteger(item.quantity) && item.quantity > 0 && item.quantity <= 10)) : empty;
+    snapshot = Array.isArray(data) ? data.filter((item): item is CartItem => Boolean(item && typeof item === "object" && typeof item.slug === "string" && /^[a-z0-9-]{1,60}$/.test(item.slug) && typeof item.size === "string" && item.size.length <= 20 && Number.isInteger(item.quantity) && item.quantity > 0 && item.quantity <= 10 && (item.color === undefined || (typeof item.color === "string" && /^[a-z0-9-]{0,30}$/.test(item.color)))))
+      .map(item => ({ ...item, color: item.color ?? "" })) : empty;
   } catch { snapshot = empty; }
   return snapshot;
 }
 function listen(fn: () => void) { window.addEventListener("storage", fn); window.addEventListener("oanro-cart", fn); return () => { window.removeEventListener("storage", fn); window.removeEventListener("oanro-cart", fn); }; }
 export function useCart() { return useSyncExternalStore(listen, read, () => empty); }
 function write(items: CartItem[]) { snapshot = items; try { const raw = JSON.stringify(items); localStorage.setItem(key, raw); rawCache = raw; } catch {} window.dispatchEvent(new Event("oanro-cart")); }
-export function addToCart(slug: string, size: string) { const current = read(); const match = current.find(x => x.slug === slug && x.size === size); write(match ? current.map(x => x === match ? { ...x, quantity: Math.min(10, x.quantity + 1) } : x) : [...current, { slug, size, quantity: 1 }]); }
-export function changeQuantity(slug: string, size: string, delta: number) { write(read().map(x => x.slug === slug && x.size === size ? { ...x, quantity: Math.min(10, x.quantity + delta) } : x).filter(x => x.quantity > 0)); }
-export function removeItem(slug: string, size: string) { write(read().filter(x => x.slug !== slug || x.size !== size)); }
+export function addToCart(slug: string, size: string, color = "") { const current = read(); const match = current.find(x => same(x, slug, size, color)); write(match ? current.map(x => x === match ? { ...x, quantity: Math.min(10, x.quantity + 1) } : x) : [...current, { slug, size, color, quantity: 1 }]); }
+export function changeQuantity(slug: string, size: string, delta: number, color = "") { write(read().map(x => same(x, slug, size, color) ? { ...x, quantity: Math.min(10, x.quantity + delta) } : x).filter(x => x.quantity > 0)); }
+export function removeItem(slug: string, size: string, color = "") { write(read().filter(x => !same(x, slug, size, color))); }
 export function clearCart() { write([]); }

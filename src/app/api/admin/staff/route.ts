@@ -1,8 +1,10 @@
 import { adminHandler, noStore } from "@/lib/admin-api";
 import { ProductInputError } from "@/lib/product-input";
-import { createInvite, createRole, deleteRole, getStaffOverview, memberIsStaffAdmin, revokeInvite, roleGrantsStaffAdmin, setRolePermissions, setStaffActive, setStaffRole, type Access } from "@/lib/rbac";
+import { removeStaff, createInvite, createRole, deleteRole, getStaffOverview, memberIsStaffAdmin, revokeInvite, roleGrantsStaffAdmin, setRolePermissions, setStaffActive, setStaffRole, type Access } from "@/lib/rbac";
 import { ProductStoreError } from "@/lib/product-store";
 import { catalogDb } from "@/lib/store-products";
+import { after } from "next/server";
+import { sendStaffInvite } from "@/lib/order-notify";
 export const runtime = "nodejs";
 
 const id = (value: unknown, field: string) => { if (typeof value !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(value)) throw new ProductInputError(field); return value; };
@@ -19,7 +21,12 @@ const respond = async () => Response.json(await getStaffOverview(catalogDb()), {
 export const POST = adminHandler("staff.manage", async (actor, data, access) => {
   if (data.action === "invite") { await guardRole(access, id(data.roleId, "roleId")); }
   if (data.action === "role-create") ownerOnly(access);
-  if (data.action === "invite") await createInvite(catalogDb(), actor, text(data.email, "email"), id(data.roleId, "roleId"));
+  if (data.action === "invite") {
+    const email = text(data.email, "email").trim().toLowerCase(), roleId = id(data.roleId, "roleId");
+    await createInvite(catalogDb(), actor, email, roleId);
+    // Email the invited person after the response (sending never blocks or fails the invite).
+    after(() => sendStaffInvite(catalogDb(), email, roleId, actor).then(() => undefined));
+  }
   else if (data.action === "role-create") await createRole(catalogDb(), actor, text(data.name, "name"), typeof data.description === "string" ? data.description : "", data.permissions);
   else throw new ProductInputError("action");
   return respond();
@@ -37,8 +44,9 @@ export const PATCH = adminHandler("staff.manage", async (actor, data, access) =>
 });
 // Revoke an invite or delete an unused custom role.
 export const DELETE = adminHandler("staff.manage", async (actor, data, access) => {
-  if (data.action === "role") ownerOnly(access);
-  if (data.action === "invite") await revokeInvite(catalogDb(), actor, id(data.id, "id"));
+  if (data.action === "role" || data.action === "member") ownerOnly(access);
+  if (data.action === "member") await removeStaff(catalogDb(), actor, id(data.userId, "userId"));
+  else if (data.action === "invite") await revokeInvite(catalogDb(), actor, id(data.id, "id"));
   else if (data.action === "role") await deleteRole(catalogDb(), actor, id(data.roleId, "roleId"));
   else throw new ProductInputError("action");
   return respond();

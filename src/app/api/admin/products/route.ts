@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { parseProductInput, productStatuses, ProductInputError, type ProductStatus } from "@/lib/product-input";
-import { archiveProduct, createProduct, importDemoCatalog, listOwnerCollections, listOwnerProducts, ProductStoreError, setProductStatus, setProductStock, updateProduct } from "@/lib/product-store";
+import { archiveProduct, createProduct, setColorImage, importDemoCatalog, listOwnerCollections, listOwnerProducts, ProductStoreError, setProductStatus, setProductStock, updateProduct } from "@/lib/product-store";
 import { catalogDb } from "@/lib/store-products";
 import { noStore, adminHandler, photoField, requireUuid } from "@/lib/admin-api";
 import { product } from "@/lib/db/schema";
@@ -40,7 +40,12 @@ export const POST = adminHandler(anyProduct, async (actor, data, access) => {
 // Full edit ({ id, ...fields, image? }), quick status ({ id, status }) or quick stock ({ id, stock: 0 | null }).
 export const PATCH = adminHandler(anyProduct, async (actor, data, access) => {
   const id = requireUuid(data.id); const keys = Object.keys(data);
-  if (keys.length === 2 && "status" in data) {
+  if (data.action === "color-image") {
+    // Same rule as editing the product: full rights, or draft writers on drafts only.
+    if (!can(access, "manage")) { deny(can(access, "draft")); deny(await currentStatus(id) === "draft", "NOT_DRAFT"); }
+    if (typeof data.color !== "string" || !/^[a-z0-9-]{1,30}$/.test(data.color)) throw new ProductInputError("color");
+    await setColorImage(catalogDb(), actor, id, data.color, photoField(data.image) ?? null);
+  } else if (keys.length === 2 && "status" in data) {
     if (typeof data.status !== "string" || !productStatuses.includes(data.status as ProductStatus)) throw new ProductInputError("status");
     deny(statusAllowed(access, data.status as ProductStatus, await currentStatus(id)));
     await setProductStatus(catalogDb(), actor, id, data.status as ProductStatus);

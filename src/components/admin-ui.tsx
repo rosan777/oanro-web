@@ -6,13 +6,14 @@ import type { Option } from "@/lib/categories";
 
 export const statusLabel: Record<ProductStatus, string> = { draft: "Draft (not visible)", published: "Published (visible)", hidden: "Hidden" };
 const errorText: Record<string, string> = {
+  HAS_VARIANTS: "This product counts stock per colour/size. Edit the product to change those numbers.", COLOR_NOT_FOUND: "Save the product with this colour first, then add its photo.",
   SLUG_TAKEN: "That web address is already used (archived items keep theirs). Choose a different one.",
   NOT_FOUND: "This item no longer exists. Refresh the page.", CATALOG_NOT_EMPTY: "Demo items can only be imported while the list is empty.",
   COLLECTION_NOT_FOUND: "That section no longer exists. Refresh the page.", COLLECTION_NOT_EMPTY: "Move or archive the products in this section first.",
   BUILT_IN: "Built-in sections can be hidden but not archived, and their web address can't change.",
   FORBIDDEN: "Your session expired or you don't have permission. Sign in again.",
-  NOT_PENDING: "This order was already reviewed. Refresh the page.", REASON_REQUIRED: "Write a short reason for rejecting.",
-  OWNER_ONLY: "Only the owner can do this.", NOT_ALLOWED: "Your role doesn't allow this. Ask the owner for the right permission.",
+  NOT_PENDING: "This order was already reviewed. Refresh the page.", REASON_REQUIRED: "Write a short reason (at least 3 letters).", REFUND_TOO_HIGH: "A refund can't be more than the money received for this order.",
+  OWNER_ONLY: "Only the owner can do this.", EMAIL_FAILED: "The test email could not be sent. Check SMTP_URL and AUTH_EMAIL_FROM in .env.local, then restart the server.", NOT_ALLOWED: "Your role doesn't allow this. Ask the owner for the right permission.",
   NOT_DRAFT: "Only drafts can be edited with your role. Ask someone to hide or unpublish it first.", COURIER_REQUIRED: "Choose or type the courier name.",
   INVALID_STEP: "That delivery step is no longer possible (someone may have updated it). Refresh the page.",
 };

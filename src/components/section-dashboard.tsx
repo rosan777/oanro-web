@@ -4,7 +4,7 @@ import { PulseThumbnail } from "./pulse-thumbnail";
 import { PulseUpload } from "./pulse-upload";
 import type { SectionState, SectionCode } from "@/lib/website-sections";
 
-type Story = { id: string; publisher: string; headline: string; url: string; visible: boolean };
+type Story = { id: string; publisher: string; headline: string; url: string; visible: boolean; archived?: boolean };
 // Caps and Tech Items visibility moved to their collection pages (status Published/Hidden).
 const labels: Partial<Record<SectionCode, string>> = { "global-pulse": "Global Pulse news strip" }; // Services has its switch on the admin home page.
 export function SectionDashboard({ initial, initialStories, part = "all" }: { initial: SectionState; initialStories: Story[]; part?: "all" | "sections" | "pulse" }) {
@@ -63,6 +63,16 @@ export function SectionDashboard({ initial, initialStories, part = "all" }: { in
     } catch { setNotice("Could not delete the story. Refresh and retry."); }
     finally { setBusy(false); }
   }
+  async function archiveStory(story: Story, archive: boolean) {
+    setBusy(true); setNotice("");
+    try {
+      const response = await fetch("/api/admin/pulse", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: story.id, action: archive ? "archive" : "restore" }) });
+      if (!response.ok) throw new Error("archive");
+      setStories(previous => previous.map(item => item.id === story.id ? { ...item, archived: archive, visible: false } : item));
+      setNotice(archive ? "Story archived. It's off the website; restore it any time from Archived stories." : "Story restored as hidden. Press Show to put it back on the website.");
+    } catch { setNotice("Story update failed."); }
+    finally { setBusy(false); }
+  }
   async function toggleStory(story: Story) {
     setBusy(true); setNotice("");
     try {
@@ -81,7 +91,16 @@ export function SectionDashboard({ initial, initialStories, part = "all" }: { in
       <PulseUpload disabled={busy} getUrl={() => String(new FormData(formRef.current!).get("url") ?? "").trim()} onStart={() => { setBusy(true); setPreview(null); setApproved(false); setImageLoaded(false); setNotice(""); }} onReady={(result, url) => { setPreview({ ...result, url }); setNotice("Photo ready. Review and approve it before publishing."); }} onError={setNotice} onFinish={() => setBusy(false)} />
       {preview && <div className="pulse-preview"><PulseThumbnail key={preview.previewToken} source={preview.thumbnailUrl} onLoaded={() => setImageLoaded(true)} /><label><input type="checkbox" checked={approved} disabled={!imageLoaded} onChange={event => setApproved(event.target.checked)} /> I reviewed this image and have permission to display it.</label></div>}
       <label><input name="rightsConfirmed" type="checkbox" required /> I verified the source and have permission to display this headline and link.</label><button disabled={busy} className="button brand-button">Publish reviewed story</button></fieldset></form>
-    {stories.map(story => <div className="pulse-story-editor" key={story.id}><div className="admin-section-row"><span>{story.publisher}: {story.headline}</span><div className="pulse-story-actions"><button type="button" disabled={busy} onClick={() => toggleStory(story)}>{story.visible ? "Hide" : "Show"}</button><button type="button" className="pulse-delete" disabled={busy} onClick={() => deleteStory(story)}>Delete permanently</button></div></div><StoryThumbnailEditor story={story} /></div>)}
+    <h3>Stories ({stories.filter(s => !s.archived).length})</h3>
+    {!stories.some(s => !s.archived) && <p className="report-empty">No stories yet.</p>}
+    {stories.filter(s => !s.archived).map(story => <div className="pulse-story-editor" key={story.id}><div className="admin-section-row"><span><span className={`stock-pill ${story.visible ? "is-good" : "is-warn"}`}>{story.visible ? "Live" : "Hidden"}</span> {story.publisher}: {story.headline}</span><div className="pulse-story-actions">
+      <button type="button" className="btn btn-neutral btn-sm" disabled={busy} onClick={() => toggleStory(story)}>{story.visible ? "Hide" : "Show"}</button>
+      <button type="button" className="btn btn-neutral btn-sm" disabled={busy} onClick={() => archiveStory(story, true)}>Archive</button>
+      <button type="button" className="btn btn-danger btn-sm" disabled={busy} onClick={() => deleteStory(story)}>Delete permanently</button></div></div><StoryThumbnailEditor story={story} /></div>)}
+    {stories.some(s => s.archived) && <details className="pulse-archived"><summary>Archived stories ({stories.filter(s => s.archived).length})</summary><p className="small-note">Kept off the website. Restore to edit or show again, or delete for good.</p>
+      {stories.filter(s => s.archived).map(story => <div className="admin-section-row" key={story.id}><span>{story.publisher}: {story.headline}</span><div className="pulse-story-actions">
+        <button type="button" className="btn btn-neutral btn-sm" disabled={busy} onClick={() => archiveStory(story, false)}>Restore</button>
+        <button type="button" className="btn btn-danger btn-sm" disabled={busy} onClick={() => deleteStory(story)}>Delete permanently</button></div></div>)}</details>}
     </>}
     <p role="status">{notice}</p>
   </div>;

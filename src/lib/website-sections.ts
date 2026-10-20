@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from "./db";
 import { storefrontCached } from "./storefront-cache";
 import { websiteSection, pulseStory } from "./db/schema";
@@ -28,7 +28,7 @@ async function loadSectionState(): Promise<SectionState> {
 }
 // Cached rows go through JSON, so the date is converted here and read back as a string.
 const cachedPulse = storefrontCached("pulse", async () => (await getDb().select({ id: pulseStory.id, publisher: pulseStory.publisher, headline: pulseStory.headline, url: pulseStory.url, thumbnailUrl: pulseStory.thumbnailUrl, publishedAt: pulseStory.publishedAt })
-  .from(pulseStory).where(and(eq(pulseStory.visible, true), eq(pulseStory.rightsConfirmed, true)))
+  .from(pulseStory).where(and(eq(pulseStory.visible, true), eq(pulseStory.rightsConfirmed, true), isNull(pulseStory.archivedAt)))
   .orderBy(desc(pulseStory.approvedAt)).limit(20)).map(r => ({ ...r, publishedAt: r.publishedAt?.toISOString() ?? null })));
 export async function getApprovedPulseStories() {
   if (!process.env.DATABASE_URL) return [];
@@ -40,7 +40,7 @@ export async function getApprovedPulseStories() {
 export async function getOwnerPulseStories() {
   if (!process.env.DATABASE_URL) return [];
   try {
-    return await getDb().select({ id: pulseStory.id, publisher: pulseStory.publisher, headline: pulseStory.headline, url: pulseStory.url, visible: pulseStory.visible }).from(pulseStory).orderBy(desc(pulseStory.createdAt)).limit(50);
+    return await getDb().select({ id: pulseStory.id, publisher: pulseStory.publisher, headline: pulseStory.headline, url: pulseStory.url, visible: pulseStory.visible, archived: sql<boolean>`${pulseStory.archivedAt} is not null` }).from(pulseStory).orderBy(desc(pulseStory.createdAt)).limit(100);
   } catch { return []; }
 }
 /** Cached per request: layout and page share one database round trip. */

@@ -1,5 +1,5 @@
 // Permission catalog and role templates. Pure data, shared by server checks and the staff UI.
-export const permissions = ["products.manage", "products.draft", "products.publish", "products.hide", "sections.toggle", "services.manage", "campaigns.manage", "pulse.manage", "site.manage", "leads.read", "leads.manage", "orders.read", "orders.manage", "staff.manage", "audit.read", "reports.read", "profit.read", "costs.manage", "cod.manage"] as const;
+export const permissions = ["products.manage", "products.draft", "products.publish", "products.hide", "sections.toggle", "services.manage", "campaigns.manage", "pulse.manage", "site.manage", "leads.read", "leads.manage", "orders.read", "orders.manage", "staff.manage", "audit.read", "reports.read", "profit.read", "costs.manage", "cod.manage", "account.security", "customers.read", "customers.delete"] as const;
 export type Permission = typeof permissions[number];
 export const permissionInfo: Record<Permission, { label: string; detail: string }> = {
   "products.manage": { label: "Products & sections (full)", detail: "Write, publish and hide products, edit live products, stock, archive, and create or edit sections. Does not include the section on/off switch." },
@@ -19,14 +19,17 @@ export const permissionInfo: Record<Permission, { label: string; detail: string 
   "audit.read": { label: "Activity log", detail: "View the record of who changed what." },
   "reports.read": { label: "Sales & stock report", detail: "See units sold, reserved and left, revenue per product, restock alerts and service inquiry counts. No costs or profit." },
   "profit.read": { label: "Profit analytics", detail: "See costs, courier charges, profit and margin per product with charts. Business-sensitive." },
+  "account.security": { label: "Security settings", detail: "See the Security card on My account: turn on two-step verification and sign out other devices. Customers never see it." },
   "cod.manage": { label: "Cash on delivery", detail: "See and handle cash-on-delivery orders, and confirm when the courier hands over the cash." },
+  "customers.read": { label: "View customers", detail: "See the customer list: names, emails, phone, addresses, orders and total spent. Personal data." },
+  "customers.delete": { label: "Delete customer accounts", detail: "Permanently delete a customer's account. Their personal details are erased; orders stay (anonymized) for the accounts." },
   "costs.manage": { label: "Cost prices", detail: "See and change what each product costs you, and courier charges. Business-sensitive." },
 };
 export type RoleTemplate = { id: string; name: string; description: string; permissions: Permission[] };
 /** Narrow product rights added later: never in built-in roles (Manager already has the full one); the owner adds them to custom roles. */
 const narrowProductPermissions: Permission[] = ["products.draft", "products.publish", "products.hide", "sections.toggle"];
 /** Business-sensitive permissions: never part of a built-in role; the owner grants them one by one. */
-export const sensitivePermissions: Permission[] = ["staff.manage", "reports.read", "profit.read", "costs.manage", "cod.manage"];
+export const sensitivePermissions: Permission[] = ["staff.manage", "reports.read", "profit.read", "costs.manage", "cod.manage", "account.security", "customers.read", "customers.delete"];
 // Seeded by migrations 0005 and 0006 (keep in sync). The system owner always has every permission and is not a role.
 export const roleTemplates: RoleTemplate[] = [
   { id: "manager", name: "Manager", description: "Runs the store day to day. Everything except staff management.", permissions: permissions.filter(p => !sensitivePermissions.includes(p) && !narrowProductPermissions.includes(p)) },

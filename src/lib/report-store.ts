@@ -2,7 +2,7 @@
 // which callers must guard with "profit.read" / "costs.manage".
 import { randomUUID } from "node:crypto";
 import { and, eq, gte, inArray, isNull, or, sql } from "drizzle-orm";
-import { auditEvent, lead, orderItem, product, productCollection, service, shopOrder } from "./db/schema";
+import { auditEvent, lead, orderItem, product, productCollection, service, shopOrder, storeSetting } from "./db/schema";
 import { ProductInputError } from "./product-input";
 import { ProductStoreError, type CatalogDb } from "./product-store";
 
@@ -40,24 +40,25 @@ type Line = { orderId: string; productId: string; quantity: number; unitPrice: n
  * approvedAt drives delivery-charge income and courier costs (money that moved when the order was approved).
  */
 type Order = { id: string; method: "bkash" | "nagad"; at: Date; approvedAt: Date; returned: boolean; shipped: boolean; shippingCost: number | null;
-  cod: boolean; collected: boolean; counted: boolean; total: number; deliveryCharge: number; codDue: number };
+  cod: boolean; collected: boolean; counted: boolean; total: number; deliveryCharge: number; codDue: number; refund: number };
 async function load(db: CatalogDb, range: ReportRange) {
   const now = new Date(), { from, prevFrom } = rangeBounds(range, now);
   const approved = sql<Date>`coalesce(${shopOrder.reviewedAt}, ${shopOrder.createdAt})`;
-  const [products, collections, orderRows, pending] = await Promise.all([
+  const [products, collections, orderRows, pending, feeBp] = await Promise.all([
     db.select({ id: product.id, name: product.nameEn, sectionId: product.collectionId, price: product.price, cost: product.costPrice, stock: product.stock, lowStockAt: product.lowStockAt, status: product.status, archived: product.archivedAt }).from(product),
     db.select({ id: productCollection.id, name: productCollection.nameEn, order: productCollection.displayOrder, archived: productCollection.archivedAt }).from(productCollection),
     db.select({ id: shopOrder.id, method: shopOrder.method, approved, delivery: shopOrder.deliveryStatus, shippingCost: shopOrder.shippingCost,
-      type: shopOrder.paymentType, total: shopOrder.total, deliveryCharge: shopOrder.deliveryCharge, codDue: shopOrder.codDue, collectedAt: shopOrder.codCollectedAt }).from(shopOrder)
+      type: shopOrder.paymentType, total: shopOrder.total, deliveryCharge: shopOrder.deliveryCharge, codDue: shopOrder.codDue, collectedAt: shopOrder.codCollectedAt, refund: shopOrder.refundAmount }).from(shopOrder)
       // Uncollected COD orders are always loaded, whatever their date: they make up "cash still with the courier".
       .where(and(eq(shopOrder.status, "paid"), prevFrom ? or(gte(approved, prevFrom), gte(shopOrder.codCollectedAt, prevFrom), and(eq(shopOrder.paymentType, "cod"), isNull(shopOrder.codCollectedAt))) : undefined)),
     // Units promised but not paid for yet: payment awaiting check, plus COD orders whose cash hasn't arrived (and weren't returned).
     db.select({ productId: orderItem.productId, quantity: orderItem.quantity }).from(orderItem).innerJoin(shopOrder, eq(shopOrder.id, orderItem.orderId))
       .where(or(eq(shopOrder.status, "pending"), and(eq(shopOrder.status, "paid"), eq(shopOrder.paymentType, "cod"), isNull(shopOrder.codCollectedAt), sql`${shopOrder.deliveryStatus} is distinct from 'returned'`))),
+    getPaymentFee(db),
   ]);
   const orders: Order[] = orderRows.map(o => { const cod = o.type === "cod", collected = Boolean(o.collectedAt), returned = o.delivery === "returned", approvedAt = new Date(o.approved);
     return { id: o.id, method: o.method, approvedAt, at: cod && o.collectedAt ? new Date(o.collectedAt) : approvedAt, returned, shipped: o.delivery !== null && o.delivery !== "processing", shippingCost: o.shippingCost,
-      cod, collected, counted: !returned && (!cod || collected), total: o.total, deliveryCharge: o.deliveryCharge, codDue: o.codDue }; });
+      cod, collected, counted: !returned && (!cod || collected), total: o.total, deliveryCharge: o.deliveryCharge, codDue: o.codDue, refund: o.refund }; });
   const lines: Line[] = orders.length ? await db.select({ orderId: orderItem.orderId, productId: orderItem.productId, quantity: orderItem.quantity, unitPrice: orderItem.unitPrice, unitCost: orderItem.unitCost })
     .from(orderItem).where(inArray(orderItem.orderId, orders.map(o => o.id))) : [];
   const inCurrent = (o: Order) => !from || o.at >= from;
@@ -67,7 +68,7 @@ async function load(db: CatalogDb, range: ReportRange) {
   const pendingCod = orders.filter(o => o.cod && !o.collected && !o.returned);
   const monthly = range === "365d" || range === "all";
   const earliest = current.reduce<Date | null>((min, o) => !min || o.at < min ? o.at : min, null);
-  return { now, from, range, products, collections, current, previous, approvedCurrent, approvedPrevious, pendingCod, lines, pending, monthly, buckets: range === "today" ? [] : bucketKeys(from, earliest, now, monthly) };
+  return { feeBp, now, from, range, products, collections, current, previous, approvedCurrent, approvedPrevious, pendingCod, lines, pending, monthly, buckets: range === "today" ? [] : bucketKeys(from, earliest, now, monthly) };
 }
 type Data = Awaited<ReturnType<typeof load>>;
 const sum = <T,>(rows: T[], f: (r: T) => number) => rows.reduce((a, r) => a + f(r), 0);
@@ -111,7 +112,7 @@ export async function salesReport(db: CatalogDb, range: ReportRange) {
   return {
     range, monthly: d.monthly, sections, restock, methods, trend, services,
     totals: { orders: kept.length, units: sum(sold, l => l.quantity), revenue: sum(sold, l => l.quantity * l.unitPrice), returnedUnits: sum(returnedLines, l => l.quantity), reservedUnits: sum(d.pending, l => l.quantity),
-      deliveryIncome: sum(d.approvedCurrent, o => o.deliveryCharge) },
+      deliveryIncome: sum(d.approvedCurrent, o => o.deliveryCharge), refunds: sum(d.approvedCurrent, o => o.returned ? 0 : o.refund), refundedOrders: d.approvedCurrent.filter(o => !o.returned && o.refund > 0).length },
     pendingCod: { orders: d.pendingCod.length, amount: sum(d.pendingCod, o => o.codDue) },
     previous: d.range === "all" ? null : { orders: d.previous.filter(o => o.counted).length, units: sum(prevLines, l => l.quantity), revenue: sum(prevLines, l => l.quantity * l.unitPrice) },
   };
@@ -127,7 +128,10 @@ function money(d: Data, orders: Order[], approved: Order[]) {
   // Until the real courier bill is entered, assume it equals the delivery charge collected, so the
   // pass-through charge never shows up as fake profit.
   const shipping = sum(approved, o => o.shippingCost ?? o.deliveryCharge), delivery = sum(approved, o => o.deliveryCharge);
-  return { lines, costOf, revenue, productCost, shipping, delivery, gross: revenue - productCost, net: revenue - productCost - shipping + delivery };
+  // bKash/Nagad fee on the money that came in through them; refunds given back on orders that still count
+  // (a returned order's product money is already left out, so its refund isn't subtracted twice).
+  const fees = sum(approved, o => Math.round(o.total * d.feeBp / 10_000)), refunds = sum(approved, o => o.returned ? 0 : o.refund);
+  return { lines, costOf, revenue, productCost, shipping, delivery, fees, refunds, gross: revenue - productCost, net: revenue - productCost - shipping + delivery - fees - refunds };
 }
 export async function profitReport(db: CatalogDb, range: ReportRange) {
   const d = await load(db, range);
@@ -144,7 +148,8 @@ export async function profitReport(db: CatalogDb, range: ReportRange) {
   const trend: TrendPoint[] = d.buckets.map(key => { const m = money(d, d.current.filter(o => dhakaKey(o.at, d.monthly) === key), d.approvedCurrent.filter(o => dhakaKey(o.approvedAt, d.monthly) === key)); return { key, revenue: m.revenue, profit: m.net, orders: 0 }; });
   return {
     range, monthly: d.monthly, rows, bySection, trend,
-    totals: { revenue: cur.revenue, productCost: cur.productCost, shipping: cur.shipping, delivery: cur.delivery, gross: cur.gross, net: cur.net, margin: cur.revenue ? Math.round(cur.net / cur.revenue * 1000) / 10 : null },
+    feePercent: d.feeBp / 100,
+    totals: { revenue: cur.revenue, productCost: cur.productCost, shipping: cur.shipping, delivery: cur.delivery, fees: cur.fees, refunds: cur.refunds, gross: cur.gross, net: cur.net, margin: cur.revenue ? Math.round(cur.net / cur.revenue * 1000) / 10 : null },
     previous: d.range === "all" ? null : { revenue: prev.revenue, net: prev.net },
     missingShipping: d.approvedCurrent.filter(o => o.shippingCost === null && o.deliveryCharge > 0).length,
     pendingCod: { orders: d.pendingCod.length, amount: sum(d.pendingCod, o => o.codDue) },
@@ -176,5 +181,35 @@ export async function setShippingCost(db: CatalogDb, actorId: string, orderId: s
     const done = await tx.update(shopOrder).set({ shippingCost: cost, updatedAt: new Date() }).where(and(eq(shopOrder.id, orderId), eq(shopOrder.status, "paid"))).returning({ code: shopOrder.code });
     if (!done.length) throw new ProductStoreError("NOT_FOUND");
     await tx.insert(auditEvent).values({ id: randomUUID(), actorId, action: "order.shipping-cost", targetId: orderId, reason: `${done[0].code}: courier charge ${cost === null ? "cleared" : `৳${cost}`}` });
+  });
+}
+
+// ---- Payment fee (bKash/Nagad charge), stored as basis points: 185 = 1.85% ----
+const FEE_KEY = "payment.fee_bp";
+export async function getPaymentFee(db: CatalogDb) {
+  const [row] = await db.select({ value: storeSetting.value }).from(storeSetting).where(eq(storeSetting.key, FEE_KEY)).limit(1);
+  const n = Number(row?.value); return Number.isInteger(n) && n >= 0 && n <= 1000 ? n : 0;
+}
+/** percent like "1.85"; 0–10%. Guard with "costs.manage". */
+export async function setPaymentFee(db: CatalogDb, actorId: string, percent: unknown) {
+  const n = typeof percent === "string" ? Number(percent.trim()) : percent;
+  if (typeof n !== "number" || !Number.isFinite(n) || n < 0 || n > 10) throw new ProductInputError("feePercent");
+  const bp = Math.round(n * 100);
+  await db.transaction(async tx => {
+    await tx.insert(storeSetting).values({ key: FEE_KEY, value: String(bp), updatedBy: actorId }).onConflictDoUpdate({ target: storeSetting.key, set: { value: String(bp), updatedBy: actorId, updatedAt: new Date() } });
+    await tx.insert(auditEvent).values({ id: randomUUID(), actorId, action: "costs.payment-fee", targetId: "store_setting", reason: "bKash/Nagad fee updated" });
+  });
+}
+/** Record (or correct) money sent back to a customer for an approved order. 0 clears it. */
+export async function setRefund(db: CatalogDb, actorId: string, orderId: string, amount: number, note: string) {
+  const why = note.trim().slice(0, 200);
+  if (amount > 0 && why.length < 3) throw new ProductStoreError("REASON_REQUIRED");
+  await db.transaction(async tx => {
+    const [o] = await tx.select({ code: shopOrder.code, total: shopOrder.total, codDue: shopOrder.codDue, collected: shopOrder.codCollectedAt, status: shopOrder.status }).from(shopOrder).where(eq(shopOrder.id, orderId)).limit(1);
+    if (!o || o.status !== "paid") throw new ProductStoreError("NOT_FOUND");
+    // Can't refund more than was actually received.
+    if (amount > o.total + (o.collected ? o.codDue : 0)) throw new ProductStoreError("REFUND_TOO_HIGH");
+    await tx.update(shopOrder).set({ refundAmount: amount, refundNote: amount ? why : null, refundedAt: amount ? new Date() : null, updatedAt: new Date() }).where(eq(shopOrder.id, orderId));
+    await tx.insert(auditEvent).values({ id: randomUUID(), actorId, action: "order.refund", targetId: orderId, reason: amount ? `${o.code}: ৳${amount} refunded (${why})` : `${o.code}: refund cleared` });
   });
 }
