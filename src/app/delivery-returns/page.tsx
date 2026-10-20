@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
+import { requestLocale } from "@/lib/request-locale";
 import Link from "@/components/locale-link";
 import { LegalPage, type LegalSection } from "@/components/legal-page";
 import { DEFAULT_RULES, getCheckoutRules } from "@/lib/order-store";
 import { catalogDb } from "@/lib/store-products";
 import { formatPrice } from "@/lib/catalog";
-export const metadata: Metadata = { title: "Delivery, payment and returns", description: "Delivery charge and times, bKash/Nagad and cash on delivery, cancellations, returns and refunds at OANRO." };
+// Title and description follow the page language (/bn = Bangla) so both versions can rank.
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale } = await requestLocale();
+  return locale === "bn" ? { title: "ডেলিভারি, পেমেন্ট ও রিটার্ন", description: "OANRO-র ডেলিভারি চার্জ ও সময়, বিকাশ/নগদ ও ক্যাশ অন ডেলিভারি, বাতিল, রিটার্ন ও রিফান্ডের নিয়ম।" } : { title: "Delivery, payment and returns", description: "Delivery charge and times, bKash/Nagad and cash on delivery, cancellations, returns and refunds at OANRO." };
+}
 export const dynamic = "force-dynamic";
 
 // Every number here comes from the owner's "Delivery & payment rules" in the admin, so this page never goes out of date.

@@ -917,3 +917,98 @@ i.is-cod { background: #1f513c; }
 .category-guide p { line-height: 1.7; }
 .conveyor-title-link { color: inherit; text-decoration: none; }
 .conveyor-title-link:hover { text-decoration: underline; text-underline-offset: .2em; }
+
+/* ===== Frontend polish (Oct 2026): calmer, clearer, more trustworthy. Overrides only; animations untouched. ===== */
+:root { --radius: 10px; --radius-lg: 16px; }
+body { font-family: var(--font-geist-sans), var(--font-bangla), "Hind Siliguri", Arial, sans-serif; }
+:lang(bn) body, [lang="bn"] body { line-height: 1.75; }
+h1, h2 { letter-spacing: -0.01em; }
+h2 { font-size: clamp(1.8rem, 3.4vw, 2.5rem); }
+.button { border-radius: var(--radius); gap: 0.8rem; font-weight: 600; }
+.light-button { border-color: var(--line); }
+
+/* Trust bar above the header */
+.trust-bar { background: var(--brand-strong); color: #f7f7f4; font-size: 0.78rem; }
+.trust-bar-row { display: flex; justify-content: center; align-items: center; gap: 0.4rem 2rem; flex-wrap: wrap; padding-block: 0.5rem; text-align: center; }
+.trust-bar a { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Slim, frosted sticky header */
+.site-header { background: rgb(247 247 244 / 0.9); backdrop-filter: saturate(160%) blur(12px); -webkit-backdrop-filter: saturate(160%) blur(12px); }
+.header-row { min-height: 68px; }
+.language-switch button { padding: 0.4rem 0.62rem; font-size: 0.72rem; }
+
+/* Hero: keyword headline + clear actions */
+.opening-brand h1 { font-size: clamp(2.2rem, 4.4vw, 3.6rem); line-height: 1.05; max-width: 16ch; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.4rem; }
+.hero-ticks { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; padding: 0; margin: 1rem 0 0; font-size: 0.8rem; color: var(--muted); }
+.hero-ticks li::before { content: "✓ "; color: var(--brand); font-weight: 700; }
+
+/* Product cards: rounded photo, price and stock visible */
+.product-card-media { border-radius: var(--radius-lg); }
+.card-price { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.6rem; font-size: 0.95rem; color: var(--brand); }
+.card-stock { font-size: 0.72rem; color: #9a3412; font-weight: 600; }
+
+/* Shop by category tiles */
+.category-tiles { padding-block: 3rem 1rem; }
+.tiles-head { margin-bottom: 1.2rem; }
+.tiles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 1rem; }
+.category-tile { display: grid; gap: 0.7rem; }
+.category-tile-media { border-radius: var(--radius-lg); overflow: hidden; background: var(--line); }
+.category-tile-media .product-photo { aspect-ratio: 4 / 3; transition: transform 0.5s ease; }
+.category-tile:hover .product-photo { transform: scale(1.04); }
+.category-tile > span { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+
+/* Trust strip */
+.trust-strip { background: var(--surface); border-block: 1px solid var(--line); margin-block: 2rem; }
+.trust-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 1.5rem; padding-block: 2rem; }
+.trust-item { display: flex; gap: 0.9rem; align-items: flex-start; }
+.trust-item strong { display: block; font-size: 0.95rem; font-weight: 600; }
+.trust-item span:not(.trust-icon) { font-size: 0.82rem; color: var(--muted); }
+.trust-icon { width: 40px; height: 40px; flex-shrink: 0; border-radius: var(--radius); background: #e8efe9; color: var(--brand); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
+
+/* How we work */
+.how-we-work { padding-block: 2.5rem; }
+.how-we-work h2 { font-size: 1.4rem; margin-bottom: 1.2rem; }
+.steps-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 1rem; }
+.steps-grid li { border-top: 2px solid var(--brand); padding-top: 0.9rem; display: grid; gap: 0.25rem; }
+.steps-grid li span { font-size: 0.8rem; color: var(--brand); font-weight: 600; }
+.steps-grid li p { font-size: 0.88rem; color: var(--muted); }
+
+/* FAQ */
+.home-faq { max-width: 820px; padding-block: 3rem 4rem; display: grid; gap: 0.2rem; }
+.home-faq h2 { text-align: center; margin-bottom: 1rem; }
+.home-faq details { border-bottom: 1px solid var(--line); padding-block: 1.1rem; }
+.home-faq summary { font-weight: 600; cursor: pointer; list-style-position: outside; }
+.home-faq details p { margin-top: 0.6rem; color: var(--muted); }
+.home-faq .text-link { justify-self: center; margin-top: 1.2rem; }
+
+/* Footer: organised columns */
+.site-footer { background: #151515; color: #d9d9d3; border-top: 0; padding-top: 3.5rem; }
+.site-footer .brand { color: #ffffff; }
+.footer-grid { display: grid; grid-template-columns: 2fr repeat(3, minmax(0, 1fr)); gap: 2rem; padding-bottom: 2.5rem; }
+.footer-brand { display: grid; gap: 1rem; align-content: start; }
+.footer-brand p { font-size: 0.85rem; max-width: 34ch; color: #b9b9b2; }
+.footer-brand .text-link { border-color: #3a3a37; justify-self: start; }
+.footer-col { display: grid; gap: 0.55rem; align-content: start; font-size: 0.88rem; }
+.footer-col strong { color: #ffffff; font-size: 0.9rem; margin-bottom: 0.2rem; }
+.footer-col a { color: #d9d9d3; }
+.footer-col a:hover { color: #ffffff; text-decoration: underline; text-underline-offset: 3px; }
+.site-footer .footer-bottom { border-top: 1px solid #2c2c29; color: #a3a39c; font-size: 0.75rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; padding-block: 1.2rem 1.6rem; }
+.pay-chips { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.pay-chips span { border: 1px solid #3a3a37; border-radius: 6px; padding: 0.15rem 0.55rem; }
+
+/* Intro: about 1 second when enabled */
+@media (prefers-reduced-motion: no-preference) {
+  .logo-flip { animation-duration: 0.6s; }
+  .intro-progress i { animation-duration: 0.9s; }
+}
+
+@media (max-width: 900px) {
+  .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .footer-brand { grid-column: 1 / -1; }
+}
+@media (max-width: 560px) {
+  .trust-bar-row span:nth-child(2) { display: none; }
+  .hero-actions .button { flex: 1 1 100%; }
+  .footer-grid { grid-template-columns: 1fr; }
+}

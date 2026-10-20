@@ -4,7 +4,7 @@ import { ArrowUpRight, AudioLines, CircleHelp, Headphones, Monitor, Package } fr
 import type { Product, StoreCollection } from "@/lib/catalog";
 import { Conveyor } from "./home-experience";
 import { FlipPanel } from "./flip-panel";
-import { ProductPhoto } from "./shell";
+import { PriceTag, ProductPhoto } from "./shell";
 import { useProducts } from "./products-context";
 import { useLocale } from "./locale";
 
@@ -19,7 +19,7 @@ export function ProductCard({ product, index, duplicate }: { product: Product; i
     <div className="product-card-media"><FlipPanel title={name} detail={tagline} index={index}><ProductPhoto position={product.position} image={product.image} label={name} />
       {out ? <span className="sample-badge stock-badge">{locale === "bn" ? "স্টক শেষ" : "Out of stock"}</span> : !product.image && <span className="sample-badge">{locale === "bn" ? "নমুনা কালেকশন" : "Sample collection"}</span>}
       <span className="card-arrow"><ArrowUpRight size={21} /></span></FlipPanel></div>
-    <div className="card-copy"><small>{category}</small><h3>{name}</h3><p>{tagline}</p></div>
+    <div className="card-copy"><small>{category}</small><h3>{name}</h3><p>{tagline}</p><div className="card-price"><PriceTag price={product.price} compareAt={product.compareAt} locale={locale} />{out && <span className="card-stock">{locale === "bn" ? "স্টক শেষ" : "Out of stock"}</span>}</div></div>
   </Link>;
 }
 /** One storefront section: its published products, or placeholder ideas for an empty Caps/Tech section. */

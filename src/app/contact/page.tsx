@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
+import { requestLocale } from "@/lib/request-locale";
 import { Mail } from "lucide-react";
 import { getSiteConfig } from "@/lib/site-config";
 import { Localized } from "@/components/locale";
 import { MessageReveal } from "@/components/message-reveal";
-export const metadata: Metadata = { title: "Contact", description: "Ask OANRO about products, services or partnerships. Message us or send an inquiry." };
+// Title and description follow the page language (/bn = Bangla) so both versions can rank.
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale } = await requestLocale();
+  return locale === "bn" ? { title: "যোগাযোগ", description: "পণ্য, সেবা বা পার্টনারশিপ নিয়ে OANRO-কে জিজ্ঞাসা করুন। মেসেজ বা ইনকোয়ারি পাঠান।" } : { title: "Contact", description: "Ask OANRO about products, services or partnerships. Message us or send an inquiry." };
+}
 export default function ContactPage() {
   const config = getSiteConfig();
   return <main id="main-content" className="container legal-page">

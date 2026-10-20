@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Hind_Siliguri } from "next/font/google";
+import { TrustBar } from "@/components/trust-bar";
+import { publicRules } from "@/lib/public-rules";
 import { Experience, Intro } from "@/components/experience";
 import { Header, Footer } from "@/components/shell";
 import { LocaleProvider } from "@/components/locale";
@@ -19,6 +21,8 @@ import { DEFAULT_DESCRIPTION, DEFAULT_DESCRIPTION_BN, DEFAULT_OG_IMAGE, DEFAULT_
 
 const sans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: "swap" });
 const mono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
+// Bangla glyphs: Geist has none, so Bangla text falls through to Hind Siliguri.
+const bangla = Hind_Siliguri({ variable: "--font-bangla", subsets: ["bengali"], weight: ["400", "500", "600"], display: "swap" });
 export async function generateMetadata(): Promise<Metadata> {
   const { locale, path } = await requestLocale();
   const bn = locale === "bn";
@@ -33,9 +37,10 @@ export const dynamic = "force-dynamic";
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const config = getSiteConfig();
   const { locale } = await requestLocale();
+  const rules = await publicRules();
   const sections = await getSectionState();
   // The admin Services switch hides services everywhere (rows, menu, search), on top of the environment switch.
   const site = { ...config, services: config.services && sections.services };
   const [stories, catalog, serviceList, lines, popular] = await Promise.all([sections["global-pulse"] ? getApprovedPulseStories() : [], config.products ? getStoreProducts() : [], site.services ? getStoreServices() : [], config.products ? getStoreCollections() : [], config.products && process.env.DATABASE_URL ? popularSlugs() : []]);
-  return <html lang={locale} data-scroll-behavior="smooth" className={`${sans.variable} ${mono.variable}`}><body><JsonLd data={organizationJsonLd(config)} /><JsonLd data={websiteJsonLd()} /><Analytics /><LocaleProvider initialLocale={locale}><ProductsProvider products={catalog} services={serviceList} collections={lines} popular={popular}><Experience><a className="skip-link" href="#main-content">Skip to content</a><div id="top" />{config.intro && <Intro />}<Header config={site} />{children}<GlobalPulse stories={stories} /><Footer config={site} /></Experience></ProductsProvider></LocaleProvider></body></html>;
+  return <html lang={locale} data-scroll-behavior="smooth" className={`${sans.variable} ${mono.variable} ${bangla.variable}`}><body><JsonLd data={organizationJsonLd(config)} /><JsonLd data={websiteJsonLd()} /><Analytics /><LocaleProvider initialLocale={locale}><ProductsProvider products={catalog} services={serviceList} collections={lines} popular={popular}><Experience><a className="skip-link" href="#main-content">Skip to content</a><div id="top" />{config.intro && <Intro />}<TrustBar rules={rules} locale={locale} /><Header config={site} />{children}<GlobalPulse stories={stories} /><Footer config={site} /></Experience></ProductsProvider></LocaleProvider></body></html>;
 }

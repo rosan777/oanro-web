@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
+import { requestLocale } from "@/lib/request-locale";
 import { LegalPage, type LegalSection } from "@/components/legal-page";
 import { InquiryForm } from "@/components/inquiry-form";
 import { getSiteConfig } from "@/lib/site-config";
 import { FormPopup } from "@/components/form-popup";
 import { Localized } from "@/components/locale";
-export const metadata: Metadata = { title: "Privacy notice", description: "What personal information OANRO collects, why, and how to access or delete it." };
+// Title and description follow the page language (/bn = Bangla) so both versions can rank.
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale } = await requestLocale();
+  return locale === "bn" ? { title: "প্রাইভেসি নোটিশ", description: "OANRO কোন ব্যক্তিগত তথ্য সংগ্রহ করে, কেন করে, এবং কীভাবে তা দেখা বা মুছে ফেলা যায়।" } : { title: "Privacy notice", description: "What personal information OANRO collects, why, and how to access or delete it." };
+}
 export default function PrivacyPage() {
   const email = getSiteConfig().contactEmail;
   // Describes what the code actually stores. Have it reviewed by a legal adviser before relying on it.
