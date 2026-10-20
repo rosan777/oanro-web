@@ -98,5 +98,22 @@ export function Header({ config }: { config: SiteConfig }) {
 }
 
 export function Footer({ config }: { config: SiteConfig }) {
-  return <footer className="site-footer"><div className="container"><div className="footer-main"><Link className="brand" href="/"><Image src="/logo.svg" alt="" width={42} height={42} />OANRO</Link><p><Localized en="Find your next. Build what&apos;s next." bn="আপনার পরেরটা খুঁজুন। আগামীকে গড়ুন।" /></p><a href="#top" className="text-link"><Localized en="Back to top" bn="উপরে ফিরে যান" /><ArrowUpRight size={16} /></a></div><div className="footer-bottom"><span><Localized en="Bangladesh first. Possibilities beyond." bn="বাংলাদেশ প্রথম। সম্ভাবনা আরও দূরে।" /></span><nav aria-label="Footer">{config.products && <Link href="/#products"><Localized en="Products" bn="পণ্য" /></Link>}{config.services && <Link href="/#services"><Localized en="Services" bn="সেবা" /></Link>}<Link href="/contact"><Localized en="Contact" bn="যোগাযোগ" /></Link><Link href="/privacy"><Localized en="Privacy" bn="প্রাইভেসি" /></Link><Link href="/delivery-returns"><Localized en="Delivery & returns" bn="ডেলিভারি ও রিটার্ন" /></Link><Link href="/terms"><Localized en="Terms" bn="শর্তাবলি" /></Link></nav><MotionToggle /></div></div></footer>;
+  const { locale } = useLocale(); const bn = locale === "bn";
+  const lines = useProductLines().filter(line => line.count > 0); const services = useServices();
+  const t = (en: string, b: string) => bn ? b : en;
+  // Organised columns (Shop, Services, Help) with real links to category and service pages: good for visitors and for Google.
+  return <footer className="site-footer"><div className="container">
+    <div className="footer-grid">
+      <div className="footer-brand"><Link className="brand" href="/"><Image src="/logo.svg" alt="" width={42} height={42} />OANRO</Link>
+        <p>{t("Find your next. Build what's next. E-commerce and IT services from Chatmohar, Pabna, for all of Bangladesh.", "আপনার পরেরটা খুঁজুন। আগামীকে গড়ুন। চাটমোহর, পাবনা থেকে সারা বাংলাদেশের জন্য ই-কমার্স ও আইটি সেবা।")}</p>
+        <a href="#top" className="text-link">{t("Back to top", "উপরে ফিরে যান")}<ArrowUpRight size={16} /></a></div>
+      {config.products && lines.length > 0 && <nav aria-label={t("Shop", "শপ")} className="footer-col"><strong>{t("Shop", "শপ")}</strong>{lines.map(({ collection }) => <Link key={collection.id} href={`/${collection.slug}`}>{bn && collection.bn ? collection.bn.name : collection.name}</Link>)}</nav>}
+      {config.services && services.length > 0 && <nav aria-label={t("Services", "সেবা")} className="footer-col"><strong>{t("Services", "সেবা")}</strong>{services.map(s => <Link key={s.slug} href={`/services/${s.slug}`}>{bn && s.bn ? s.bn.title : s.title}</Link>)}</nav>}
+      <nav aria-label={t("Help", "সহায়তা")} className="footer-col"><strong>{t("Help", "সহায়তা")}</strong>
+        <Link href="/delivery-returns">{t("Delivery & returns", "ডেলিভারি ও রিটার্ন")}</Link><Link href="/contact">{t("Contact", "যোগাযোগ")}</Link><Link href="/privacy">{t("Privacy", "প্রাইভেসি")}</Link><Link href="/terms">{t("Terms", "শর্তাবলি")}</Link></nav>
+    </div>
+    <div className="footer-bottom"><span>{t("© 2026 OANRO · Trade License No. 002039 · Chatmohar, Pabna 6630", "© ২০২৬ OANRO · ট্রেড লাইসেন্স নং ০০২০৩৯ · চাটমোহর, পাবনা ৬৬৩০")}</span>
+      <span className="pay-chips" aria-label={t("Payment methods", "পেমেন্ট পদ্ধতি")}><span>bKash</span><span>Nagad</span></span>
+      <MotionToggle /></div>
+  </div></footer>;
 }

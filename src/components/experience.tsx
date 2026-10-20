@@ -27,7 +27,7 @@ export function Intro() {
     if (window.matchMedia(query).matches) return;
     try { if (sessionStorage.getItem("oanro-intro-v2")) return; } catch { return; }
     const frame = requestAnimationFrame(() => node?.showModal());
-    const timer = window.setTimeout(() => { node?.close(); try { sessionStorage.setItem("oanro-intro-v2", "seen"); } catch {} }, 2200);
+    const timer = window.setTimeout(() => { node?.close(); try { sessionStorage.setItem("oanro-intro-v2", "seen"); } catch {} }, 1000);
     return () => { cancelAnimationFrame(frame); clearTimeout(timer); node?.close(); };
   }, []);
   function close() { dialog.current?.close(); try { sessionStorage.setItem("oanro-intro-v2", "seen"); } catch {} }

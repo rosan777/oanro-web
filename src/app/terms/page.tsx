@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
+import { requestLocale } from "@/lib/request-locale";
 import { LegalPage, type LegalSection } from "@/components/legal-page";
-export const metadata: Metadata = { title: "Terms of use", description: "The terms for using the OANRO website, product information and inquiries." };
+// Title and description follow the page language (/bn = Bangla) so both versions can rank.
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale } = await requestLocale();
+  return locale === "bn" ? { title: "ব্যবহারের শর্তাবলি", description: "OANRO ওয়েবসাইট, পণ্যের তথ্য ও ইনকোয়ারি ব্যবহারের শর্তাবলি।" } : { title: "Terms of use", description: "The terms for using the OANRO website, product information and inquiries." };
+}
 const sections: LegalSection[] = [
   { en: ["Product information", ["We describe products as accurately as we can. Some images are samples or illustrations, and the product page says so. Colours can look different on different screens."]], bn: ["পণ্যের তথ্য", ["আমরা যতটা সম্ভব সঠিকভাবে পণ্যের বর্ণনা দিই। কিছু ছবি নমুনা বা ইলাস্ট্রেশন, এবং পণ্যের পেজে তা উল্লেখ থাকে। স্ক্রিনভেদে রং কিছুটা আলাদা দেখাতে পারে।"]] },
   { en: ["Prices and availability", ["Prices are in Bangladeshi Taka (৳). Price, stock and delivery charges are confirmed by us before any order. An item marked out of stock can't be ordered until it's back."]], bn: ["মূল্য ও প্রাপ্যতা", ["মূল্য বাংলাদেশি টাকায় (৳)। যেকোনো অর্ডারের আগে মূল্য, স্টক ও ডেলিভারি চার্জ আমরা নিশ্চিত করি। স্টক শেষ চিহ্নিত পণ্য আবার না আসা পর্যন্ত অর্ডার করা যাবে না।"]] },
