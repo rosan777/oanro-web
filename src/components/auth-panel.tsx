@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { useLocale } from "./locale";
+import Link from "@/components/locale-link";
 
 type Mode = "login" | "signup" | "forgot" | "reset" | "code";
 export function AuthPanel({ google, resetToken, next = "/account" }: { google: boolean; resetToken?: string; next?: string }) {
@@ -75,9 +76,11 @@ export function AuthPanel({ google, resetToken, next = "/account" }: { google: b
       {mode === "signup" && <label>{bn ? "পুরো নাম" : "Full name"}<input name="name" autoComplete="name" required maxLength={150} /></label>}
       {mode !== "reset" && <label>{bn ? "ইমেইল" : "Email"}<input name="email" type="email" autoComplete="email" required maxLength={254} /></label>}
       {mode !== "forgot" && <label>{bn ? "পাসওয়ার্ড" : "Password"}<input name="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={mode === "login" ? 1 : 12} maxLength={128} required />{mode !== "login" && <small>{bn ? "কমপক্ষে ১২ অক্ষর" : "At least 12 characters"}</small>}</label>}
+      {mode === "signup" && <label className="consent-check"><input type="checkbox" name="consent" required /><span>{bn ? <>আমি OANRO-র <Link href="/privacy" target="_blank">প্রাইভেসি নোটিশ</Link> পড়েছি এবং আমার তথ্য ব্যবহারে সম্মতি দিচ্ছি।</> : <>I have read the <Link href="/privacy" target="_blank">Privacy notice</Link> and agree to OANRO using my details for this purpose.</>}</span></label>}
       <button className="button brand-button" disabled={busy}>{busy ? (bn ? "অপেক্ষা করুন…" : "Please wait…") : mode === "login" ? (bn ? "Sign in" : "Sign in") : mode === "signup" ? (bn ? "অ্যাকাউন্ট তৈরি" : "Create account") : (bn ? "চালিয়ে যান" : "Continue")}</button>
     </form>
     {google && mode === "login" && <button className="button" disabled={busy} onClick={googleLogin}>{bn ? "Google দিয়ে sign in" : "Continue with Google"}</button>}
+    {google && mode === "login" && <p className="consent-note">{bn ? <>Google দিয়ে চালিয়ে গেলে আপনি আমাদের <Link href="/privacy">প্রাইভেসি নোটিশে</Link> সম্মতি দিচ্ছেন।</> : <>By continuing with Google you agree to our <Link href="/privacy">Privacy notice</Link>.</>}</p>}
     <div className="auth-links">{(["login", "signup", "forgot"] as const).filter(x => x !== mode).map(x => <button disabled={busy} key={x} onClick={() => { setMode(x); setMessage(""); }}>{x === "login" ? "Sign in" : x === "signup" ? (bn ? "নতুন অ্যাকাউন্ট" : "Create account") : (bn ? "পাসওয়ার্ড ভুলে গেছেন?" : "Forgot password?")}</button>)}</div>
     <p role="status" aria-live="polite">{message}</p>
   </section>;
