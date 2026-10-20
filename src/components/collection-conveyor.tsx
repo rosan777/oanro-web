@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/locale-link";
 import { ArrowUpRight, AudioLines, CircleHelp, Headphones, Monitor, Package } from "lucide-react";
 import type { Product, StoreCollection } from "@/lib/catalog";
 import { Conveyor } from "./home-experience";
@@ -28,7 +28,7 @@ export function CollectionConveyor({ collection }: { collection: StoreCollection
   const items = useProducts().filter(p => (p.collectionId ?? "seasonal") === collection.id);
   const ideas = collection.preset === "caps" ? capIdeas : collection.preset === "tech" ? techIdeas : [];
   if (!items.length && !ideas.length) return null;
-  return <Conveyor id={collection.anchor} eyebrow={bn ? collection.bn!.name : collection.name} title={bn ? collection.bn!.headline : collection.headline} description={bn ? collection.bn!.description : collection.description}>
+  return <Conveyor id={collection.anchor} eyebrow={bn ? collection.bn!.name : collection.name} title={<Link href={`/${collection.slug}`} className="conveyor-title-link">{bn ? collection.bn!.headline : collection.headline}</Link>} description={bn ? collection.bn!.description : collection.description}>
     {duplicate => items.length ? items.map((product, index) => <ProductCard key={product.slug} product={product} index={index} duplicate={duplicate} />)
       : ideas.map(([ideaEn, ideaBn], index) => {
         const Icon = collection.preset === "caps" ? Package : [Monitor, AudioLines, CircleHelp, Headphones][index];

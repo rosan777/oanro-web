@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/locale-link";
 import { LegalPage, type LegalSection } from "@/components/legal-page";
 import { DEFAULT_RULES, getCheckoutRules } from "@/lib/order-store";
 import { catalogDb } from "@/lib/store-products";

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/locale-link";
 import dynamic from "next/dynamic";
 import { ArrowLeft, ArrowUpRight, Mail, ShoppingBag } from "lucide-react";
 import { addToCart } from "@/lib/cart";

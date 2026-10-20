@@ -3,7 +3,7 @@
 // Fresh-shelf style: cards rise in one by one when the shelf scrolls into view, lift on hover,
 // and a quick "Add to bag" button slides up (always visible on touch screens).
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/locale-link";
 import { addToCart } from "@/lib/cart";
 import { type Product } from "@/lib/catalog";
 import { PriceTag, ProductPhoto } from "./shell";

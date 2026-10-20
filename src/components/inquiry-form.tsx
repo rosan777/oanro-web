@@ -1,6 +1,6 @@
 "use client";
 import { useState, type FormEvent } from "react";
-import Link from "next/link";
+import Link from "@/components/locale-link";
 import { useLocale } from "./locale";
 
 type Kind = "product" | "restock" | "service" | "general" | "privacy";

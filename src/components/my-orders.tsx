@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/locale-link";
 import { Check } from "lucide-react";
 import { formatPrice } from "@/lib/catalog";
 import { formatDhaka } from "@/lib/dhaka-time";

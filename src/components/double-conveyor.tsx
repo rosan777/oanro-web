@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
-import Link from "next/link";
+import Link from "@/components/locale-link";
 import { Globe2, ShieldCheck, MessageCircle, PackageCheck } from "lucide-react";
 import { useProductLines, useServices } from "./products-context";
 import { useLocale, useT } from "./locale";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/locale-link";
 import { and, eq } from "drizzle-orm";
 import { account, user } from "@/lib/db/schema";
 import { SecurityPanel } from "@/components/security-panel";

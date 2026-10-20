@@ -4,6 +4,8 @@ import { siteUrl } from "@/lib/site-url";
 export const SITE_NAME = "OANRO";
 export const DEFAULT_TITLE = "OANRO | Winter Clothing, Tech & IT Services in Bangladesh";
 export const DEFAULT_DESCRIPTION = "Shop winter clothing, caps and tech items, or hire OANRO for web development, mobile apps and business software. Serving customers across Bangladesh.";
+export const DEFAULT_TITLE_BN = "OANRO | বাংলাদেশে শীতের পোশাক, টেক পণ্য ও আইটি সেবা";
+export const DEFAULT_DESCRIPTION_BN = "শীতের পোশাক, ক্যাপ ও টেক পণ্য কিনুন, অথবা ওয়েবসাইট, মোবাইল অ্যাপ ও বিজনেস সফটওয়্যার তৈরিতে OANRO-কে নিন। সারা বাংলাদেশের গ্রাহকদের জন্য।";
 export const DEFAULT_OG_IMAGE = { url: "/images/campaign.png", width: 1850, height: 850, alt: "OANRO winter clothing collection" };
 
 export function absoluteUrl(path: string) {

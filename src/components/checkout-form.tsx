@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState, type FormEvent } from "react";
-import Link from "next/link";
+import Link from "@/components/locale-link";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, ShieldAlert } from "lucide-react";
 import { ActionIcon } from "./action-icon";
