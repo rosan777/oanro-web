@@ -23,7 +23,7 @@ export function BrandHeadline({ mark }: { mark?: ReactNode }) {
   return <>
     <h1 className="brand-headline">
       {/* Search keywords sit inside the H1 (Google weighs it most), styled as the small line beside the logo card. */}
-      <span className="hero-eyebrow-row">{mark}<span className="eyebrow">{bn ? "বাংলাদেশে শীতের পোশাক · টেক সলিউশন · আইটি সেবা" : "Winter clothing · Tech solutions · IT services in Bangladesh"}</span></span>
+      <span className="hero-eyebrow-row">{mark}<span className="eyebrow">{bn ? "শীতের পোশাক · টেক সলিউশন · আইটি সেবা · বিশ্বজুড়ে" : "Winter clothing · Tech solutions · IT services · Worldwide"}</span></span>
       <span className="brand-letters">{"OANRO".split("").map((ch, i) => <span key={i} className={i === active ? "is-active" : undefined}>{ch}</span>)}</span>
       <span className="brand-tagline">{bn ? <>ভবিষ্যতের জন্য গড়া <em>একটি ব্র্যান্ড।</em></> : <>A brand built for <em>what&apos;s next.</em></>}</span>
     </h1>
