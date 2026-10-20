@@ -1053,3 +1053,15 @@ h2 { font-size: clamp(1.8rem, 3.4vw, 2.5rem); }
 .brand-headline .eyebrow { font-size: 0.75rem; letter-spacing: 0.1em; line-height: 1.5; }
 .holographic-mark.is-small { display: grid; place-items: center; }
 .opening .standard-welcome { font-size: 0.8rem; color: #b9b9b2; margin-bottom: -1rem; }
+
+/* Privacy consent checkbox (checkout, sign-up) */
+.consent-check, .auth-card label.consent-check { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.85rem; line-height: 1.5; color: var(--muted); }
+.consent-check input { width: 18px; height: 18px; margin-top: 0.15rem; flex-shrink: 0; accent-color: var(--brand); }
+.consent-check a, .consent-note a { color: var(--brand); text-decoration: underline; text-underline-offset: 2px; }
+.consent-note { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; }
+
+/* Privacy consent checkbox (checkout, sign-up) */
+.consent-check, .auth-card label.consent-check { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.85rem; line-height: 1.5; color: var(--muted); }
+.consent-check input { width: 18px; height: 18px; margin-top: 0.15rem; flex-shrink: 0; accent-color: var(--brand); }
+.consent-check a, .consent-note a { color: var(--brand); text-decoration: underline; text-underline-offset: 2px; }
+.consent-note { font-size: 0.8rem; color: var(--muted); margin-top: 0.6rem; }

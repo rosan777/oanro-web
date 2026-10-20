@@ -142,6 +142,10 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
             ? <>ইতিমধ্যে টাকা পাঠিয়ে থাকলে চিন্তা করবেন না। একই Transaction ID দিয়েই অর্ডার জমা দিন। নতুন মোটের চেয়ে বেশি পাঠিয়ে থাকলে, যাচাইয়ের পর বাড়তি টাকা যে নম্বর থেকে পাঠিয়েছেন সেই নম্বরেই ফেরত দেব। কোনো প্রশ্ন থাকলে <Link href="/contact">আমাদের সাথে যোগাযোগ করুন</Link>।</>
             : <>Already sent the payment? Don&apos;t worry. Submit with the same Transaction ID. If you paid more than the new total, we&apos;ll return the difference to the number you paid from once we&apos;ve checked it. Questions? <Link href="/contact">Contact us</Link>.</>}</p>
         </div>; })()}
+        {/* Digital Commerce Guidelines 2021: prior consent before collecting personal data. */}
+        <label className="consent-check"><input type="checkbox" name="consent" required /><span>{bn ? <>আমি OANRO-র <Link href="/privacy" target="_blank">প্রাইভেসি নোটিশ</Link> পড়েছি এবং আমার তথ্য ব্যবহারে সম্মতি দিচ্ছি।</> : <>I have read the <Link href="/privacy" target="_blank">Privacy notice</Link> and agree to OANRO using my details for this purpose.</>}</span></label>
+        {/* Digital Commerce Guidelines 2021: prior consent before collecting personal data. */}
+        <label className="consent-check"><input type="checkbox" name="consent" required /><span>{bn ? <>আমি OANRO-র <Link href="/privacy" target="_blank">প্রাইভেসি নোটিশ</Link> পড়েছি এবং আমার তথ্য ব্যবহারে সম্মতি দিচ্ছি।</> : <>I have read the <Link href="/privacy" target="_blank">Privacy notice</Link> and agree to OANRO using my details for this purpose.</>}</span></label>
         <button className="button brand-button checkout-submit" disabled={busy || !verified}>{busy ? (bn ? "জমা হচ্ছে…" : "Submitting…") : bn ? `পেমেন্ট জমা দিন · ${formatPrice(payNow, locale)}` : `Submit payment · ${formatPrice(payNow, locale)}`}</button>
       </div>}
     </section>
