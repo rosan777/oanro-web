@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/locale-link";
 import { ArrowUpRight, ChevronDown, Menu, Search, ShoppingBag, X, Plus, Minus, Trash2 } from "lucide-react";
 import type { SiteConfig } from "@/lib/site-config";
 import { formatPrice, lineFits, optionLabel, variantSoldOut } from "@/lib/catalog";

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/locale-link";
 import { ArrowUpRight, Mail } from "lucide-react";
 import { getSiteConfig } from "@/lib/site-config";
 import { FeatureStory, ServiceConveyor, StandardPanel, ValueFan } from "@/components/home-experience";

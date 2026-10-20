@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
-import Link from "next/link";
+import Link from "@/components/locale-link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { ArrowUpRight } from "lucide-react";
@@ -40,7 +40,7 @@ export function Conveyor({ id, title, eyebrow, description, children }: { id: st
 }
 export function ServiceConveyor() {
   const services = useServices(); const { locale } = useLocale();
-  return <Conveyor id="services" title={<Localized en="Ideas, made practical." bn="ভাবনা, বাস্তবে রূপ।" />} eyebrow={<Localized en="Technology services" bn="প্রযুক্তি সেবা" />} description={<Localized en="A first introduction. Tell us what you have in mind." bn="প্রথম পরিচয়। আপনার ভাবনার কথা আমাদের জানান।" />}>{duplicate => services.map((service, index) => <a className="conveyor-card service-card" id={duplicate ? undefined : `service-${service.slug}`} tabIndex={duplicate ? -1 : undefined} key={service.slug} href="#contact"><FlipPanel title={locale === "bn" && service.bn ? service.bn.title : service.title} detail={locale === "bn" && service.bn ? service.bn.detail : service.detail || service.text} index={index}><div className={`service-visual service-tone-${index % 3}${service.image ? " has-photo" : ""}`} style={service.image?.startsWith("/api/services/") ? { backgroundImage: `linear-gradient(#0008, #0008), url("${service.image}")`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}><span>OANRO STUDIO</span><strong>{service.word}</strong><ArrowUpRight size={27} /></div></FlipPanel><div className="card-copy"><h3>{locale === "bn" && service.bn ? service.bn.title : service.title}</h3><p>{locale === "bn" && service.bn ? service.bn.text : service.text}</p></div></a>)}</Conveyor>;
+  return <Conveyor id="services" title={<Localized en="Ideas, made practical." bn="ভাবনা, বাস্তবে রূপ।" />} eyebrow={<Localized en="Technology services" bn="প্রযুক্তি সেবা" />} description={<Localized en="A first introduction. Tell us what you have in mind." bn="প্রথম পরিচয়। আপনার ভাবনার কথা আমাদের জানান।" />}>{duplicate => services.map((service, index) => <Link className="conveyor-card service-card" id={duplicate ? undefined : `service-${service.slug}`} tabIndex={duplicate ? -1 : undefined} key={service.slug} href={`/services/${service.slug}`}><FlipPanel title={locale === "bn" && service.bn ? service.bn.title : service.title} detail={locale === "bn" && service.bn ? service.bn.detail : service.detail || service.text} index={index}><div className={`service-visual service-tone-${index % 3}${service.image ? " has-photo" : ""}`} style={service.image?.startsWith("/api/services/") ? { backgroundImage: `linear-gradient(#0008, #0008), url("${service.image}")`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}><span>OANRO STUDIO</span><strong>{service.word}</strong><ArrowUpRight size={27} /></div></FlipPanel><div className="card-copy"><h3>{locale === "bn" && service.bn ? service.bn.title : service.title}</h3><p>{locale === "bn" && service.bn ? service.bn.text : service.text}</p></div></Link>)}</Conveyor>;
 }
 
 export function FeatureStory() {
