@@ -4,12 +4,20 @@ import { fromDhakaInput } from "./dhaka-time";
 export const productStatuses = ["draft", "published", "hidden"] as const;
 export type ProductStatus = typeof productStatuses[number];
 
+/** A colour choice. id is made from the English name and is what carts and orders store. */
+export type ProductColor = { id: string; en: string; bn: string; hex: string };
+/** Stock for one colour × size (color "" when the product has no colours). */
+export type VariantStock = { color: string; size: string; stock: number };
+export const variantKey = (color: string, size: string) => `${color}|${size}`;
 export type ProductInput = {
   slug: string; status: ProductStatus; collectionId: string;
   nameEn: string; nameBn: string; categoryEn: string; categoryBn: string;
   taglineEn: string; taglineBn: string; descriptionEn: string; descriptionBn: string;
   price: number; stock: number | null; lowStockAt: number | null; sizes: string[];
   specsEn: [string, string][]; specsBn: [string, string][]; displayOrder: number;
+  compareAtPrice: number | null; colors: ProductColor[];
+  /** null = one stock number for the whole product (or not counted); a list = stock per colour × size. */
+  variants: VariantStock[] | null;
 };
 export class ProductInputError extends Error {
   readonly field: string;
@@ -61,18 +69,54 @@ function sizes(value: unknown): string[] {
   if (list.some(item => typeof item !== "string") || clean.length < 1 || clean.length > 12 || clean.some(item => item.length > 20)) throw new ProductInputError("sizes");
   return clean;
 }
+function colors(value: unknown): ProductColor[] {
+  if (value === undefined || value === null || value === "") return [];
+  if (!Array.isArray(value) || value.length > 12) throw new ProductInputError("colors");
+  const out = value.map(raw => {
+    const c = (raw ?? {}) as Record<string, unknown>;
+    const en = text(c, "en", 30, true), bn = typeof c.bn === "string" ? text(c, "bn", 30) : "";
+    const hex = typeof c.hex === "string" && /^#[0-9a-fA-F]{6}$/.test(c.hex) ? c.hex.toLowerCase() : null;
+    const id = slugify(en).slice(0, 30);
+    if (!hex || !id) throw new ProductInputError("colors");
+    return { id, en, bn, hex };
+  });
+  if (new Set(out.map(c => c.id)).size !== out.length) throw new ProductInputError("colors");
+  return out;
+}
+/** Every colour × size must have exactly one stock number. */
+function variants(value: unknown, sizeList: string[], colorList: ProductColor[]): VariantStock[] | null {
+  if (value === undefined || value === null || value === "") return null;
+  if (!Array.isArray(value)) throw new ProductInputError("variants");
+  const colorIds = colorList.length ? colorList.map(c => c.id) : [""];
+  const wanted = new Set(colorIds.flatMap(c => sizeList.map(s => variantKey(c, s))));
+  const out = new Map<string, VariantStock>();
+  for (const raw of value) {
+    const v = (raw ?? {}) as Record<string, unknown>;
+    if (typeof v.color !== "string" || typeof v.size !== "string") throw new ProductInputError("variants");
+    const key = variantKey(v.color, v.size.trim());
+    if (!wanted.has(key) || out.has(key)) continue; // rows for removed colours/sizes are dropped
+    out.set(key, { color: v.color, size: v.size.trim(), stock: int(v.stock === "" ? 0 : v.stock, "variants", 0, 1_000_000) });
+  }
+  if (out.size !== wanted.size) throw new ProductInputError("variants");
+  return [...out.values()];
+}
 export function parseProductInput(data: Record<string, unknown>): ProductInput {
   const slug = slugField(data), status = statusField(data);
   const collectionId = data.collectionId ?? "seasonal";
   if (typeof collectionId !== "string" || !idPattern.test(collectionId)) throw new ProductInputError("collectionId");
-  const stock = data.stock === null || data.stock === undefined || data.stock === "" ? null : int(data.stock, "stock", 0, 1_000_000);
+  const sizeList = sizes(data.sizes), colorList = colors(data.colors), variantList = variants(data.variants, sizeList, colorList);
+  const price = int(data.price, "price", 0, 10_000_000);
+  const compareAtPrice = data.compareAtPrice === null || data.compareAtPrice === undefined || data.compareAtPrice === "" ? null : int(data.compareAtPrice, "compareAtPrice", 0, 10_000_000);
+  if (compareAtPrice !== null && compareAtPrice <= price) throw new ProductInputError("compareAtPrice");
+  // With stock per colour/size, the product's stock is their total.
+  const stock = variantList ? variantList.reduce((s, v) => s + v.stock, 0) : data.stock === null || data.stock === undefined || data.stock === "" ? null : int(data.stock, "stock", 0, 1_000_000);
   return {
     slug, status, collectionId,
     nameEn: text(data, "nameEn", 80, true), nameBn: text(data, "nameBn", 80),
     categoryEn: text(data, "categoryEn", 60), categoryBn: text(data, "categoryBn", 60),
     taglineEn: text(data, "taglineEn", 140), taglineBn: text(data, "taglineBn", 140),
     descriptionEn: text(data, "descriptionEn", 2000), descriptionBn: text(data, "descriptionBn", 2000),
-    price: int(data.price, "price", 0, 10_000_000), stock, sizes: sizes(data.sizes),
+    price, compareAtPrice, stock, sizes: sizeList, colors: colorList, variants: variantList,
     lowStockAt: data.lowStockAt === null || data.lowStockAt === undefined || data.lowStockAt === "" ? null : int(data.lowStockAt, "lowStockAt", 0, 100_000),
     specsEn: specs(data.specsEn, "specsEn"), specsBn: specs(data.specsBn, "specsBn"),
     displayOrder: order(data),

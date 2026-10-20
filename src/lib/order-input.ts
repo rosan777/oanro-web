@@ -2,7 +2,8 @@
 import { ProductInputError, slugPattern } from "./product-input";
 import type { PaymentMethod, PaymentType } from "./db/schema";
 
-export type CartLine = { slug: string; size: string; quantity: number };
+/** color is the colour id ("" for products without colours). */
+export type CartLine = { slug: string; size: string; color: string; quantity: number };
 export type OrderInput = {
   items: CartLine[]; paymentType: PaymentType; method: PaymentMethod; payerNumber: string; trxId: string;
   name: string; phone: string; address: string; note: string; expectedTotal: number;
@@ -28,9 +29,11 @@ export function parseOrderInput(data: Record<string, unknown>): OrderInput {
     const item = raw as Record<string, unknown>;
     if (!item || typeof item.slug !== "string" || !slugPattern.test(item.slug) || item.slug.length > 60
       || typeof item.size !== "string" || !item.size.trim() || item.size.length > 20
-      || !Number.isInteger(item.quantity) || (item.quantity as number) < 1 || (item.quantity as number) > 10) throw new ProductInputError("items");
-    const key = `${item.slug}\u0000${item.size}`;
-    const line = merged.get(key) ?? { slug: item.slug, size: item.size.trim(), quantity: 0 };
+      || !Number.isInteger(item.quantity) || (item.quantity as number) < 1 || (item.quantity as number) > 10
+      || (item.color !== undefined && (typeof item.color !== "string" || !/^[a-z0-9-]{0,30}$/.test(item.color)))) throw new ProductInputError("items");
+    const color = typeof item.color === "string" ? item.color : "";
+    const key = `${item.slug}\u0000${item.size}\u0000${color}`;
+    const line = merged.get(key) ?? { slug: item.slug, size: item.size.trim(), color, quantity: 0 };
     line.quantity = Math.min(10, line.quantity + (item.quantity as number));
     merged.set(key, line);
   }

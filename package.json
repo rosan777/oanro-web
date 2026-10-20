@@ -14,7 +14,8 @@
     "test:foundation": "node --import tsx --test tests/foundation.test.ts",
     "test:products": "node --import tsx --test tests/product-catalog.test.ts",
     "test": "node --import tsx --test tests/*.test.ts",
-    "seed:samples": "node --import tsx scripts/seed-samples.ts"
+    "seed:samples": "node --import tsx scripts/seed-samples.ts",
+    "seed:jewelry-images": "node --import tsx scripts/seed-jewelry-images.ts"
   },
   "dependencies": {
     "@next/env": "16.4.0",

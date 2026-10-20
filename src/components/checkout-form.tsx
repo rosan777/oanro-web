@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, ShieldAlert } from "lucide-react";
 import { ActionIcon } from "./action-icon";
 import { changeQuantity, clearCart, removeItem, useCart } from "@/lib/cart";
-import { formatPrice } from "@/lib/catalog";
+import { formatPrice, lineFits, optionLabel, variantSoldOut } from "@/lib/catalog";
 import { resizePhoto } from "@/lib/photo-resize";
 import { useProducts } from "./products-context";
 import { useLocale } from "./locale";
@@ -33,11 +33,11 @@ const fieldText = (bn: boolean): Record<string, string> => ({
   items: bn ? "ব্যাগে সমস্যা আছে। রিফ্রেশ করুন।" : "Something is wrong with your bag. Refresh and try again.",
 });
 
-export function CheckoutForm({ numbers, rules, name, phone, address, verified }: { numbers: Record<Method, string>; rules: { deliveryCharge: number; codLimit: number }; name: string; phone: string; address: string; verified: boolean }) {
+export function CheckoutForm({ numbers, rules, name, phone, address, verified }: { numbers: Record<Method, string>; rules: { deliveryCharge: number; codLimit: number; dhakaDays: string; outsideDays: string; returnDays: number }; name: string; phone: string; address: string; verified: boolean }) {
   const { locale } = useLocale(); const bn = locale === "bn";
   const router = useRouter();
   const cart = useCart(); const products = useProducts();
-  const lines = useMemo(() => cart.flatMap(item => { const p = products.find(x => x.slug === item.slug && x.sizes.includes(item.size)); return p && p.inStock !== false ? [{ item, p }] : []; }), [cart, products]);
+  const lines = useMemo(() => cart.flatMap(item => { const p = products.find(x => x.slug === item.slug && lineFits(x, item.size, item.color)); return p && !variantSoldOut(p, item.size, item.color) ? [{ item, p }] : []; }), [cart, products]);
   const subtotal = lines.reduce((sum, { item, p }) => sum + p.price * item.quantity, 0);
   const methods = (["bkash", "nagad"] as Method[]).filter(m => numbers[m]);
   // "prepaid": everything now by bKash/Nagad. "cod": only the delivery charge now, the product price in cash at the door.
@@ -50,7 +50,7 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   // Not enough stock: which product, how many are left, and how many the customer asked for (all sizes).
-  const [shortage, setShortage] = useState<{ slug: string; name: string; available: number; wanted: number } | null>(null);
+  const [shortage, setShortage] = useState<{ slug: string; size: string | null; color: string | null; name: string; available: number; wanted: number } | null>(null);
   const [done, setDone] = useState<{ code: string } | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -68,13 +68,16 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
     setBusy(true); setError(""); setShortage(null);
     try {
       const response = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
-        items: lines.map(({ item }) => ({ slug: item.slug, size: item.size, quantity: item.quantity })), method, paymentType: payType, expectedTotal: subtotal,
+        items: lines.map(({ item }) => ({ slug: item.slug, size: item.size, color: item.color, quantity: item.quantity })), method, paymentType: payType, expectedTotal: subtotal,
         trxId: form.get("trxId"), payerNumber: form.get("payerNumber"), name: form.get("name"), phone: form.get("phone"), address: form.get("address"), note: form.get("note") ?? "", screenshot: shot }) });
-      const result = await response.json().catch(() => ({})) as { code?: string; error?: string; field?: string; slug?: string; available?: number };
+      const result = await response.json().catch(() => ({})) as { code?: string; error?: string; field?: string; slug?: string; available?: number; color?: string; size?: string };
       if (result.error === "OUT_OF_STOCK" && result.slug && typeof result.available === "number") {
-        const mine = lines.filter(({ item }) => item.slug === result.slug);
+        // Per colour/size stock names the exact option; otherwise the count covers all sizes of the product.
+        const exact = result.size !== undefined && result.color !== undefined;
+        const mine = lines.filter(({ item }) => item.slug === result.slug && (!exact || (item.size === result.size && item.color === result.color)));
         const p = mine[0]?.p;
-        setShortage({ slug: result.slug, name: p ? (bn && p.bn ? p.bn.name : p.name) : result.slug, available: result.available, wanted: mine.reduce((n, { item }) => n + item.quantity, 0) });
+        const option = exact && p ? optionLabel(p, result.size!, result.color!, bn) : "";
+        setShortage({ slug: result.slug, size: exact ? result.size! : null, color: exact ? result.color! : null, name: p ? `${bn && p.bn ? p.bn.name : p.name}${option ? ` (${option})` : ""}` : result.slug, available: result.available, wanted: mine.reduce((n, { item }) => n + item.quantity, 0) });
         setError(""); return;
       }
       if (response.ok && result.code) { clearCart(); setDone({ code: result.code }); router.refresh(); window.scrollTo({ top: 0 }); return; }
@@ -86,7 +89,7 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
   return <form className="checkout-grid" onSubmit={submit}>
     <section className="checkout-summary" aria-labelledby="summary-title">
       <h1 id="summary-title">{bn ? "চেকআউট" : "Checkout"}</h1>
-      <ul>{lines.map(({ item, p }) => <li key={`${item.slug}-${item.size}`}><span>{bn && p.bn ? p.bn.name : p.name} <small>{item.size} × {item.quantity}</small></span><strong>{formatPrice(p.price * item.quantity, locale)}</strong></li>)}</ul>
+      <ul>{lines.map(({ item, p }) => <li key={`${item.slug}-${item.size}-${item.color}`}><span>{bn && p.bn ? p.bn.name : p.name} <small>{optionLabel(p, item.size, item.color, bn)} × {item.quantity}</small></span><strong>{formatPrice(p.price * item.quantity, locale)}</strong></li>)}</ul>
       <p className="checkout-line"><span>{bn ? "পণ্যের দাম" : "Subtotal"}</span><span>{formatPrice(subtotal, locale)}</span></p>
       <p className="checkout-line"><span>{bn ? "ডেলিভারি চার্জ" : "Delivery charge"}</span><span>{formatPrice(rules.deliveryCharge, locale)}</span></p>
       <p className="checkout-total"><span>{bn ? "মোট" : "Total"}</span><strong>{formatPrice(subtotal + rules.deliveryCharge, locale)}</strong></p>
@@ -94,7 +97,7 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
         <p><span>{bn ? "এখন দিচ্ছেন (bKash/Nagad)" : "Pay now (bKash/Nagad)"}</span><strong>{formatPrice(payNow, locale)}</strong></p>
         <p><span>{bn ? "ডেলিভারির সময় নগদ" : "Cash on delivery"}</span><strong>{formatPrice(payLater, locale)}</strong></p>
       </div>}
-      <small>{bn ? "ডেলিভারি চার্জ ফেরতযোগ্য নয়।" : "The delivery charge is non-refundable."}</small>
+      <small>{bn ? <>ডেলিভারি চার্জ ফেরতযোগ্য নয়। ঢাকায় {rules.dhakaDays.replace("-", "–").replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[Number(d)])} দিন, ঢাকার বাইরে {rules.outsideDays.replace("-", "–").replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[Number(d)])} দিন। <Link href="/delivery-returns" target="_blank">ডেলিভারি ও রিটার্ন নীতি</Link></> : <>The delivery charge is non-refundable. Delivery in {rules.dhakaDays.replace("-", "–")} days inside Dhaka, {rules.outsideDays.replace("-", "–")} outside. <Link href="/delivery-returns" target="_blank">Delivery &amp; returns policy</Link></>}</small>
     </section>
     <section className="checkout-pay" aria-labelledby="pay-title">
       {!verified && <p className="checkout-warning" role="alert"><ShieldAlert size={18} />{bn ? "অর্ডার দিতে আগে আপনার ইমেইল ভেরিফাই করুন (ইনবক্সে লিংক দেখুন)।" : "Verify your email first (check your inbox for the link) to place an order."}</p>}
@@ -127,13 +130,13 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
           <label className="wide">{bn ? "নোট (ঐচ্ছিক)" : "Note (optional)"}<textarea name="note" maxLength={300} rows={2} /></label>
         </div>
         {error && <p className="checkout-error" role="alert">{error}</p>}
-        {shortage && (() => { const one = lines.filter(({ item }) => item.slug === shortage.slug); return <div className="stock-shortage" role="alert">
+        {shortage && (() => { const one = lines.filter(({ item }) => item.slug === shortage.slug && (shortage.size === null || (item.size === shortage.size && item.color === shortage.color))); return <div className="stock-shortage" role="alert">
           <p><strong>{bn ? "দুঃখিত, পর্যাপ্ত স্টক নেই।" : "Sorry, we don't have enough in stock."}</strong> {shortage.available === 0
             ? (bn ? `"${shortage.name}" এখন স্টকে নেই। ব্যাগ থেকে সরিয়ে আবার চেষ্টা করুন।` : `"${shortage.name}" is out of stock right now. Remove it from your bag to continue.`)
             : (bn ? `"${shortage.name}" এখন মাত্র ${shortage.available}টি আছে, আপনি ${shortage.wanted}টি চেয়েছেন। সর্বোচ্চ ${shortage.available}টি অর্ডার করতে পারবেন।` : `Only ${shortage.available} of "${shortage.name}" left, and you asked for ${shortage.wanted}. You can order up to ${shortage.available}.`)}</p>
           {shortage.available > 0 && one.length === 1
-            ? <button type="button" className="btn btn-primary btn-sm" onClick={() => { const { item } = one[0]; changeQuantity(item.slug, item.size, shortage.available - item.quantity); setShortage(null); }}><ActionIcon name="approve" size={14} />{bn ? `${shortage.available}টি করে দিন` : `Change to ${shortage.available}`}</button>
-            : shortage.available === 0 ? <button type="button" className="btn btn-danger btn-sm" onClick={() => { one.forEach(({ item }) => removeItem(item.slug, item.size)); setShortage(null); }}><ActionIcon name="remove" size={14} />{bn ? "ব্যাগ থেকে সরান" : "Remove from bag"}</button>
+            ? <button type="button" className="btn btn-primary btn-sm" onClick={() => { const { item } = one[0]; changeQuantity(item.slug, item.size, shortage.available - item.quantity, item.color); setShortage(null); }}><ActionIcon name="approve" size={14} />{bn ? `${shortage.available}টি করে দিন` : `Change to ${shortage.available}`}</button>
+            : shortage.available === 0 ? <button type="button" className="btn btn-danger btn-sm" onClick={() => { one.forEach(({ item }) => removeItem(item.slug, item.size, item.color)); setShortage(null); }}><ActionIcon name="remove" size={14} />{bn ? "ব্যাগ থেকে সরান" : "Remove from bag"}</button>
             : <small>{bn ? "উপরের ব্যাগে সাইজগুলো মিলিয়ে সংখ্যা কমিয়ে নিন।" : "Reduce the quantities in your bag (all sizes together) to continue."}</small>}
           <p className="shortage-refund">{bn
             ? <>ইতিমধ্যে টাকা পাঠিয়ে থাকলে চিন্তা করবেন না। একই Transaction ID দিয়েই অর্ডার জমা দিন। নতুন মোটের চেয়ে বেশি পাঠিয়ে থাকলে, যাচাইয়ের পর বাড়তি টাকা যে নম্বর থেকে পাঠিয়েছেন সেই নম্বরেই ফেরত দেব। কোনো প্রশ্ন থাকলে <Link href="/contact">আমাদের সাথে যোগাযোগ করুন</Link>।</>

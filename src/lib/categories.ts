@@ -1,10 +1,10 @@
 // Fixed category choices per section type, with Bangla labels. Pure data: safe for client and server.
 export type Option = { en: string; bn: string };
-export const collectionPresets = ["seasonal", "caps", "tech", "general"] as const;
+export const collectionPresets = ["seasonal", "caps", "tech", "jewelry", "general"] as const;
 export type CollectionPreset = typeof collectionPresets[number];
 export const presetLabel: Record<CollectionPreset, Option> = {
   seasonal: { en: "Seasonal products", bn: "মৌসুমি পণ্য" }, caps: { en: "Caps", bn: "ক্যাপ" },
-  tech: { en: "Tech items", bn: "টেক আইটেম" }, general: { en: "General products", bn: "সাধারণ পণ্য" },
+  tech: { en: "Tech items", bn: "টেক আইটেম" }, jewelry: { en: "Jewelry", bn: "গহনা" }, general: { en: "General products", bn: "সাধারণ পণ্য" },
 };
 export const productCategories: Record<CollectionPreset, Option[]> = {
   seasonal: [
@@ -24,6 +24,11 @@ export const productCategories: Record<CollectionPreset, Option[]> = {
     { en: "Chargers, cables & power banks", bn: "চার্জার, ক্যাবল ও পাওয়ার ব্যাংক" }, { en: "Phone accessories", bn: "ফোন অ্যাকসেসরিজ" },
     { en: "Computer accessories", bn: "কম্পিউটার অ্যাকসেসরিজ" }, { en: "Gaming accessories", bn: "গেমিং অ্যাকসেসরিজ" },
     { en: "Smart home devices", bn: "স্মার্ট হোম ডিভাইস" }, { en: "Storage & memory", bn: "স্টোরেজ ও মেমরি" }, { en: "Networking", bn: "নেটওয়ার্কিং" },
+  ],
+  jewelry: [
+    { en: "Necklaces & pendants", bn: "নেকলেস ও লকেট" }, { en: "Earrings", bn: "কানের দুল" }, { en: "Rings", bn: "আংটি" },
+    { en: "Bracelets & bangles", bn: "ব্রেসলেট ও চুড়ি" }, { en: "Anklets", bn: "নূপুর ও পায়েল" }, { en: "Nose pins", bn: "নাকফুল" },
+    { en: "Jewelry sets", bn: "গহনার সেট" }, { en: "Hair accessories", bn: "চুলের অলংকার" }, { en: "Men's jewelry", bn: "ছেলেদের গহনা" },
   ],
   general: [{ en: "New arrivals", bn: "নতুন পণ্য" }, { en: "Best sellers", bn: "সেরা বিক্রিত" }, { en: "Gifts", bn: "উপহার" }, { en: "Bundles & offers", bn: "বান্ডেল ও অফার" }],
 };

@@ -33,11 +33,13 @@ export default async function AdminPage() {
     <p><Localized en="Each card is one part of the website. ON = visible to customers, OFF = hidden. Open a card to edit its content." bn="প্রতিটি কার্ড ওয়েবসাইটের একটি অংশ। ON = গ্রাহকরা দেখতে পাবেন, OFF = লুকানো। কনটেন্ট এডিট করতে কার্ড খুলুন।" /></p>
     <p className="admin-live-count"><strong>{liveCount}</strong> section{liveCount === 1 ? "" : "s"} live on the website{access.owner ? " · you are the owner (full access)" : ""}</p>
     {!catalog.ready && <p className="admin-callout">Product sections need the latest database migration. Run <code>npm run db:migrate</code>, then reload.</p>}
-    {(can("orders.read") || can("leads.read") || can("campaigns.manage") || can("staff.manage")) && <><h2>Daily work</h2>
+    {(can("orders.read") || can("leads.read") || can("campaigns.manage") || can("staff.manage") || can("audit.read") || can("customers.read")) && <><h2>Daily work</h2>
     <div className="admin-card-grid">
       {can("orders.read") && <Card href="/admin/orders" label="Payments" title="Orders" on={true} detail={orders ? `${orders.pending} waiting · ${orders.paid} paid · ${orders.rejected} rejected` : "Needs the latest database migration"}><span className={`switch-badge ${orders?.pending ? "is-on" : "is-off"}`}>{orders?.pending ?? 0} TO CHECK</span></Card>}
       {can("leads.read") && <Card href="/admin/leads" label="Customer inquiries" title="Inquiries" on={true} detail={leads ? `${leads.new} new · ${Object.values(leads).reduce((a, b) => a + b, 0)} total` : "Needs the latest database migration"}><span className="switch-badge is-on">{leads?.new ?? 0} new</span></Card>}
       {can("campaigns.manage") && <Card href="/admin/campaigns" label="Seasonal" title="Campaigns" on={live.length > 0} detail={campaigns?.ready ? `${live.length} live now · ${campaigns.campaigns.length} total` : "Needs the latest database migration"}><span className={`switch-badge ${live.length ? "is-on" : "is-off"}`}>{live.length ? "LIVE" : "NONE LIVE"}</span></Card>}
+      {can("customers.read") && <Card href="/admin/customers" label="People" title="Customers" on={true} detail="Customer accounts, their orders and total spent. Delete an account on request." />}
+      {can("audit.read") && <Card href="/admin/activity" label="Security" title="Activity log" on={true} detail="Who changed what, and when. Read-only." />}
       {can("staff.manage") && <Card href="/admin/staff" label="Access" title="Staff & roles" on={true} detail="Invite staff, assign roles, deactivate accounts"><span className="switch-badge is-on">MANAGE</span></Card>}
     </div></>}
     {(can("reports.read") || can("profit.read")) && <><h2>Reports</h2>

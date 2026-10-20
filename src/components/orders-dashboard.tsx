@@ -53,31 +53,71 @@ function ShippingCost({ order, busy, act }: { order: AdminOrder; busy: boolean; 
     {order.shippingCost === null && order.deliveryStatus && order.deliveryStatus !== "processing" && <small className="shipping-missing">Not added yet: profit reports count it as ৳0.</small>}
   </form>;
 }
-type Rules = { deliveryCharge: number; codLimit: number };
+/** Money sent back to the customer after approval. Saved amounts reduce revenue in the profit report. */
+function Refund({ order, busy, act }: { order: AdminOrder; busy: boolean; act: (body: Record<string, unknown>, done: string) => Promise<boolean> }) {
+  const [open, setOpen] = useState(order.refundAmount > 0);
+  const [amount, setAmount] = useState(order.refundAmount ? String(order.refundAmount) : ""), [note, setNote] = useState(order.refundNote ?? "");
+  const received = order.total + (order.codCollectedAt ? order.codDue : 0);
+  if (!open) return <button type="button" className="btn btn-neutral btn-sm refund-open" disabled={busy} onClick={() => setOpen(true)}><ActionIcon name="returned" />Record a refund</button>;
+  return <form className="shipping-cost refund-form" onSubmit={e => { e.preventDefault(); void act({ amount: amount || "0", note }, Number(amount) ? `${order.code}: refund of ${formatPrice(Number(amount))} saved.` : `${order.code}: refund cleared.`); }}>
+    <label>Refund sent to customer (৳)<input type="number" min={0} max={received} step={1} inputMode="numeric" value={amount} placeholder="0" disabled={busy} onChange={e => setAmount(e.target.value)} /></label>
+    <label>Reason<input value={note} maxLength={200} placeholder="e.g. one item damaged, partial refund" disabled={busy} onChange={e => setNote(e.target.value)} /></label>
+    <button className="btn btn-neutral btn-sm" disabled={busy || (amount === String(order.refundAmount || "") && note === (order.refundNote ?? ""))}><ActionIcon name="save" />Save refund</button>
+    <small>Up to {formatPrice(received)} (what was received). {order.deliveryStatus === "returned" ? "This order was returned: its product money is already left out of revenue, so don't record that again." : "It is subtracted from net profit. Enter 0 to clear."}</small>
+  </form>;
+}
+type Rules = { deliveryCharge: number; codLimit: number; dhakaDays: string; outsideDays: string; returnDays: number };
+const days = (r: string) => r.replace("-", "–");
+/** Owner card: delivery charge, COD limit, delivery times, return window. Checkout and the Delivery & returns page read these. */
+function RulesCard({ rules, busy, save }: { rules: Rules; busy: boolean; save: (body: Record<string, unknown>) => void }) {
+  const [d, setD] = useState({ deliveryCharge: String(rules.deliveryCharge), codLimit: String(rules.codLimit), dhakaDays: rules.dhakaDays, outsideDays: rules.outsideDays, returnDays: String(rules.returnDays) });
+  const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement>) => setD(x => ({ ...x, [k]: e.target.value }));
+  const charge = Number(d.deliveryCharge) || 0, limit = Number(d.codLimit) || 0, ret = Number(d.returnDays) || 0;
+  return <form className="pulse-form product-form rules-card" onSubmit={e => { e.preventDefault(); save({ action: "rules", ...d }); }}>
+    <h2>Delivery &amp; payment rules</h2>
+    <small>These numbers appear at checkout and on the public <a href="/delivery-returns" target="_blank" rel="noreferrer">Delivery &amp; returns</a> page, which updates automatically when you save. Only you (the owner) can change them.</small>
+    <fieldset><legend>Charges</legend><div className="product-form-row">
+      <label>Delivery charge (৳, every order)<input type="number" min={0} max={100000} step={1} inputMode="numeric" value={d.deliveryCharge} onChange={set("deliveryCharge")} required disabled={busy} /><small>Non-refundable. For cash on delivery this is the only amount paid in advance.</small></label>
+      <label>Cash on delivery limit (৳)<input type="number" min={0} max={10000000} step={1} inputMode="numeric" value={d.codLimit} onChange={set("codLimit")} required disabled={busy} /><small>Orders with a product total above this must pay in full. 0 turns cash on delivery off.</small></label>
+    </div></fieldset>
+    <fieldset><legend>Delivery time and returns</legend><div className="product-form-row three">
+      <label>Inside Dhaka (days)<input value={d.dhakaDays} onChange={set("dhakaDays")} placeholder="1-3" pattern="\d{1,2}([-–]\d{1,2})?" maxLength={5} required disabled={busy} /></label>
+      <label>Outside Dhaka (days)<input value={d.outsideDays} onChange={set("outsideDays")} placeholder="3-5" pattern="\d{1,2}([-–]\d{1,2})?" maxLength={5} required disabled={busy} /></label>
+      <label>Report a problem within (days)<input type="number" min={0} max={30} step={1} inputMode="numeric" value={d.returnDays} onChange={set("returnDays")} required disabled={busy} /><small>0 = no returns.</small></label>
+    </div></fieldset>
+    <div className="rules-preview" aria-live="polite"><strong>Customers will see:</strong>
+      <ul><li>Delivery charge {formatPrice(charge)} on every order (not refundable).</li>
+        <li>{limit > 0 ? `Cash on delivery for orders up to ${formatPrice(limit)}; pay ${formatPrice(charge)} first.` : "Cash on delivery is turned off."}</li>
+        <li>Delivery in {days(d.dhakaDays) || "?"} days inside Dhaka, {days(d.outsideDays) || "?"} days outside Dhaka.</li>
+        <li>{ret > 0 ? `Report a wrong, damaged or missing item within ${ret} day${ret === 1 ? "" : "s"} of delivery.` : "Returns are not accepted."}</li></ul></div>
+    <div className="product-form-actions"><button className="btn btn-primary" disabled={busy}><ActionIcon name="save" />Save rules</button><a className="btn btn-neutral" href="/delivery-returns" target="_blank" rel="noreferrer"><ActionIcon name="route" />View public page</a></div>
+  </form>;
+}
 export function OrdersDashboard({ initial, numbers: initialNumbers, rules: initialRules, canReview, canCod, isOwner }: { initial: AdminOrder[]; numbers: { bkash: string; nagad: string }; rules: Rules; canReview: boolean; canCod: boolean; isOwner: boolean }) {
   const [rules, setRules] = useState(initialRules);
+  const mailTest = useAdminCall<{ sentTo: string }>("/api/admin/orders", {}, () => {});
   const [orders, setOrders] = useState(initial);
   const [numbers, setNumbers] = useState(initialNumbers);
   const [filter, setFilter] = useState<Filter>("pending");
   const [rejecting, setRejecting] = useState<string | null>(null);
   const [reason, setReason] = useState("");
-  const { busy, notice, call } = useAdminCall<{ orders: AdminOrder[]; numbers: { bkash: string; nagad: string }; rules: Rules }>("/api/admin/orders", { bkash: "bKash number", nagad: "Nagad number", decision: "Decision", shippingCost: "Courier charge", deliveryCharge: "Delivery charge", codLimit: "Cash on delivery limit" }, data => { setOrders(data.orders); setNumbers(data.numbers); setRules(data.rules); });
+  const { busy, notice, call } = useAdminCall<{ orders: AdminOrder[]; numbers: { bkash: string; nagad: string }; rules: Rules }>("/api/admin/orders", { bkash: "bKash number", nagad: "Nagad number", decision: "Decision", shippingCost: "Courier charge", deliveryCharge: "Delivery charge", codLimit: "Cash on delivery limit", dhakaDays: "Inside Dhaka (days, like 1-3)", outsideDays: "Outside Dhaka (days, like 3-5)", returnDays: "Report a problem within (0–30 days)" }, data => { setOrders(data.orders); setNumbers(data.numbers); setRules(data.rules); });
   const shown = orders.filter(o => matches(o, filter));
   const count = (f: Filter) => orders.filter(o => matches(o, f)).length;
   return <section className="admin-sections orders-dashboard">
-    {isOwner && <form className="pulse-form product-form payment-numbers" onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); void call("PUT", { bkash: f.get("bkash"), nagad: f.get("nagad"), deliveryCharge: f.get("deliveryCharge"), codLimit: f.get("codLimit") }, "Saved. Customers now see these at checkout."); }}>
+    {isOwner && <form className="pulse-form product-form payment-numbers" onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); void call("PUT", { bkash: f.get("bkash"), nagad: f.get("nagad") }, "Payment numbers saved. Customers now see these at checkout."); }}>
       <h2>Your payment numbers</h2>
       <small>Customers send money to these personal numbers. Leave one empty to hide that option. Only you (the owner) can change them.</small>
       <div className="product-form-row">
         <label>bKash personal number<input name="bkash" inputMode="tel" defaultValue={numbers.bkash} placeholder="01XXXXXXXXX" disabled={busy} /></label>
         <label>Nagad personal number<input name="nagad" inputMode="tel" defaultValue={numbers.nagad} placeholder="01XXXXXXXXX" disabled={busy} /></label>
       </div>
-      <div className="product-form-row">
-        <label>Delivery charge (৳, every order)<input name="deliveryCharge" type="number" min={0} max={100000} step={1} inputMode="numeric" defaultValue={rules.deliveryCharge} required disabled={busy} /><small>Non-refundable. For cash on delivery this is the only amount paid in advance.</small></label>
-        <label>Cash on delivery limit (৳)<input name="codLimit" type="number" min={0} max={10000000} step={1} inputMode="numeric" defaultValue={rules.codLimit} required disabled={busy} /><small>Orders above this product total must pay in full. 0 turns cash on delivery off.</small></label>
-      </div>
-      <div className="product-form-actions"><button className="btn btn-primary" disabled={busy}><ActionIcon name="save" />Save numbers</button></div>
+      <div className="product-form-actions"><button className="btn btn-primary" disabled={busy}><ActionIcon name="save" />Save numbers</button>
+        <button type="button" className="btn btn-neutral" disabled={mailTest.busy} onClick={() => void mailTest.call("POST", { action: "test-email" }, "Test email sent to your address. Check your inbox (and Spam/Junk).")}><ActionIcon name="inquiry" />{mailTest.busy ? "Sending…" : "Send test email"}</button></div>
+      {mailTest.notice && <small role="status">{mailTest.notice}</small>}
+      <small>New orders email you (and staff who can approve payments). Customers get an email when their payment is confirmed or rejected and at each delivery step.</small>
     </form>}
+    {isOwner && <RulesCard rules={rules} busy={busy} save={body => void call("PUT", body, "Rules saved. Checkout and the Delivery & returns page now show the new values.")} />}
     {!numbers.bkash && !numbers.nagad && <p className="admin-callout">Checkout is closed until a bKash or Nagad number is saved.</p>}
     <div className="order-filters" role="tablist" aria-label="Filter orders">{(["pending", "delivery", "paid", ...(canCod ? ["cod"] : []), "rejected", "all"] as Filter[]).map(f => <button key={f} type="button" role="tab" aria-selected={filter === f} onClick={() => setFilter(f)}>{filterText[f]} ({count(f)})</button>)}</div>
     {!shown.length && <p>No orders here.</p>}
@@ -112,6 +152,8 @@ export function OrdersDashboard({ initial, numbers: initialNumbers, rules: initi
           : <button type="button" className="btn btn-danger" disabled={busy} onClick={() => { setRejecting(o.id); setReason(""); }}><ActionIcon name="reject" />Reject</button>}
       </div>}
       {canReview && o.status === "paid" && <ShippingCost order={o} busy={busy} act={(body, done) => call("PATCH", { id: o.id, action: "shipping-cost", ...body }, done)} />}
+      {canReview && o.status === "paid" && <Refund order={o} busy={busy} act={(body, done) => call("PATCH", { id: o.id, action: "refund", ...body }, done)} />}
+      {!canReview && o.refundAmount > 0 && <p className="small-note">Refunded {formatPrice(o.refundAmount)}{o.refundNote ? `: ${o.refundNote}` : ""}</p>}
       {canReview && o.status === "paid" && <DeliveryControls order={o} busy={busy} act={(body, done) => call("PATCH", { id: o.id, action: "delivery", ...body }, done)} />}
     </li>)}</ul>
     <p role="status" aria-live="polite">{notice}</p>

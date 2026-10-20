@@ -8,6 +8,7 @@ import { claimInvite, getAccess, type Access } from "./rbac";
 import { catalogDb } from "./store-products";
 import type { Permission } from "./permissions";
 import { storefrontChanged } from "./storefront-cache";
+import { needsTwoFactorSetup } from "./two-factor-policy";
 
 export const noStore = { "Cache-Control": "no-store" };
 export const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -20,6 +21,7 @@ export async function authorize(request: Request, permission: Permission | Permi
   const db = catalogDb();
   await claimInvite(db, session.user);
   const access = await getAccess(db, session.user.id);
+  if (await needsTwoFactorSetup(db, session.user.id, access.owner)) return null;
   const needed = Array.isArray(permission) ? permission : [permission];
   return needed.some(p => access.permissions.has(p)) ? { userId: session.user.id, access } : null;
 }

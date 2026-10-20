@@ -142,7 +142,7 @@ test("cash on delivery: only the delivery charge is prepaid, limit applies, hidd
     await db.insert(schema.user).values([{ id: "owner-1", name: "Owner", email: "o@example.com", emailVerified: true }, { id: "cust-1", name: "Rahim", email: "r@example.com", emailVerified: true }]);
     await createProduct(db, "owner-1", parseProductInput({ slug: "river-cap", nameEn: "River Cap", price: "1000", stock: "10", sizes: "M", status: "published" }), null);
     await setPaymentNumbers(db, "owner-1", { bkash: "01811111111", nagad: "" });
-    assert.deepEqual(await getCheckoutRules(db), { deliveryCharge: 120, codLimit: 5000 }, "migration seeds ৳120 delivery and ৳5,000 COD limit");
+    assert.deepEqual(await getCheckoutRules(db), { deliveryCharge: 120, codLimit: 5000, dhakaDays: "1-3", outsideDays: "3-5", returnDays: 3 }, "migration seeds ৳120 delivery and ৳5,000 COD limit; other rules use defaults");
     const cod = (patch: Record<string, unknown> = {}) => order({ paymentType: "cod", items: [{ slug: "river-cap", size: "M", quantity: 2 }], ...patch });
 
     await assert.rejects(createOrder(db, { id: "cust-1" }, cod({ items: [{ slug: "river-cap", size: "M", quantity: 6 }], expectedTotal: 6000 }), null), (e: unknown) => code(e, "COD_LIMIT"), "above ৳5,000");
@@ -172,5 +172,40 @@ test("cash on delivery: only the delivery charge is prepaid, limit applies, hidd
     assert.equal(sales.methods.find(m => m.method === "bkash")?.amount, 120, "bKash received only the delivery charge");
     const profit = await profitReport(db, "30d");
     assert.equal(profit.totals.delivery, 120); assert.equal(profit.totals.net, 2000, "no cost price; courier bill not entered, so it is assumed equal to the ৳120 delivery charge");
+  } finally { await pg.close(); }
+});
+
+test("colour × size stock: exact variant is reserved and returned; sale price and refunds", async () => {
+  const { profitReport, setRefund } = await import("../src/lib/report-store");
+  const pg = new PGlite();
+  const db = drizzle(pg, { schema }) as unknown as CatalogDb;
+  try {
+    await migrate(drizzle(pg, { schema }), { migrationsFolder: "drizzle" });
+    await db.insert(schema.user).values([{ id: "owner-1", name: "Owner", email: "o@example.com", emailVerified: true }, { id: "cust-1", name: "Rahim", email: "r@example.com", emailVerified: true }]);
+    await setPaymentNumbers(db, "owner-1", { bkash: "01811111111", nagad: "" });
+    const colors = [{ en: "Red", hex: "#ff0000" }, { en: "Navy Blue", hex: "#000080" }];
+    const variants = [{ color: "red", size: "M", stock: 2 }, { color: "red", size: "L", stock: 0 }, { color: "navy-blue", size: "M", stock: 1 }, { color: "navy-blue", size: "L", stock: 5 }];
+    assert.throws(() => parseProductInput({ slug: "tee", nameEn: "Tee", price: "500", compareAtPrice: "400", sizes: "M, L" }), (e: unknown) => e instanceof ProductInputError && e.field === "compareAtPrice", "sale price must be higher");
+    assert.throws(() => parseProductInput({ slug: "tee", nameEn: "Tee", price: "500", sizes: "M, L", colors, variants: variants.slice(1) }), (e: unknown) => e instanceof ProductInputError && e.field === "variants", "every colour × size needs a number");
+    const input = parseProductInput({ slug: "tee", nameEn: "Tee", price: "500", compareAtPrice: "700", sizes: "M, L", colors, variants, status: "published" });
+    assert.equal(input.stock, 8, "product stock is the variant total");
+    const pid = await createProduct(db, "owner-1", input, null);
+    const left = async (color: string, size: string) => (await db.select().from(schema.productVariant).where(eq(schema.productVariant.productId, pid))).find(v => v.color === color && v.size === size)?.stock;
+    const buy = (trx: string, items: unknown[], total: number) => createOrder(db, { id: "cust-1" }, order({ trxId: trx, items, expectedTotal: total }), null);
+    await assert.rejects(buy("NOCOLOR111", [{ slug: "tee", size: "M", quantity: 1 }], 500), (e: unknown) => code(e, "UNAVAILABLE:tee"), "colour is required");
+    await assert.rejects(buy("REDL111111", [{ slug: "tee", size: "L", color: "red", quantity: 1 }], 500), (e: unknown) => code(e, "OUT_OF_STOCK:tee:0:red:L"), "sold-out variant names colour and size");
+    const a = await buy("REDM111111", [{ slug: "tee", size: "M", color: "red", quantity: 2 }, { slug: "tee", size: "L", color: "navy-blue", quantity: 1 }], 1500);
+    assert.equal(await left("red", "M"), 0); assert.equal(await left("navy-blue", "L"), 4); assert.equal(await left("navy-blue", "M"), 1, "other variants untouched");
+    assert.equal((await db.select({ s: schema.product.stock }).from(schema.product).where(eq(schema.product.id, pid)))[0].s, 5, "total kept in step");
+    const mine = (await listMyOrders(db, "cust-1"))[0];
+    assert.ok(mine.items.some(i => i.color === "red" && i.name === "Tee / Red"), "order line remembers the colour");
+    await reviewOrder(db, "owner-1", a.id, "reject", "test reject");
+    assert.equal(await left("red", "M"), 2); assert.equal(await left("navy-blue", "L"), 5, "rejection returns units to the exact variant");
+    const b = await buy("PAID111111", [{ slug: "tee", size: "M", color: "red", quantity: 1 }], 500);
+    await reviewOrder(db, "owner-1", b.id, "approve");
+    await assert.rejects(setRefund(db, "owner-1", b.id, 100000, "too much"), (e: unknown) => code(e, "REFUND_TOO_HIGH"));
+    await setRefund(db, "owner-1", b.id, 100, "scratch on the print");
+    const profit = await profitReport(db, "30d");
+    assert.equal(profit.totals.refunds, 100); assert.equal(profit.totals.net, 400, "500 revenue − 100 refund (no cost; courier assumed = delivery charge)");
   } finally { await pg.close(); }
 });

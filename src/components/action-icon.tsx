@@ -2,6 +2,7 @@
 // Always used next to a text label, never on their own.
 const paths = {
   approve: "M4 12.5l5 5L20 6.5",
+  add: "M12 5v14M5 12h14",
   reject: "M6 6l12 12M18 6L6 18",
   courier: "M3 7h11v9H3zM14 10h4l3 3v3h-7M7 19.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM17 19.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z",
   route: "M5 19a2 2 0 100-4 2 2 0 000 4zM19 9a2 2 0 100-4 2 2 0 000 4zM7 17h6a3 3 0 000-6H11a3 3 0 010-6h6",

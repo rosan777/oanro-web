@@ -1,4 +1,5 @@
 "use client";
+import { ActionIcon } from "./action-icon";
 import { useState } from "react";
 import { permissions, permissionInfo, type Permission } from "@/lib/permissions";
 import type { StaffOverview } from "@/lib/rbac";
@@ -8,7 +9,7 @@ import { formatDhaka } from "@/lib/dhaka-time";
 const fieldLabel: Record<string, string> = { email: "Email", roleId: "Role", name: "Role name", userId: "Staff member" };
 const extra: Record<string, string> = { OWNER_ONLY: "Only the owner can do this: edit roles, or give or change “Staff & roles”, report, profit or cost access.", ALREADY_STAFF: "That person is already the owner or a staff member.", INVALID_EMAIL: "Enter a valid email address.", ROLE_NOT_FOUND: "That role no longer exists. Refresh the page.", SELF_CHANGE: "You can't change your own access.", ROLE_IN_USE: "Move staff and pending invites off this role before deleting it.", INVALID_ROLE: "Role name is required (max 40 characters).", INVALID_PERMISSIONS: "Unknown permission selected." };
 
-export function StaffDashboard({ initial, selfId }: { initial: StaffOverview; selfId: string }) {
+export function StaffDashboard({ initial, selfId, isOwner = false }: { initial: StaffOverview; selfId: string; isOwner?: boolean }) {
   const [data, setData] = useState(initial);
   const { busy, notice, setNotice, call } = useAdminCall<StaffOverview>("/api/admin/staff", fieldLabel, setData);
   const [invite, setInvite] = useState({ email: "", roleId: "sales" });
@@ -32,6 +33,7 @@ export function StaffDashboard({ initial, selfId }: { initial: StaffOverview; se
           <label className="sr-only" htmlFor={`role-${s.userId}`}>Role for {s.name}</label>
           <select id={`role-${s.userId}`} value={s.roleId} disabled={busy || s.userId === selfId} onChange={e => run("PATCH", { action: "role", userId: s.userId, roleId: e.target.value }, `${s.name} is now ${roleName(e.target.value)}.`)}>{data.roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
           {s.userId !== selfId && <button type="button" disabled={busy} onClick={() => { if (s.status === "active" && !window.confirm(`Deactivate ${s.name}? They lose access and are signed out everywhere immediately.`)) return; void run("PATCH", { action: "active", userId: s.userId, active: s.status !== "active" }, s.status === "active" ? `${s.name} deactivated and signed out.` : `${s.name} reactivated.`); }}>{s.status === "active" ? "Deactivate" : "Reactivate"}</button>}
+          {s.userId !== selfId && isOwner && <button type="button" className="btn btn-danger btn-sm" disabled={busy} onClick={() => { if (!window.confirm(`Permanently remove ${s.name} (${s.email}) from staff?\n\nTheir role and staff access are deleted and they are signed out everywhere. Their customer account and the activity log are kept. To work here again they need a new invite.`)) return; void run("DELETE", { action: "member", userId: s.userId }, `${s.name} was removed from staff.`); }}><ActionIcon name="remove" size={14} />Remove from staff</button>}
         </div></li>)}</ul>
     </section>
 

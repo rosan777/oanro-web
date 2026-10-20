@@ -6,11 +6,18 @@ export type Product = {
   image?: string | null; bn?: ProductCopy | null; collectionId?: string;
   /** Public availability only. The stock count itself is never sent to customers. */
   inStock?: boolean;
+  /** Original price shown crossed out (only when higher than price). */
+  compareAt?: number | null;
+  /** Colour choices; image is that colour's photo (null = use the main photo). */
+  colors?: StoreColor[];
+  /** "color|size" combinations that are sold out (availability only, never counts). */
+  soldOut?: string[];
 };
+export type StoreColor = { id: string; name: string; bn: string; hex: string; image: string | null };
 export type ServiceCopy = { title: string; text: string; detail: string };
 export type Service = { slug: string; title: string; word: string; text: string; detail: string; category?: string; image?: string | null; bn?: ServiceCopy | null };
 /** A storefront row of products. `anchor` keeps existing in-page links (#products, #caps, #tech-items) working. */
-export type StoreCollection = { id: string; slug: string; preset: "seasonal" | "caps" | "tech" | "general"; name: string; headline: string; description: string; anchor: string; bn?: { name: string; headline: string; description: string } | null };
+export type StoreCollection = { id: string; slug: string; preset: "seasonal" | "caps" | "tech" | "jewelry" | "general"; name: string; headline: string; description: string; anchor: string; bn?: { name: string; headline: string; description: string } | null };
 // Demo catalog: shown until the owner adds or imports products in the database.
 export const products: Product[] = [
   { slug: "forest-knit", name: "The Forest Knit", category: "Winter essentials", tagline: "Texture you can feel.",
@@ -58,3 +65,9 @@ export const demoCollections: StoreCollection[] = [
 ];
 /** A running seasonal campaign as shown on the storefront. */
 export type StoreCampaign = { id: string; slug: string; name: string; headline: string; description: string; image: string | null; endsAt: string | null; productSlugs: string[]; bn?: { name: string; headline: string; description: string } | null };
+
+/** Cart/order helpers for colour × size variants. */
+export const lineFits = (p: Product, size: string, color: string) => p.sizes.includes(size) && (p.colors?.length ? p.colors.some(c => c.id === color) : color === "");
+export const variantSoldOut = (p: Product, size: string, color: string) => p.inStock === false || Boolean(p.soldOut?.includes(`${color}|${size}`));
+export const colorLabel = (p: Product, color: string, bn = false) => { const c = p.colors?.find(x => x.id === color); return c ? (bn ? c.bn : c.name) : ""; };
+export const optionLabel = (p: Product, size: string, color: string, bn = false) => [colorLabel(p, color, bn), p.sizes.length > 1 || !color ? size : ""].filter(Boolean).join(" / ");
