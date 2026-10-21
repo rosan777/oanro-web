@@ -422,3 +422,15 @@ html[lang="bn"] .pc-title { font-family: var(--font-bangla), sans-serif; text-tr
   .v2-subtabs button { min-height: 30px; padding: 0.35rem 0.75rem; font-size: 0.8rem; }
   .v2-pills button { min-height: 33px; padding: 0.45rem 0.8rem; font-size: 0.82rem; }
 }
+/* Phone: the "Message us" / inquiry pop-up is more compact. Same look; only size and spacing.
+   Inputs stay 16px so iPhone Safari doesn't zoom in when a field is tapped. */
+@media (max-width: 640px) {
+  dialog.message-pop { width: calc(100vw - 2.5rem); max-height: 82dvh; border-radius: 14px; }
+  dialog.message-pop .inquiry-form { gap: 0.55rem; padding: 0.85rem; }
+  dialog.message-pop .inquiry-form label { gap: 0.2rem; font-size: 0.8rem; }
+  dialog.message-pop .inquiry-form input:not([type=checkbox]), dialog.message-pop .inquiry-form select { padding: 0.4rem 0.55rem; font-size: 16px; }
+  dialog.message-pop .inquiry-form textarea { padding: 0.4rem 0.55rem; font-size: 16px; min-height: 0; height: 84px; }
+  dialog.message-pop .inquiry-form .inquiry-consent { font-size: 0.72rem; }
+  dialog.message-pop .product-form-row { gap: 0.55rem; }
+  .message-pop-close { width: 34px; height: 34px; top: 0.5rem; margin: 0.5rem 0.5rem -2.9rem 0; }
+}
