@@ -47,7 +47,14 @@ export function PrivacyCenter({ gaId }: { gaId: string }) {
     return () => clearTimeout(timer);
   }, [onPolicy]);
 
-  const finish = (choice: ConsentChoice) => { saveConsent(choice); dialog.current?.close(); };
+  // Same exit as the "message us" pop-up: fade and blur out, then close.
+  const finish = (choice: ConsentChoice) => {
+    saveConsent(choice);
+    const d = dialog.current; if (!d) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { d.close(); return; }
+    d.classList.add("is-closing");
+    window.setTimeout(() => { d.classList.remove("is-closing"); d.close(); }, 420);
+  };
   const toggle = (p: Purpose) => setDraft(d => ({ ...d, [p]: !d[p] }));
 
   const rows: { id: string; purpose?: Purpose; title: string; text: string }[] = [
