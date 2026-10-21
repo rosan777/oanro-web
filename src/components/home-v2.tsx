@@ -136,7 +136,7 @@ export function HeroBrand() {
   return <>
     <span className="holographic-mark v2-holo v2-fade" aria-hidden="true"><Image src="/logo.svg" alt="" width={56} height={56} priority /></span>
     <h1 id="hero-title" className="v2-hero-h1">
-      <span className="v2-eyebrow v2-fade">{bn ? "শীতের পোশাক · টেক সলিউশন · আইটি সেবা · বিশ্বজুড়ে" : "Winter clothing · Tech solutions · IT services · Worldwide"}</span>
+      <span className="v2-eyebrow v2-fade">{bn ? "যা পরবেন · যা গড়বেন · যেখানেই থাকুন" : "What you wear · What you build · Wherever you are"}</span>
       <span className="v2-h1 v2-track">{bn ? "আগামীর জন্য তৈরি" : "Built for what's next"}</span>
     </h1>
     <p className="v2-letters-line v2-fade" aria-hidden="true">
