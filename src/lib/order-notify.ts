@@ -4,6 +4,7 @@ import { lead, orderItem, role, rolePermission, shopOrder, staffMember, systemOw
 import { formatPrice } from "./catalog";
 import { sendMail } from "./mailer";
 import { siteUrl } from "./site-url";
+import { formatDhaka } from "./dhaka-time";
 import { staffTwoFactorRequired } from "./two-factor-policy";
 import type { CatalogDb } from "./product-store";
 
@@ -109,7 +110,7 @@ const LEAD_KIND: Record<string, [string, string]> = {
  * Only what they need to pick it up: type, topic, first name and a short preview. Phone and email stay in the admin panel. */
 export async function notifyLeadAssigned(db: CatalogDb, leadId: string, assigneeId: string, actorId: string) {
   if (assigneeId === actorId) return false;
-  const [l] = await db.select({ kind: lead.kind, subject: lead.subject, productSlug: lead.productSlug, serviceSlug: lead.serviceSlug, name: lead.name, message: lead.message })
+  const [l] = await db.select({ kind: lead.kind, subject: lead.subject, productSlug: lead.productSlug, serviceSlug: lead.serviceSlug, name: lead.name, message: lead.message, createdAt: lead.createdAt })
     .from(lead).where(eq(lead.id, leadId)).limit(1);
   const [to] = await db.select({ email: user.email, name: user.name }).from(user).where(eq(user.id, assigneeId)).limit(1);
   const [by] = await db.select({ name: user.name }).from(user).where(eq(user.id, actorId)).limit(1);
@@ -120,9 +121,9 @@ export async function notifyLeadAssigned(db: CatalogDb, leadId: string, assignee
   const preview = l.message.trim().replace(/\s+/g, " ").slice(0, 160) + (l.message.trim().length > 160 ? "…" : "");
   const text = [
     `Hi ${to.name || "there"}, ${by?.name || "the OANRO admin"} assigned an inquiry to you.`,
-    `Type: ${kindEn}${topic ? `\nAbout: ${topic}` : ""}\nFrom: ${firstName}${preview ? `\nMessage: "${preview}"` : ""}`,
+    `Type: ${kindEn}${topic ? `\nAbout: ${topic}` : ""}\nReceived: ${formatDhaka(l.createdAt, "en", { year: true, time: true })} (Bangladesh time)\nFrom: ${firstName}${preview ? `\nMessage: "${preview}"` : ""}`,
     "Please open it in the admin panel, contact the customer and update its status.",
-    `একটি ইনকোয়ারি আপনাকে দেওয়া হয়েছে: ${kindBn}${topic ? ` — ${topic}` : ""}। অ্যাডমিন প্যানেলে খুলে গ্রাহকের সাথে যোগাযোগ করুন ও স্ট্যাটাস আপডেট করুন।`,
+    `একটি ইনকোয়ারি আপনাকে দেওয়া হয়েছে: ${kindBn}${topic ? ` — ${topic}` : ""} (পাওয়া গেছে: ${formatDhaka(l.createdAt, "bn", { year: true, time: true })})। অ্যাডমিন প্যানেলে খুলে গ্রাহকের সাথে যোগাযোগ করুন ও স্ট্যাটাস আপডেট করুন।`,
   ];
   const href = `${siteUrl()}/admin/leads`;
   return sendMail(to.email, `New inquiry assigned to you: ${kindEn}`, `${text.join("\n\n")}\n\n${href}`, layout("An inquiry was assigned to you", text, { label: "Open inquiries", href }));
