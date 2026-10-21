@@ -71,7 +71,7 @@ export default async function Home() {
         <p className="v2-eyebrow"><Localized en="Who we are" bn="আমরা কারা" /></p>
         <h2 id="about-title" className="v2-h2" style={{ marginTop: "0.6rem" }}><Localized en="We are OANRO." bn="আমরা OANRO।" /></h2>
         <p className="v2-body"><Localized en="A Bangladesh-born brand built for what's next. We hand-pick every product we sell, and we build websites and apps the way we'd want them built for ourselves — fast, honest and made to last." bn="বাংলাদেশে জন্ম নেওয়া, আগামীর জন্য তৈরি একটি ব্র্যান্ড। আমরা প্রতিটি পণ্য নিজেরা বেছে নিই, আর ওয়েবসাইট ও অ্যাপ বানাই ঠিক যেভাবে নিজেদের জন্য বানাতাম — দ্রুত, সৎ ও টেকসই।" /></p>
-        <p className="v2-sign"><Localized en="— Team OANRO" bn="— টিম OANRO" /></p>
+        <p className="v2-sign"><span>Team oanro</span></p>
       </div>
     </section>
 
