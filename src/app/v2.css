@@ -478,3 +478,19 @@ dialog.privacy-center .pc-text { margin-top: 0.3rem; font-size: 0.85rem; line-he
   .pc-manage .pc-confirm { width: 100%; min-height: 36px; font-size: 0.78rem; }
 }
 @media (prefers-reduced-motion: reduce) { dialog.privacy-center, dialog.privacy-center[open], dialog.privacy-center.is-closing { animation: none; } }
+/* Privacy bar: one single line on every screen. */
+.pc-short { display: none; }
+.pc-bar, .pc-bar-actions { flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; }
+.pc-bar { gap: 1rem; }
+dialog.privacy-center .pc-inner { padding-block: 0.6rem calc(0.6rem + env(safe-area-inset-bottom)); }
+dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-bar-actions .pc-btn { min-height: 34px; padding: 0 0.95rem; font-size: 0.8rem; }
+.pc-bar-actions .pc-link { flex: none !important; padding: 0 0.4rem; min-height: 34px !important; }
+@media (max-width: 760px) {
+  .pc-long { display: none; } .pc-short { display: inline; }
+  .pc-bar { gap: 0.5rem; }
+  .pc-bar-actions { gap: 0.3rem; }
+  .pc-bar-actions .pc-btn { flex: none; min-height: 30px; padding: 0 0.6rem; font-size: 0.72rem; }
+  dialog.privacy-center .pc-inner { padding-inline: 0.75rem; }
+  dialog.privacy-center .pc-text { font-size: 0.72rem; }
+}
