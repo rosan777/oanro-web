@@ -82,12 +82,24 @@ html[lang="bn"] .v2-h1, html[lang="bn"] .v2-h2, html[lang="bn"] .v2-h3 { font-fa
 @keyframes v2-marquee { to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .v2-marquee-track { animation: none; width: auto; } .v2-marquee-track .v2-chips-row { flex-wrap: wrap; justify-content: center; } .v2-marquee-track .v2-chips-row[aria-hidden] { display: none; } .v2-marquee { mask-image: none; -webkit-mask-image: none; } }
 /* Store sub-sections (Caps, Tech, Jewelry...) inside "OANRO Store". */
-.v2-subtabs { display: flex; flex-wrap: wrap; gap: 8px; margin: -0.4rem 0 1.4rem; }
+.v2-subtabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 1.1rem 0 0.4rem; }
+@media (max-width: 640px) {
+  .v2-tabs { width: 100%; border-radius: 22px; }
+  .v2-tabs button { flex: 1 1 auto; padding: 0.7rem 0.9rem; font-size: 0.92rem; }
+  .v2-marquee { margin-top: 1.2rem; }
+  .v2-chips-row { font-size: 0.82rem; }
+  .v2-shop-head { margin-top: 2.25rem; }
+  /* Store sub-sections scroll sideways in one line on phones instead of stacking. */
+  .v2-subtabs { flex-wrap: nowrap; overflow-x: auto; margin-inline: -16px; padding: 0 16px 4px; scrollbar-width: none; }
+  .v2-subtabs::-webkit-scrollbar { display: none; }
+  .v2-subtabs button { flex: 0 0 auto; }
+  .v2-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+}
 .v2-subtabs button { border: 1px solid #d9dad3; border-radius: 999px; padding: 0.5rem 1rem; min-height: 40px; background: transparent; color: #3f4542; font-size: 0.9rem; transition: background 0.2s, color 0.2s, border-color 0.2s; }
 .v2-subtabs button:hover { border-color: var(--brand); color: var(--brand); }
 .v2-subtabs button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
 .v2-chips-row .is-bkash { color: #be185d; font-weight: 600; } .v2-chips-row .is-nagad { color: #c2410c; font-weight: 600; }
-.v2-shop-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.75rem; margin-top: 2.5rem; }
+.v2-shop-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.75rem; margin-top: 3.25rem; }
 .v2-shop-intro { margin-top: 0.5rem; max-width: 40rem; color: #5e6461; line-height: 1.6; }
 .v2-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; margin-top: 1.4rem; animation: v2-in 0.45s cubic-bezier(.2,.7,.2,1); }
 @keyframes v2-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
