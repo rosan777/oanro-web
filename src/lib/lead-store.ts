@@ -59,12 +59,17 @@ export async function setLeadStatus(db: CatalogDb, actorId: string, id: string, 
     await tx.insert(auditEvent).values({ id: randomUUID(), actorId, action: "lead.status", targetId: id, reason: status });
   });
 }
+/** Returns true when the assignee actually changed (used to send the "assigned to you" email only once). */
 export async function assignLead(db: CatalogDb, actorId: string, id: string, assigneeId: string | null) {
   if (assigneeId && !(await assignableUsers(db)).some(u => u.id === assigneeId)) throw new ProductStoreError("INVALID_ASSIGNEE");
-  await db.transaction(async tx => {
+  return db.transaction(async tx => {
+    const [before] = await tx.select({ assignedTo: lead.assignedTo }).from(lead).where(eq(lead.id, id)).limit(1);
+    if (!before) throw new ProductStoreError("NOT_FOUND");
+    if (before.assignedTo === assigneeId) return false;
     const done = await tx.update(lead).set({ assignedTo: assigneeId, updatedAt: new Date() }).where(eq(lead.id, id)).returning({ id: lead.id });
     if (!done.length) throw new ProductStoreError("NOT_FOUND");
     await tx.insert(auditEvent).values({ id: randomUUID(), actorId, action: "lead.assign", targetId: id, reason: assigneeId ? `assigned to ${assigneeId}` : "unassigned" });
+    return true;
   });
 }
 export async function addLeadNote(db: CatalogDb, actorId: string, id: string, body: string) {
