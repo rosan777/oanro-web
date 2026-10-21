@@ -410,3 +410,15 @@ html[lang="bn"] .pc-title { font-family: var(--font-bangla), sans-serif; text-tr
   .site-footer .footer-bottom { padding-block: 0.9rem; }
 }
 @media (max-width: 640px) and (prefers-reduced-motion: reduce) { .v2-btn-quote { animation: none; } }
+/* Phone: all text buttons 25% smaller (height, padding and text). Icon buttons and letters are unchanged. */
+@media (max-width: 640px) {
+  .v2-btn, .v2-hero .v2-btn { min-height: 39px; padding: 0.55rem 1.1rem; font-size: 0.8rem; gap: 0.45rem; }
+  .v2-btn svg { width: 14px; height: 14px; }
+  .v2-hero .v2-actions { max-width: 210px; gap: 0.6rem; }
+  .button { min-height: 36px; padding: 0.6rem 1rem; font-size: 0.78rem; }
+  .v2-contact .contact-actions .button { min-height: 42px; font-size: 0.82rem; }
+  .pc-btn { min-height: 38px; font-size: 0.82rem; border-radius: 11px; }
+  .v2-tabs button { min-height: 33px; padding: 0.5rem 0.8rem; font-size: 0.8rem; }
+  .v2-subtabs button { min-height: 30px; padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+  .v2-pills button { min-height: 33px; padding: 0.45rem 0.8rem; font-size: 0.82rem; }
+}
