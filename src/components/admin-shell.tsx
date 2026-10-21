@@ -26,7 +26,10 @@ export function AdminShell({ menu, live, name, role, children }: { menu: MenuGro
     ...pages.filter(p => !term || p.label.toLowerCase().includes(term.toLowerCase())),
   ].slice(0, 8);
 
+  // Close the menu and search when the page changes, and clear search when it opens (intended effect state syncs).
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setOpen(false); setSearch(false); }, [path]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (search) { setQ(""); setTimeout(() => input.current?.focus(), 0); } }, [search]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -44,7 +47,7 @@ export function AdminShell({ menu, live, name, role, children }: { menu: MenuGro
     <nav id="admin-side" className={`admin-side${open ? " is-open" : ""}`} aria-label="Admin menu">
       <div className="admin-side-brand"><span className="admin-side-logo" aria-hidden="true" /><strong>OANRO</strong><small>ADMIN</small></div>
       <button type="button" className="admin-side-search" onClick={() => setSearch(true)}><Search size={16} aria-hidden="true" /><span>Search anything</span><kbd>/</kbd></button>
-      {menu.map(g => <div key={g.label} className="admin-side-group">
+      {menu.map(g => <div key={g.label} className="admin-side-group" data-group={g.label.toLowerCase().replace(/\s+/g, "-")}>
         <p>{g.label}</p>
         {g.items.map(i => <Link key={i.href} href={i.href} className={`admin-side-link${isOn(i.href) ? " is-on" : ""}`} aria-current={isOn(i.href) ? "page" : undefined}>
           <span>{i.label}</span>{i.count ? <span className="admin-side-count" aria-label={`${i.count} waiting`}>{i.count}</span> : null}

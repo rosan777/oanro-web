@@ -101,3 +101,22 @@ a.today-stat:hover { border-color: var(--brand); }
 .customer-email label { display: grid; gap: .35rem; font-weight: 500; }
 .customer-email input, .customer-email textarea { width: 100%; padding: .6rem .75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit; background: #fff; }
 .customer-email textarea { resize: vertical; min-height: 140px; }
+
+/* Colour-coded menu groups so each area is easy to recognise at a glance:
+   Daily work = green, Store = amber, Insights = blue, Settings = violet. */
+.admin-side-group { --tone: #8c9590; --tone-bg: rgb(140 149 144 / .12); }
+.admin-side-group[data-group="daily-work"] { --tone: #3ddc97; --tone-bg: rgb(61 220 151 / .14); }
+.admin-side-group[data-group="store"] { --tone: #f0b44c; --tone-bg: rgb(240 180 76 / .14); }
+.admin-side-group[data-group="insights"] { --tone: #5aa9ff; --tone-bg: rgb(90 169 255 / .14); }
+.admin-side-group[data-group="settings"] { --tone: #b591ff; --tone-bg: rgb(181 145 255 / .14); }
+.admin-side-group p { display: flex; align-items: center; gap: 8px; color: var(--tone); }
+.admin-side-group p::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--tone); box-shadow: 0 0 0 0 var(--tone); animation: admin-tone-pulse 2.8s ease-out infinite; }
+@keyframes admin-tone-pulse { 0% { box-shadow: 0 0 0 0 var(--tone-bg); } 70% { box-shadow: 0 0 0 7px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+.admin-side-group .admin-side-link { position: relative; }
+.admin-side-group .admin-side-link::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--tone); opacity: .35; transition: opacity .2s, top .2s, bottom .2s; }
+.admin-side-group .admin-side-link:hover, .admin-side-group .admin-side-link:focus-visible { background: var(--tone-bg); }
+.admin-side-group .admin-side-link:hover::before { opacity: 1; top: 6px; bottom: 6px; }
+.admin-side-group .admin-side-link.is-on { background: var(--tone-bg); color: #fff; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 35%, transparent); }
+.admin-side-group .admin-side-link.is-on::before { opacity: 1; top: 6px; bottom: 6px; }
+.admin-side-group .admin-side-count { background: var(--tone); color: #07090a; }
+@media (prefers-reduced-motion: reduce) { .admin-side-group p::before { animation: none; } }
