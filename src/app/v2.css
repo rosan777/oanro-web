@@ -75,8 +75,17 @@ html[lang="bn"] .v2-h1, html[lang="bn"] .v2-h2, html[lang="bn"] .v2-h3 { font-fa
 .v2-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: fit-content; max-width: 100%; margin: 0 auto; padding: 6px; border-radius: 999px; background: #fff; box-shadow: 0 14px 34px rgb(18 22 20 / 0.10); }
 .v2-tabs button { border: 0; border-radius: 999px; padding: 0.8rem 1.25rem; min-height: 44px; background: transparent; color: #3f4542; font-weight: 500; transition: background 0.2s, color 0.2s; }
 .v2-tabs button.is-active { background: #141716; color: #fff; }
-.v2-chips-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 1.6rem; font-size: 0.88rem; }
-.v2-chips-row span { background: #fff; border-radius: 12px; padding: 0.6rem 0.9rem; }
+.v2-marquee { margin-top: 1.6rem; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.v2-marquee-track { display: flex; width: max-content; animation: v2-marquee 40s linear infinite; }
+.v2-chips-row { display: flex; flex-wrap: nowrap; gap: 10px; padding-right: 10px; font-size: 0.88rem; }
+.v2-chips-row span { background: #fff; border-radius: 12px; padding: 0.6rem 0.9rem; white-space: nowrap; }
+@keyframes v2-marquee { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .v2-marquee-track { animation: none; width: auto; } .v2-marquee-track .v2-chips-row { flex-wrap: wrap; justify-content: center; } .v2-marquee-track .v2-chips-row[aria-hidden] { display: none; } .v2-marquee { mask-image: none; -webkit-mask-image: none; } }
+/* Store sub-sections (Caps, Tech, Jewelry...) inside "OANRO Store". */
+.v2-subtabs { display: flex; flex-wrap: wrap; gap: 8px; margin: -0.4rem 0 1.4rem; }
+.v2-subtabs button { border: 1px solid #d9dad3; border-radius: 999px; padding: 0.5rem 1rem; min-height: 40px; background: transparent; color: #3f4542; font-size: 0.9rem; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+.v2-subtabs button:hover { border-color: var(--brand); color: var(--brand); }
+.v2-subtabs button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
 .v2-chips-row .is-bkash { color: #be185d; font-weight: 600; } .v2-chips-row .is-nagad { color: #c2410c; font-weight: 600; }
 .v2-shop-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.75rem; margin-top: 2.5rem; }
 .v2-shop-intro { margin-top: 0.5rem; max-width: 40rem; color: #5e6461; line-height: 1.6; }

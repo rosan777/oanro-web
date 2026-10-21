@@ -17,29 +17,49 @@ export function ShopTabs({ showServices, chips }: { showServices: boolean; chips
   const { locale } = useLocale(); const bn = locale === "bn"; const t = (en: string, b: string) => bn ? b : en;
   const lines = useProductLines().filter(l => l.count > 0);
   const products = useProducts(); const services = useServices();
-  const tabs = [...lines.map(l => ({ id: l.collection.id, label: bn && l.collection.bn ? l.collection.bn.name : l.collection.name, line: l })), ...(showServices && services.length ? [{ id: "studio", label: t("Web & apps", "ওয়েব ও অ্যাপ"), line: null }] : [])];
+  const name = (l: (typeof lines)[number]) => bn && l.collection.bn ? l.collection.bn.name : l.collection.name;
+  // Three segments: the seasonal line, every other line together as "OANRO Store", and the tech services.
+  const seasonal = lines.filter(l => l.collection.preset === "seasonal");
+  const store = lines.filter(l => l.collection.preset !== "seasonal");
+  const tabs = [
+    ...(seasonal.length ? [{ id: "seasonal", label: t("Seasonal collection", "মৌসুমি কালেকশন"), lines: seasonal }] : []),
+    ...(store.length ? [{ id: "store", label: t("OANRO Store", "OANRO স্টোর"), lines: store }] : []),
+    ...(showServices && services.length ? [{ id: "tech", label: t("Technological solutions", "টেকনোলজি সলিউশন"), lines: [] as typeof lines }] : []),
+  ];
   const [active, setActive] = useState(tabs[0]?.id ?? "");
+  const [sub, setSub] = useState("all");
   if (!tabs.length) return null;
   const current = tabs.find(x => x.id === active) ?? tabs[0];
-  const c = current.line?.collection;
-  const items = c ? products.filter(p => (p.collectionId ?? "seasonal") === c.id).slice(0, 8) : [];
+  const isTech = current.id === "tech";
+  const subLine = current.lines.find(l => l.collection.id === sub);
+  const shown = subLine ? [subLine] : current.lines;
+  const ids = new Set(shown.map(l => l.collection.id));
+  const items = products.filter(p => ids.has(p.collectionId ?? "seasonal")).slice(0, 8);
+  const single = shown.length === 1 ? shown[0] : undefined;
+  const pick = (id: string) => { setActive(id); setSub("all"); };
   return <section className="v2-shop" id="products" aria-labelledby="shop-title">
     <div className="container">
       <div className="v2-tabs" role="tablist" aria-label={t("Shop by category", "ক্যাটাগরি অনুযায়ী দেখুন")}>
-        {tabs.map(tab => <button key={tab.id} type="button" role="tab" aria-selected={tab.id === current.id} className={tab.id === current.id ? "is-active" : ""} onClick={() => setActive(tab.id)}>{tab.label}</button>)}
+        {tabs.map(tab => <button key={tab.id} type="button" role="tab" aria-selected={tab.id === current.id} className={tab.id === current.id ? "is-active" : ""} onClick={() => pick(tab.id)}>{tab.label}</button>)}
       </div>
-      {chips && <div className="v2-chips-row">{chips}</div>}
+      {/* Promise strip: two identical copies slide left forever for a seamless loop (no pause control by design). */}
+      {chips && <div className="v2-marquee"><div className="v2-marquee-track"><div className="v2-chips-row">{chips}</div><div className="v2-chips-row" aria-hidden="true">{chips}</div></div></div>}
       <div className="v2-shop-head">
         <h2 id="shop-title" className="v2-h2">{current.label}</h2>
-        {c ? <Link href={`/${c.slug}`} className="v2-link">{t(`See all ${current.label.toLowerCase()}`, `সব ${current.label} দেখুন`)} →</Link> : <Link href="/#studio" className="v2-link">{t("About OANRO Studio", "OANRO স্টুডিও সম্পর্কে")} →</Link>}
+        {single ? <Link href={`/${single.collection.slug}`} className="v2-link">{t(`See all ${name(single).toLowerCase()}`, `সব ${name(single)} দেখুন`)} →</Link>
+          : isTech ? <Link href="/#studio" className="v2-link">{t("About OANRO Studio", "OANRO স্টুডিও সম্পর্কে")} →</Link> : null}
       </div>
-      {c && <p className="v2-shop-intro">{bn && c.bn ? c.bn.description : c.description}</p>}
-      <div className="v2-grid" key={current.id}>
-        {c ? items.map(p => {
-          const name = bn && p.bn ? p.bn.name : p.name; const out = p.inStock === false;
+      {current.id === "store" && current.lines.length > 1 && <div className="v2-subtabs" role="group" aria-label={t("Store sections", "স্টোরের সেকশন")}>
+        <button type="button" aria-pressed={sub === "all"} onClick={() => setSub("all")}>{t("All", "সব")}</button>
+        {current.lines.map(l => <button key={l.collection.id} type="button" aria-pressed={sub === l.collection.id} onClick={() => setSub(l.collection.id)}>{name(l)}</button>)}
+      </div>}
+      {single && !isTech && <p className="v2-shop-intro">{bn && single.collection.bn ? single.collection.bn.description : single.collection.description}</p>}
+      <div className="v2-grid" key={`${current.id}-${sub}`}>
+        {!isTech ? items.map(p => {
+          const pname = bn && p.bn ? p.bn.name : p.name; const out = p.inStock === false;
           return <Link key={p.slug} href={`/products/${p.slug}`} className="v2-card">
-            <div className="v2-card-photo"><ProductPhoto position={p.position} image={p.image} label={name} />{out && <span className="v2-badge v2-badge-dark">{t("Out of stock", "স্টক শেষ")}</span>}<span className="v2-card-cta">{out ? t("View details", "বিস্তারিত দেখুন") : p.sizes.length > 1 ? t("Choose size", "সাইজ বেছে নিন") : t("View & add to bag", "দেখুন ও ব্যাগে নিন")}</span></div>
-            <div className="v2-card-body"><strong>{name}</strong>
+            <div className="v2-card-photo"><ProductPhoto position={p.position} image={p.image} label={pname} />{out && <span className="v2-badge v2-badge-dark">{t("Out of stock", "স্টক শেষ")}</span>}<span className="v2-card-cta">{out ? t("View details", "বিস্তারিত দেখুন") : p.sizes.length > 1 ? t("Choose size", "সাইজ বেছে নিন") : t("View & add to bag", "দেখুন ও ব্যাগে নিন")}</span></div>
+            <div className="v2-card-body"><strong>{pname}</strong>
               {p.colors && p.colors.length > 0 && <span className="v2-swatches" aria-label={t(`${p.colors.length} colours`, `${p.colors.length}টি রং`)}>{p.colors.slice(0, 5).map(col => <span key={col.id} style={{ background: col.hex }} title={bn ? col.bn : col.name} />)}</span>}
               <div className="v2-card-foot"><PriceTag price={p.price} compareAt={p.compareAt} locale={locale} /><small className={out ? "is-out" : "is-in"}>{out ? t("Out of stock", "স্টক শেষ") : t("In stock", "স্টকে আছে")}</small></div>
             </div>
