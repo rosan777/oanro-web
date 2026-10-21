@@ -65,7 +65,7 @@ html[lang="bn"] .v2-h1, html[lang="bn"] .v2-h2, html[lang="bn"] .v2-h3 { font-fa
 .v2-track { animation: v2-track 1.8s cubic-bezier(.2,.7,.2,1) 0.4s both; }
 .v2-fade { animation: v2-fade 0.9s ease both; }
 @keyframes v2-rise { from { transform: translateY(40%); } to { transform: none; } }
-@keyframes v2-glow { 0%, 100% { box-shadow: 0 -20px 140px rgb(61 220 151 / 0.45); } 50% { box-shadow: 0 -20px 200px rgb(61 220 151 / 0.7); } }
+@keyframes v2-glow { 0%, 100% { box-shadow: 0 -15px 110px rgb(61 220 151 / 0.38); } 50% { box-shadow: 0 -15px 160px rgb(61 220 151 / 0.6); } }
 @keyframes v2-track { from { opacity: 0; letter-spacing: 0.45em; } to { opacity: 1; letter-spacing: 0.005em; } }
 @keyframes v2-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 767px) { .v2-hero { height: 620px; } .v2-hero-copy { padding: 3.5rem 1.25rem 0; } .v2-planet { bottom: -1660px; } }
@@ -194,7 +194,7 @@ html[lang="bn"] .home-faq h2 { font-family: var(--font-bangla), sans-serif; text
 /* ---------- Hero brand block (original logo card + letter cycle, kept from v1) ---------- */
 .v2-hero { height: 760px;
   /* Deep black at the top that slowly lightens into brand green toward the planet. */
-  background: linear-gradient(to bottom, #07090a 0%, #08100c 22%, #0c1d15 45%, #143326 68%, #1f513c 88%, #2a6b4f 100%); }
+  background: linear-gradient(to bottom, #07090a 0%, #07090a 30%, #091209 50%, #0d1f17 70%, #15382a 88%, #1c4a37 100%); }
 .v2-hero-copy { padding-top: 3.5rem; }
 .v2-holo.holographic-mark { width: 74px; height: 86px; margin: 0 auto 1.4rem; background: #0e1215; border-color: #262c30; box-shadow: 0 0 40px rgb(61 220 151 / 0.18); }
 .v2-holo.holographic-mark img { width: 46px; height: 46px; }
