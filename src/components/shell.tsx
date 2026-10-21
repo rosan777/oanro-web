@@ -15,8 +15,10 @@ import { LanguageSwitch, Localized, useLocale } from "./locale";
 
 export function ProductPhoto({ position, label, className = "", image }: { position: string; label: string; className?: string; image?: string | null }) {
   // Owner photos are same-origin URLs built by the server (/api/products/<slug>/image); otherwise use the sample sprite.
-  const style = image?.startsWith("/api/products/") ? { backgroundImage: `url("${image}")`, backgroundSize: "cover", backgroundPosition: "center" } : { backgroundPosition: position };
-  return <div className={`product-photo ${className}`} role="img" aria-label={label} style={style} />;
+  // Real photos are a real <img> (with alt text) so Google Images and Shopping can index them; samples stay a CSS sprite.
+  // eslint-disable-next-line @next/next/no-img-element
+  if (image?.startsWith("/api/products/")) return <div className={`product-photo has-photo ${className}`}><img src={image} alt={label} loading="lazy" decoding="async" /></div>;
+  return <div className={`product-photo ${className}`} role="img" aria-label={label} style={{ backgroundPosition: position }} />;
 }
 
 /** Price, with the original price crossed out and the saving when the product is on sale. */

@@ -299,3 +299,7 @@ html[lang="bn"] .pc-title { font-family: var(--font-bangla), sans-serif; text-tr
 .footer-tools { display: inline-flex; flex-wrap: wrap; gap: 1.25rem; align-items: center; }
 @media (max-width: 560px) { .pc-inner { padding: 1.5rem 1.25rem; } .pc-title { font-size: 1.6rem; } }
 @media (prefers-reduced-motion: reduce) { dialog.privacy-center[open], dialog.privacy-center::backdrop { animation: none; } .pc-switch, .pc-switch span, .pc-expand svg { transition: none; } }
+
+/* Owner product photos as real images (indexable). */
+.product-photo.has-photo { background-image: none; overflow: hidden; }
+.product-photo.has-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
