@@ -113,7 +113,7 @@ export function Footer({ config }: { config: SiteConfig }) {
         <Link href="/delivery-returns">{t("Delivery & returns", "ডেলিভারি ও রিটার্ন")}</Link><Link href="/contact">{t("Contact", "যোগাযোগ")}</Link><Link href="/privacy">{t("Privacy", "প্রাইভেসি")}</Link><Link href="/terms">{t("Terms", "শর্তাবলি")}</Link></nav>
     </div>
     <div className="footer-bottom"><span>{t("© 2026 OANRO · Trade License No. 002039", "© ২০২৬ OANRO · ট্রেড লাইসেন্স নং ০০২০৩৯")}</span>
-      <span className="pay-chips" aria-label={t("Payment methods", "পেমেন্ট পদ্ধতি")}><span>bKash</span><span>Nagad</span></span>
+      
       <span className="footer-tools"><PrivacySettingsLink /><MotionToggle /></span></div>
   </div></footer>;
 }
