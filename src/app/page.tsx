@@ -12,7 +12,7 @@ import { requestLocale } from "@/lib/request-locale";
 import { bnDigits, publicRules } from "@/lib/public-rules";
 import { formatPrice } from "@/lib/catalog";
 import { storeLive } from "@/lib/seo";
-import { DeliveryChecker, HeroBrand, ShopTabs, StudioTerminal, ValueLetters } from "@/components/home-v2";
+import { DeliveryChecker, HeroBrand, ProductStory, ShopTabs, StudioTerminal, ValueLetters, WhyBento } from "@/components/home-v2";
 
 // Homepage, design "I1 · Final homepage" (canvas). Every number shown comes from the admin rules or the live catalog:
 // no placeholder prices, no invented reviews. Sections without real data (reviews, free-delivery bar) are left out until they exist.
@@ -63,7 +63,11 @@ export default async function Home() {
       </div>
     </div>}
 
+    {config.products && <ProductStory />}
+
     {campaigns.map(c => <CampaignShowcase key={c.id} campaign={c} />)}
+
+    {config.products && <WhyBento rules={rules} services={config.services} />}
 
     <section id="about" className="container v2-brand" aria-labelledby="about-title">
       <div className="v2-orbit-wrap" aria-hidden="true"><div className="v2-orbit"><div className="ring1" /><div className="ring2" /><div className="core"><Image src="/logo.svg" alt="" width={56} height={56} /></div></div></div>

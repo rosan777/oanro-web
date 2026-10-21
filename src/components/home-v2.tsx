@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import Image from "next/image";
 import { useMotion } from "./experience";
 import { ArrowUpRight } from "lucide-react";
@@ -13,6 +13,15 @@ import { PriceTag, ProductPhoto } from "./shell";
 import { useLocale } from "./locale";
 
 /** Category tabs + product cards. Uses the live catalog; the "Web & apps" tab lists real services. */
+/** Product cards lean gently toward the pointer (desktop mouse only; skipped when motion is paused). */
+function tilt(e: MouseEvent<HTMLElement>) {
+  if (e.currentTarget.closest("[data-motion=paused]") || !window.matchMedia("(hover: hover) and (prefers-reduced-motion: no-preference)").matches) return;
+  const r = e.currentTarget.getBoundingClientRect();
+  e.currentTarget.style.setProperty("--rx", `${((e.clientY - r.top) / r.height - 0.5) * -7}deg`);
+  e.currentTarget.style.setProperty("--ry", `${((e.clientX - r.left) / r.width - 0.5) * 9}deg`);
+}
+function untilt(e: MouseEvent<HTMLElement>) { e.currentTarget.style.removeProperty("--rx"); e.currentTarget.style.removeProperty("--ry"); }
+
 export function ShopTabs({ showServices, chips }: { showServices: boolean; chips?: ReactNode }) {
   const { locale } = useLocale(); const bn = locale === "bn"; const t = (en: string, b: string) => bn ? b : en;
   const lines = useProductLines().filter(l => l.count > 0);
@@ -57,8 +66,10 @@ export function ShopTabs({ showServices, chips }: { showServices: boolean; chips
       <div className="v2-grid" key={`${current.id}-${sub}`}>
         {!isTech ? items.map(p => {
           const pname = bn && p.bn ? p.bn.name : p.name; const out = p.inStock === false;
-          return <Link key={p.slug} href={`/products/${p.slug}`} className="v2-card">
-            <div className="v2-card-photo"><ProductPhoto position={p.position} image={p.image} label={pname} />{out && <span className="v2-badge v2-badge-dark">{t("Out of stock", "স্টক শেষ")}</span>}<span className="v2-card-cta">{out ? t("View details", "বিস্তারিত দেখুন") : p.sizes.length > 1 ? t("Choose size", "সাইজ বেছে নিন") : t("View & add to bag", "দেখুন ও ব্যাগে নিন")}</span></div>
+          // Second photo for the hover reveal: the first colour photo that differs from the main one (real photos only).
+          const alt = p.colors?.find(c => c.image && c.image !== p.image)?.image ?? null;
+          return <Link key={p.slug} href={`/products/${p.slug}`} className={`v2-card v2-tilt${alt ? " has-alt" : ""}`} onMouseMove={tilt} onMouseLeave={untilt}>
+            <div className="v2-card-photo"><ProductPhoto position={p.position} image={p.image} label={pname} />{alt && <ProductPhoto position={p.position} image={alt} label="" className="v2-card-alt" />}{out && <span className="v2-badge v2-badge-dark">{t("Out of stock", "স্টক শেষ")}</span>}<span className="v2-card-cta">{out ? t("View details", "বিস্তারিত দেখুন") : p.sizes.length > 1 ? t("Choose size", "সাইজ বেছে নিন") : t("View & add to bag", "দেখুন ও ব্যাগে নিন")}</span></div>
             <div className="v2-card-body"><strong>{pname}</strong>
               {p.colors && p.colors.length > 0 && <span className="v2-swatches" aria-label={t(`${p.colors.length} colours`, `${p.colors.length}টি রং`)}>{p.colors.slice(0, 5).map(col => <span key={col.id} style={{ background: col.hex }} title={bn ? col.bn : col.name} />)}</span>}
               <div className="v2-card-foot"><PriceTag price={p.price} compareAt={p.compareAt} locale={locale} /><small className={out ? "is-out" : "is-in"}>{out ? t("Out of stock", "স্টক শেষ") : t("In stock", "স্টকে আছে")}</small></div>
@@ -174,4 +185,76 @@ export function HeroBrand() {
     </p>
     <p className="sr-only">{bn ? `OANRO মানে: ${MEANING.bn.join(", ")}।` : `OANRO stands for ${MEANING.en.slice(0, 4).join(", ")} and ${MEANING.en[4]}.`}</p>
   </>;
+}
+
+/** Scroll story for one product: the photo stays in place while three short panels pass by.
+ * Uses the first in-stock product with a real photo (or the first product), so everything shown is real catalog data. */
+export function ProductStory() {
+  const { locale } = useLocale(); const bn = locale === "bn"; const t = (en: string, b: string) => bn ? b : en;
+  const products = useProducts();
+  const p = products.find(x => x.image && x.inStock !== false) ?? products.find(x => x.inStock !== false) ?? products[0];
+  if (!p) return null;
+  const copy = bn && p.bn ? p.bn : p;
+  const specs = (bn && p.bn ? p.bn.specs : p.specs)?.slice(0, 3) ?? [];
+  return <section className="v2-story container" aria-labelledby="story-title">
+    <div className="v2-story-media"><div className="v2-story-photo"><ProductPhoto position={p.position} image={p.image} label={copy.name} /></div></div>
+    <div className="v2-story-panels">
+      <article className="v2-story-panel">
+        <p className="v2-eyebrow">{t("In focus", "বিশেষ নজরে")} · {copy.category}</p>
+        <h2 id="story-title" className="v2-h2">{copy.name}</h2>
+        <p className="v2-body">{copy.tagline}</p>
+      </article>
+      <article className="v2-story-panel">
+        <p className="v2-eyebrow">{t("Why we picked it", "কেন বেছে নিয়েছি")}</p>
+        <p className="v2-body">{copy.description}</p>
+        {specs.length > 0 && <dl className="v2-story-specs">{specs.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>}
+      </article>
+      <article className="v2-story-panel">
+        <p className="v2-eyebrow">{t("Make it yours", "আপনার করে নিন")}</p>
+        {p.colors && p.colors.length > 0 && <div className="v2-swatches v2-story-swatches">{p.colors.slice(0, 6).map(c => <span key={c.id} style={{ background: c.hex }} title={bn ? c.bn : c.name} />)}</div>}
+        {p.sizes.length > 0 && <p className="v2-story-sizes">{p.sizes.join(" · ")}</p>}
+        <PriceTag price={p.price} compareAt={p.compareAt} locale={locale} className="v2-story-price" />
+        <div className="v2-actions"><Link href={`/products/${p.slug}`} className="v2-btn v2-btn-dark">{t("View the product", "পণ্যটি দেখুন")} <ArrowUpRight size={17} /></Link></div>
+      </article>
+    </div>
+  </section>;
+}
+
+/** "Why OANRO" bento grid. Every number comes from the admin delivery rules; tiles without data are left out. */
+export function WhyBento({ rules, services }: { rules: CheckoutRules; services: boolean }) {
+  const { locale } = useLocale(); const bn = locale === "bn"; const t = (en: string, b: string) => bn ? b : en;
+  const n = (s: string) => bn ? bnDigits(s) : s;
+  return <section className="container v2-bento-wrap" aria-labelledby="bento-title">
+    <p className="v2-eyebrow v2-center">{t("Why OANRO", "কেন OANRO")}</p>
+    <h2 id="bento-title" className="v2-h2 v2-center">{t("Made simple, from order to doorstep.", "অর্ডার থেকে দরজা পর্যন্ত — সহজ।")}</h2>
+    <div className="v2-bento">
+      <div className="v2-tile v2-tile-big v2-tile-dark">
+        <span className="v2-tile-label">{t("Delivery", "ডেলিভারি")}</span>
+        <strong className="v2-tile-num">{n(dayText(rules.dhakaDays))} <small>{t("days in Dhaka", "দিন ঢাকায়")}</small></strong>
+        <p>{t(`${dayText(rules.outsideDays)} days everywhere else in Bangladesh.`, `সারা বাংলাদেশে ${n(dayText(rules.outsideDays))} দিন।`)}</p>
+      </div>
+      {rules.codLimit > 0 && <div className="v2-tile v2-tile-green">
+        <span className="v2-tile-label">{t("Cash on delivery", "ক্যাশ অন ডেলিভারি")}</span>
+        <p>{t(`Pay when it arrives, up to ${formatPrice(rules.codLimit, locale)}.`, `${formatPrice(rules.codLimit, locale)} পর্যন্ত পণ্য হাতে পেয়ে টাকা দিন।`)}</p>
+      </div>}
+      <div className="v2-tile">
+        <span className="v2-tile-label">{t("Pay your way", "যেভাবে খুশি পেমেন্ট")}</span>
+        <p className="v2-tile-pay"><b className="is-bkash">bKash</b><b className="is-nagad">Nagad</b></p>
+      </div>
+      {rules.returnDays > 0 && <div className="v2-tile">
+        <span className="v2-tile-label">{t("Problem?", "সমস্যা?")}</span>
+        <strong className="v2-tile-num">{n(String(rules.returnDays))} <small>{t("days", "দিন")}</small></strong>
+        <p>{t("to tell us about a wrong or damaged item.", "ভুল বা ক্ষতিগ্রস্ত পণ্যের কথা জানাতে।")}</p>
+      </div>}
+      <div className="v2-tile">
+        <span className="v2-tile-label">{t("Real people", "আসল মানুষ")}</span>
+        <p>{t("Every message is answered by someone on our team.", "প্রতিটি বার্তার উত্তর দেন আমাদের টিমের কেউ।")}</p>
+      </div>
+      {services && <Link href="/#studio" className="v2-tile v2-tile-wide v2-tile-dark v2-tile-link">
+        <span className="v2-tile-label">OANRO Studio</span>
+        <p>{t("Software, websites, apps and IT solutions — built the same careful way.", "সফটওয়্যার, ওয়েবসাইট, অ্যাপ ও আইটি সলিউশন — একই যত্নে তৈরি।")}</p>
+        <span className="v2-tile-go">{t("Explore the studio", "স্টুডিও দেখুন")} <ArrowUpRight size={16} /></span>
+      </Link>}
+    </div>
+  </section>;
 }
