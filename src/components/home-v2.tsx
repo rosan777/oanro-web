@@ -103,7 +103,7 @@ export function ValueLetters() {
     <p className="v2-eyebrow v2-center" id="values-title">{bn ? "পাঁচটি অক্ষর, পাঁচটি প্রতিশ্রুতি — একটিতে চাপুন" : "Five letters, five promises — tap one"}</p>
     <div className="v2-letters" role="tablist" aria-label="OANRO">{VALUES.map((x, k) => <button key={k} type="button" role="tab" aria-selected={k === i} aria-label={bn ? x.bn[0] : x.en[0]} className={k === i ? "is-active" : ""} onClick={() => setI(k)}>{x.ch}</button>)}</div>
     <div className="v2-value-panel" key={i} role="tabpanel">
-      <div><div className="v2-value-word">{v.en[0]}</div><div className="v2-value-bn" lang="bn">{v.bn[0]}</div></div>
+      <div><div className="v2-value-word">{bn ? v.bn[0] : v.en[0]}</div></div>
       <div><p>{bn ? v.bn[1] : v.en[1]}</p><p className="v2-value-you">{bn ? "আপনার জন্য এর মানে: " : "What it means for you: "}{bn ? v.bn[2] : v.en[2]}</p></div>
     </div>
   </div></section>;
