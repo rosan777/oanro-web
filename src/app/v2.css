@@ -155,7 +155,7 @@ html[lang="bn"] .v2-h1, html[lang="bn"] .v2-h2, html[lang="bn"] .v2-h3 { font-fa
 .v2-value-panel { display: flex; flex-wrap: wrap; gap: 2rem; max-width: 860px; margin: 1.75rem auto 0; padding-top: 1.75rem; border-top: 1px solid var(--edge); animation: v2-in 0.45s ease; }
 .v2-value-panel > div:first-child { flex: 0 0 240px; }
 .v2-value-panel > div:last-child { flex: 1 1 340px; }
-.v2-value-word { font-family: var(--font-display), sans-serif; font-size: 2.75rem; text-transform: uppercase; line-height: 1; }
+.v2-value-word { font-family: var(--font-display), var(--font-bangla), sans-serif; font-size: 2.75rem; text-transform: uppercase; line-height: 1; }
 .v2-value-bn { margin-top: 0.4rem; font-family: var(--font-bangla), sans-serif; font-size: 1.1rem; color: #8e948f; }
 .v2-value-panel p { font-size: 1.15rem; line-height: 1.65; }
 .v2-value-panel .v2-value-you { margin-top: 0.75rem; font-size: 0.95rem; color: var(--glow); }
