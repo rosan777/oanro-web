@@ -202,8 +202,7 @@ html[lang="bn"] .home-faq h2 { font-family: var(--font-bangla), sans-serif; text
 .v2-mini-letters { display: inline-flex; gap: 0.15em; font-family: var(--font-display), sans-serif; font-weight: 600; font-size: 1.6rem; letter-spacing: 0.04em; }
 .v2-mini-letters span { color: #2f353a; transition: color 0.45s ease, text-shadow 0.45s ease; }
 .v2-mini-letters span.is-active { color: var(--glow); text-shadow: 0 0 18px rgb(61 220 151 / 0.6); }
-.v2-word { display: inline-block; font-family: var(--font-display), var(--font-bangla), sans-serif; font-weight: 600; font-size: 1.6rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--glow); animation: word-in 0.5s ease both; }
-html[lang="bn"] .v2-word { font-family: var(--font-bangla), sans-serif; text-transform: none; letter-spacing: 0; }
+.v2-word { display: inline-block; font: inherit; font-weight: 600; color: #ededE6; animation: word-in 0.5s ease both; }
 @media (max-width: 767px) { .v2-hero { height: 700px; } .v2-hero-copy { padding-top: 2.5rem; } }
 
 /* ---------- Global Pulse: dark live news band ---------- */
