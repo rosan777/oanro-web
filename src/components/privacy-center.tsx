@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
@@ -87,13 +86,13 @@ export function PrivacyCenter({ gaId }: { gaId: string }) {
         </div>}
         <div className="pc-bar">
           <div className="pc-copy">
-            <h2 id="privacy-title" className="pc-title"><Image src="/logo.svg" alt="" width={26} height={26} />{t("Privacy preferences", "প্রাইভেসি পছন্দ")}</h2>
-            <p className="pc-text">{t("We use cookies and similar storage to run this website, understand how it's used, and — if you allow it — recommend products and power our shopping assistant. You choose what's on. ", "এই ওয়েবসাইট চালাতে, কীভাবে ব্যবহার হয় তা বুঝতে এবং — আপনি অনুমতি দিলে — পণ্য সাজেস্ট করতে ও শপিং অ্যাসিস্ট্যান্ট চালাতে আমরা কুকি ও এ ধরনের স্টোরেজ ব্যবহার করি। কী চালু থাকবে, আপনি ঠিক করুন। ")}<Link href="/privacy#cookies" onClick={() => dialog.current?.close()}>{t("Privacy & cookie policy", "প্রাইভেসি ও কুকি পলিসি")}</Link></p>
+            <h2 id="privacy-title" className="sr-only">{t("Privacy preferences", "প্রাইভেসি পছন্দ")}</h2>
+            <p className="pc-text"><span className="pc-long">{t("We use cookies to run this site and, if you allow, to personalise it. ", "সাইট চালাতে ও আপনি চাইলে আপনার মতো করে সাজাতে আমরা কুকি ব্যবহার করি। ")}</span><span className="pc-short">{t("We use cookies. ", "আমরা কুকি ব্যবহার করি। ")}</span><Link href="/privacy#cookies" onClick={() => dialog.current?.close()}>{t("Policy", "পলিসি")}</Link></p>
           </div>
           <div className="pc-bar-actions">
-            <button type="button" className="pc-btn pc-primary" onClick={() => finish(ALL)}>{t("Accept all", "সব মেনে নিন")}</button>
-            <button type="button" className="pc-btn pc-ghost" onClick={() => finish(NONE)}>{t("Only essential", "শুধু প্রয়োজনীয়")}</button>
-            <button type="button" className="pc-btn pc-link" aria-expanded={manage} onClick={() => setManage(m => !m)}>{t("Manage preferences", "পছন্দ ঠিক করুন")}</button>
+            <button type="button" className="pc-btn pc-primary" onClick={() => finish(ALL)}><span className="pc-long">{t("Accept all", "সব মেনে নিন")}</span><span className="pc-short">{t("Accept", "মেনে নিন")}</span></button>
+            <button type="button" className="pc-btn pc-ghost" onClick={() => finish(NONE)}><span className="pc-long">{t("Only essential", "শুধু প্রয়োজনীয়")}</span><span className="pc-short">{t("Essential", "প্রয়োজনীয়")}</span></button>
+            <button type="button" className="pc-btn pc-link" aria-expanded={manage} onClick={() => setManage(m => !m)}>{t("Manage", "পছন্দ")}</button>
           </div>
         </div>
       </div>
