@@ -304,6 +304,11 @@ html[lang="bn"] .pc-title { font-family: var(--font-bangla), sans-serif; text-tr
 .product-photo.has-photo { background-image: none; overflow: hidden; }
 .product-photo.has-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
+/* Hero "Get a free quote": a clear secondary button (soft green outline, glass fill) instead of a faint grey ring. */
+.v2-btn-quote { background: rgb(61 220 151 / 0.08); border-color: rgb(61 220 151 / 0.55); color: #ededE6; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.v2-btn-quote:hover, .v2-btn-quote:focus-visible { background: var(--glow); border-color: var(--glow); color: var(--space); }
+.v2-short { display: none; }
+
 /* ============================================================
    Phone layout (≤ 640px): bigger tap targets, clearer contrast, nothing hidden.
    Desktop is untouched. Placed last so it wins over the base rules above.
@@ -324,9 +329,9 @@ html[lang="bn"] .pc-title { font-family: var(--font-bangla), sans-serif; text-tr
   .site-header .language-switch button { min-height: 32px; padding: 0.4rem 0.6rem; font-size: 0.78rem; }
 
   /* Hero: stacked full-width buttons; the second one gets a solid fill so it stays readable over the light curve. */
-  .v2-hero .v2-actions { flex-direction: column; align-items: stretch; width: 100%; max-width: 340px; margin-inline: auto; }
+  .v2-hero .v2-actions { flex-direction: column; align-items: stretch; width: 100%; max-width: 270px; margin-inline: auto; }
   .v2-hero .v2-btn { width: 100%; min-height: 52px; font-size: 1rem; }
-  .v2-hero .v2-btn-ghost { background: #141a17; border-color: #2f3a35; }
+  .v2-long { display: none; } .v2-short { display: inline; }
 
   /* Brighter secondary text on dark sections (easier to read in daylight). */
   .v2-hero .v2-lede, .v2-studio .v2-lede, .v2-letters-line, .pulse-card time { color: #c9cfcb; }

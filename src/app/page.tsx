@@ -31,7 +31,7 @@ export default async function Home() {
         <p className="v2-lede v2-fade" style={{ animationDelay: "1.2s" }}><Localized en="Shop winter clothing, caps, tech and jewelry with cash on delivery — or hire OANRO Studio for software, website and app development." bn="শীতের পোশাক, ক্যাপ, টেক ও জুয়েলারি কিনুন ক্যাশ অন ডেলিভারিতে — অথবা সফটওয়্যার, ওয়েবসাইট ও অ্যাপ বানাতে OANRO স্টুডিওকে বলুন।" /></p>
         <div className="v2-actions v2-fade" style={{ animationDelay: "1.5s" }}>
           {config.products && <Link className="v2-btn v2-btn-light" href="#products"><Localized en="Shop the collection" bn="কালেকশন দেখুন" /><ArrowUpRight size={17} /></Link>}
-          {config.services && <Link className="v2-btn v2-btn-ghost" href="#studio"><Localized en="Get a free quote" bn="ফ্রি কোট নিন" /><ArrowUpRight size={17} /></Link>}
+          {config.services && <Link className="v2-btn v2-btn-ghost v2-btn-quote" href="#studio"><span className="v2-long"><Localized en="Get a free quote" bn="ফ্রি কোট নিন" /></span><span className="v2-short"><Localized en="Free quote" bn="ফ্রি কোট" /></span><ArrowUpRight size={17} /></Link>}
         </div>
       </div>
       <div className="v2-planet" aria-hidden="true" />
