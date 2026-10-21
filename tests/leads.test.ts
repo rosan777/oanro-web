@@ -40,7 +40,8 @@ test("leads: snapshot subject, rate limit, no IP stored, inbox actions with audi
     assert.equal(first.subject, "The Forest Knit", "name snapshot from the catalog"); assert.equal(first.size, "M");
     assert.ok(!("ipHash" in first), "inbox never exposes the IP hash");
     await setLeadStatus(db, "owner", id, "contacted");
-    await assignLead(db, "owner", id, "owner");
+    assert.equal(await assignLead(db, "owner", id, "owner"), true);
+    assert.equal(await assignLead(db, "owner", id, "owner"), false, "same assignee again: no change, no email, no extra audit entry");
     await assert.rejects(assignLead(db, "owner", id, "rando"), (e: unknown) => e instanceof ProductStoreError && e.message === "INVALID_ASSIGNEE");
     await addLeadNote(db, "owner", id, "Called, will visit Friday");
     await assert.rejects(addLeadNote(db, "owner", id, "   "), (e: unknown) => e instanceof ProductStoreError);
