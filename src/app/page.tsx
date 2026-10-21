@@ -12,7 +12,7 @@ import { requestLocale } from "@/lib/request-locale";
 import { bnDigits, publicRules } from "@/lib/public-rules";
 import { formatPrice } from "@/lib/catalog";
 import { storeLive } from "@/lib/seo";
-import { DeliveryChecker, ShopTabs, StudioTerminal, ValueLetters } from "@/components/home-v2";
+import { DeliveryChecker, HeroBrand, ShopTabs, StudioTerminal, ValueLetters } from "@/components/home-v2";
 
 // Homepage, design "I1 · Final homepage" (canvas). Every number shown comes from the admin rules or the live catalog:
 // no placeholder prices, no invented reviews. Sections without real data (reviews, free-delivery bar) are left out until they exist.
@@ -27,8 +27,7 @@ export default async function Home() {
   return <main id="main-content">
     <section className="v2-hero" aria-labelledby="hero-title">
       <div className="v2-hero-copy">
-        <p className="v2-eyebrow v2-fade"><Localized en="Bangladesh-born · Worldwide" bn="বাংলাদেশে জন্ম · বিশ্বের জন্য" /></p>
-        <h1 id="hero-title" className="v2-h1 v2-track" style={{ marginTop: "1.2rem" }}><Localized en="Built for what's next" bn="আগামীর জন্য তৈরি" /></h1>
+        <HeroBrand />
         <p className="v2-lede v2-fade" style={{ animationDelay: "1.2s" }}><Localized en="Shop winter clothing, caps, tech and jewelry with cash on delivery — or hire OANRO Studio for software, website and app development." bn="শীতের পোশাক, ক্যাপ, টেক ও জুয়েলারি কিনুন ক্যাশ অন ডেলিভারিতে — অথবা সফটওয়্যার, ওয়েবসাইট ও অ্যাপ বানাতে OANRO স্টুডিওকে বলুন।" /></p>
         <div className="v2-actions v2-fade" style={{ animationDelay: "1.5s" }}>
           {config.products && <Link className="v2-btn v2-btn-light" href="#products"><Localized en="Shop the collection" bn="কালেকশন দেখুন" /><ArrowUpRight size={17} /></Link>}

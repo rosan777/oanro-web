@@ -10,6 +10,7 @@ import { usePopularProducts, useProductLines, useProducts, useServices } from ".
 import { rank } from "@/lib/smart-search";
 import { useCart, changeQuantity, removeItem } from "@/lib/cart";
 import { MotionToggle } from "./experience";
+import { PrivacySettingsLink } from "./privacy-center";
 import { LanguageSwitch, Localized, useLocale } from "./locale";
 
 export function ProductPhoto({ position, label, className = "", image }: { position: string; label: string; className?: string; image?: string | null }) {
@@ -113,6 +114,6 @@ export function Footer({ config }: { config: SiteConfig }) {
     </div>
     <div className="footer-bottom"><span>{t("© 2026 OANRO · Trade License No. 002039", "© ২০২৬ OANRO · ট্রেড লাইসেন্স নং ০০২০৩৯")}</span>
       <span className="pay-chips" aria-label={t("Payment methods", "পেমেন্ট পদ্ধতি")}><span>bKash</span><span>Nagad</span></span>
-      <MotionToggle /></div>
+      <span className="footer-tools"><PrivacySettingsLink /><MotionToggle /></span></div>
   </div></footer>;
 }

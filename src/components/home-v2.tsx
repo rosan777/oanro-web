@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import Image from "next/image";
+import { useMotion } from "./experience";
 import { ArrowUpRight } from "lucide-react";
 import Link from "@/components/locale-link";
 import { formatPrice } from "@/lib/catalog";
@@ -114,4 +116,33 @@ export function StudioTerminal() {
       <div className="v2-chips"><span>Next.js</span><span>PostgreSQL</span><span>2FA</span><span>{t("Fast on phones", "ফোনে দ্রুত")}</span><span>{t("Same stack as OANRO.com", "OANRO.com-এর একই প্রযুক্তি")}</span></div>
     </div>
   </div></section>;
+}
+
+const MEANING = {
+  en: ["Originality", "Ambition", "Next-generation", "Reliability", "Opportunity"],
+  bn: ["নিজস্বতা", "উচ্চাকাঙ্ক্ষা", "ভবিষ্যৎমুখী উদ্ভাবন", "নির্ভরযোগ্যতা", "নতুন সম্ভাবনা"],
+};
+/** Hero brand block: holographic logo card + H1 (search keywords in the small line) + the original O-A-N-R-O letter cycle. */
+export function HeroBrand() {
+  const { locale } = useLocale(); const bn = locale === "bn";
+  const { allowed } = useMotion();
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    if (!allowed) return;
+    const timer = window.setInterval(() => setActive(i => (i + 1) % 5), 2400);
+    return () => window.clearInterval(timer);
+  }, [allowed]);
+  const words = bn ? MEANING.bn : MEANING.en;
+  return <>
+    <span className="holographic-mark v2-holo v2-fade" aria-hidden="true"><Image src="/logo.svg" alt="" width={56} height={56} priority /></span>
+    <h1 id="hero-title" className="v2-hero-h1">
+      <span className="v2-eyebrow v2-fade">{bn ? "শীতের পোশাক · টেক সলিউশন · আইটি সেবা · বিশ্বজুড়ে" : "Winter clothing · Tech solutions · IT services · Worldwide"}</span>
+      <span className="v2-h1 v2-track">{bn ? "আগামীর জন্য তৈরি" : "Built for what's next"}</span>
+    </h1>
+    <p className="v2-letters-line v2-fade" aria-hidden="true">
+      <span className="v2-mini-letters">{"OANRO".split("").map((ch, i) => <span key={i} className={i === active ? "is-active" : undefined}>{ch}</span>)}</span>
+      <span>{bn ? "যার ভিত্তি" : "Built on"} <span key={`${locale}-${active}`} className="v2-word">{words[active]}</span></span>
+    </p>
+    <p className="sr-only">{bn ? `OANRO মানে: ${MEANING.bn.join(", ")}।` : `OANRO stands for ${MEANING.en.slice(0, 4).join(", ")} and ${MEANING.en[4]}.`}</p>
+  </>;
 }
