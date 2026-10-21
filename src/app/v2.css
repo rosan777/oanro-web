@@ -494,3 +494,26 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   dialog.privacy-center .pc-inner { padding-inline: 0.75rem; }
   dialog.privacy-center .pc-text { font-size: 0.72rem; }
 }
+/* Phone: slow, colour-shifting "aurora" background on the values card and the contact card
+   (soft brand-green, teal and a touch of gold drifting behind the content). */
+@media (max-width: 640px) {
+  .v2-values, .v2-contact { position: relative; overflow: hidden; isolation: isolate; }
+  .v2-values::before, .v2-contact::before { content: ""; position: absolute; inset: -40%; z-index: -1; pointer-events: none; filter: blur(42px); will-change: transform;
+    animation: v2-aurora 16s ease-in-out infinite alternate; }
+  .v2-values::before { background:
+      radial-gradient(closest-side at 25% 30%, rgb(61 220 151 / 0.40), transparent),
+      radial-gradient(closest-side at 75% 60%, rgb(31 81 60 / 0.75), transparent),
+      radial-gradient(closest-side at 50% 90%, rgb(196 154 74 / 0.22), transparent); }
+  .v2-contact { background: #173d2d; }
+  .v2-contact::before { background:
+      radial-gradient(closest-side at 20% 25%, rgb(61 220 151 / 0.45), transparent),
+      radial-gradient(closest-side at 80% 70%, rgb(14 116 104 / 0.55), transparent),
+      radial-gradient(closest-side at 60% 10%, rgb(196 154 74 / 0.25), transparent);
+    animation-duration: 13s; }
+  @keyframes v2-aurora {
+    0%   { transform: translate(-6%, -4%) rotate(0deg) scale(1); }
+    50%  { transform: translate(6%, 5%) rotate(25deg) scale(1.12); }
+    100% { transform: translate(-3%, 7%) rotate(-15deg) scale(1.04); }
+  }
+}
+@media (max-width: 640px) and (prefers-reduced-motion: reduce) { .v2-values::before, .v2-contact::before { animation: none; } }
