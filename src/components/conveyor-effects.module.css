@@ -11,8 +11,8 @@
 .shelf .back strong { font-size: 1rem; line-height: 1.1; }
 .shelf .back p { font-size: 0.67rem; line-height: 1.25; }
 .shelf .back small { display: none; }
-.flip[data-allowed="true"] .rotor { animation: flip-cycle 12s ease-in-out infinite; animation-delay: var(--flip-delay, 0s); }
-.shelf .flip[data-allowed="true"] .rotor { animation-duration: 8.89s; }
+.flip[data-allowed="true"] .rotor { animation: flip-cycle 18s ease-in-out infinite; animation-delay: var(--flip-delay, 0s); }
+.shelf .flip[data-allowed="true"] .rotor { animation-duration: 13.3s; }
 .front { position: relative; }
 /* Photo side stays ~64% of the cycle, the text side ~20%, the turns take the rest. */
 @keyframes flip-cycle { 0%, 33% { transform: rotateY(0deg); } 41%, 61% { transform: rotateY(180deg); } 69%, 100% { transform: rotateY(360deg); } }
