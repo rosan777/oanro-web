@@ -184,6 +184,13 @@ html[lang="bn"] .v2-h1, html[lang="bn"] .v2-h2, html[lang="bn"] .v2-h3 { font-fa
 @keyframes v2-caret { 50% { opacity: 0; } }
 .v2-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1rem; font-family: var(--font-label), monospace; font-size: 0.75rem; color: #8e948f; }
 .v2-chips span { border: 1px solid var(--edge); border-radius: 999px; padding: 0.35rem 0.75rem; }
+.v2-studio-grid > * { min-width: 0; }
+.v2-marquee-dark { margin-top: 0.9rem; }
+.v2-marquee-dark + .v2-marquee-dark { margin-top: 0.6rem; }
+.v2-marquee-dark .v2-chips { flex-wrap: nowrap; margin-top: 0; padding-right: 8px; }
+.v2-marquee-dark .v2-chips span { white-space: nowrap; }
+.v2-marquee-dark.is-reverse .v2-marquee-track { animation-direction: reverse; animation-duration: 46s; }
+@media (prefers-reduced-motion: reduce) { .v2-marquee-dark .v2-chips { flex-wrap: wrap; } .v2-marquee-dark .v2-chips[aria-hidden] { display: none; } }
 
 /* ---------- Contact band ---------- */
 .v2-contact { margin-block: 4.5rem 0; border-radius: 28px; background: var(--brand); color: #eaf4ee; padding: 2.5rem; display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center; justify-content: space-between; }
