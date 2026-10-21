@@ -366,3 +366,47 @@ html[lang="bn"] .pc-title { font-family: var(--font-bangla), sans-serif; text-tr
   dialog.privacy-center .pc-inner { padding: 1.4rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom)); }
   dialog.privacy-center .pc-title { margin-top: 1rem; font-size: 1.5rem; }
 }
+/* Phone refinements (round 2). */
+@media (max-width: 640px) {
+  /* Hero grows with its text so both buttons always sit on the dark area, above the light curve. */
+  .v2-hero { height: auto; padding-bottom: 190px; }
+  .v2-hero-copy { padding-top: 1.75rem; }
+  .v2-holo.holographic-mark { width: 58px; height: 68px; margin-bottom: 1rem; }
+  .v2-holo.holographic-mark img { width: 36px; height: 36px; }
+  /* Free quote: solid brand green with a slow glow, clearly visible on any background. */
+  .v2-btn-quote { background: var(--brand); border-color: rgb(61 220 151 / 0.6); color: #fff; animation: v2-quote-glow 2.8s ease-in-out infinite; }
+  @keyframes v2-quote-glow { 0%, 100% { box-shadow: 0 0 0 0 rgb(61 220 151 / 0); } 50% { box-shadow: 0 0 22px 2px rgb(61 220 151 / 0.35); } }
+
+  /* Shorter header. */
+  .site-header .header-row { min-height: 56px; gap: 0.5rem; }
+  .site-header .brand img { width: 28px; height: 28px; }
+  .site-header .header-actions .icon-button { width: 40px; height: 40px; }
+  .site-header .header-actions .icon-button svg { width: 20px; height: 20px; }
+  .site-header .language-switch button { min-height: 30px; padding: 0.35rem 0.55rem; }
+
+  /* "We are OANRO": smaller orbit, centred text under it. */
+  .v2-brand { flex-direction: column; gap: 1.5rem; text-align: center; }
+  .v2-orbit-wrap { flex: none; }
+  .v2-orbit { width: 190px; height: 190px; }
+  .v2-orbit .ring2 { inset: 28px; }
+  .v2-orbit .core { inset: 60px; border-radius: 18px; }
+  .v2-orbit .core img { width: 34px; height: 34px; }
+  .v2-brand-copy { flex: none; }
+  .v2-brand-copy p.v2-body { font-size: 1rem; line-height: 1.65; }
+  .v2-sign { display: flex; justify-content: center; }
+
+  /* Product cards: compact photo and tighter text. */
+  .v2-card-photo { aspect-ratio: 4 / 3; }
+  .v2-card-body { padding: 0.6rem 0.7rem 0.75rem; }
+  .v2-card-body strong { font-size: 0.875rem; }
+  .conveyor-card { width: 200px; }
+
+  /* Shorter footer: two link columns side by side, less padding. */
+  .site-footer { padding-top: 2rem; }
+  .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 1rem; padding-bottom: 1.5rem; }
+  .footer-brand { grid-column: 1 / -1; gap: 0.6rem; }
+  .footer-col { gap: 0; }
+  .footer-col a { min-height: 38px; }
+  .site-footer .footer-bottom { padding-block: 0.9rem; }
+}
+@media (max-width: 640px) and (prefers-reduced-motion: reduce) { .v2-btn-quote { animation: none; } }
