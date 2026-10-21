@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Script from "next/script";
+import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import Link from "@/components/locale-link";
 import { useT } from "./locale";
@@ -23,6 +24,8 @@ export function PrivacyCenter({ gaId }: { gaId: string }) {
   const [draft, setDraft] = useState<ConsentChoice>(NONE);
   const [open, setOpen] = useState<string | null>("essential");
   const validGa = /^G-[A-Z0-9]+$/.test(gaId);
+  const pathname = usePathname();
+  const onPolicy = /\/privacy$/.test(pathname ?? "");
 
   useEffect(() => {
     const current = readConsent();
@@ -33,10 +36,16 @@ export function PrivacyCenter({ gaId }: { gaId: string }) {
     window.addEventListener(OPEN_PRIVACY_EVENT, show);
     const sync = (e: Event) => setSaved((e as CustomEvent<Consent>).detail);
     window.addEventListener(CONSENT_EVENT, sync);
-    // First visit: wait for the 1-second intro screen to finish, then ask.
-    const timer = current ? 0 : window.setTimeout(show, 1400);
-    return () => { window.removeEventListener(OPEN_PRIVACY_EVENT, show); window.removeEventListener(CONSENT_EVENT, sync); if (timer) clearTimeout(timer); };
+    return () => { window.removeEventListener(OPEN_PRIVACY_EVENT, show); window.removeEventListener(CONSENT_EVENT, sync); };
   }, []);
+
+  // No choice saved yet: ask on every page except the policy itself, so people can read it first.
+  // The first ask waits for the 1-second intro screen to finish.
+  useEffect(() => {
+    if (onPolicy || readConsent()) return;
+    const timer = window.setTimeout(() => window.dispatchEvent(new Event(OPEN_PRIVACY_EVENT)), 1400);
+    return () => clearTimeout(timer);
+  }, [onPolicy]);
 
   const finish = (choice: ConsentChoice) => { saveConsent(choice); dialog.current?.close(); };
   const toggle = (p: Purpose) => setDraft(d => ({ ...d, [p]: !d[p] }));
@@ -57,7 +66,7 @@ export function PrivacyCenter({ gaId }: { gaId: string }) {
       <div className="pc-inner">
         <div className="pc-brand"><Image src="/logo.svg" alt="" width={34} height={34} /><span>OANRO</span></div>
         <h2 id="privacy-title" className="pc-title">{t("Privacy preferences", "প্রাইভেসি পছন্দ")}</h2>
-        <p className="pc-text">{t("We use cookies and similar storage to run this website, understand how it's used, and — if you allow it — recommend products and power our shopping assistant. You choose what's on. ", "এই ওয়েবসাইট চালাতে, কীভাবে ব্যবহার হয় তা বুঝতে এবং — আপনি অনুমতি দিলে — পণ্য সাজেস্ট করতে ও শপিং অ্যাসিস্ট্যান্ট চালাতে আমরা কুকি ও এ ধরনের স্টোরেজ ব্যবহার করি। কী চালু থাকবে, আপনি ঠিক করুন। ")}<Link href="/privacy#cookies" onClick={() => { if (readConsent()) dialog.current?.close(); }}>{t("Privacy & cookie policy", "প্রাইভেসি ও কুকি পলিসি")}</Link></p>
+        <p className="pc-text">{t("We use cookies and similar storage to run this website, understand how it's used, and — if you allow it — recommend products and power our shopping assistant. You choose what's on. ", "এই ওয়েবসাইট চালাতে, কীভাবে ব্যবহার হয় তা বুঝতে এবং — আপনি অনুমতি দিলে — পণ্য সাজেস্ট করতে ও শপিং অ্যাসিস্ট্যান্ট চালাতে আমরা কুকি ও এ ধরনের স্টোরেজ ব্যবহার করি। কী চালু থাকবে, আপনি ঠিক করুন। ")}<Link href="/privacy#cookies" onClick={() => dialog.current?.close()}>{t("Privacy & cookie policy", "প্রাইভেসি ও কুকি পলিসি")}</Link></p>
         <button type="button" className="pc-btn pc-primary" onClick={() => finish(ALL)}>{t("Accept all", "সব মেনে নিন")}</button>
         <h3 className="pc-sub">{t("Manage preferences", "পছন্দ ঠিক করুন")}</h3>
         <ul className="pc-list">
