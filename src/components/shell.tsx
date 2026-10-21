@@ -11,7 +11,7 @@ import { rank } from "@/lib/smart-search";
 import { useCart, changeQuantity, removeItem } from "@/lib/cart";
 import { MotionToggle } from "./experience";
 import { PrivacySettingsLink } from "./privacy-center";
-import { LanguageSwitch, Localized, useLocale } from "./locale";
+import { LanguageSwitch, Localized, RegionPicker, useLocale } from "./locale";
 
 export function ProductPhoto({ position, label, className = "", image }: { position: string; label: string; className?: string; image?: string | null }) {
   // Owner photos are same-origin URLs built by the server (/api/products/<slug>/image); otherwise use the sample sprite.
@@ -116,6 +116,6 @@ export function Footer({ config }: { config: SiteConfig }) {
     </div>
     <div className="footer-bottom"><span>{t("© 2026 OANRO · Trade License No. 002039", "© ২০২৬ OANRO · ট্রেড লাইসেন্স নং ০০২০৩৯")}</span>
       
-      <span className="footer-tools"><PrivacySettingsLink /><MotionToggle /></span></div>
+      <span className="footer-tools"><RegionPicker /><PrivacySettingsLink /><MotionToggle /></span></div>
   </div></footer>;
 }
