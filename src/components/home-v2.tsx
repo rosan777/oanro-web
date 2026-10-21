@@ -114,26 +114,35 @@ export function StudioTerminal() {
   const { locale } = useLocale(); const bn = locale === "bn"; const t = (en: string, b: string) => bn ? b : en;
   const services = useServices();
   const lines = bn
-    ? ["সপ্তাহ ১ · পরিকল্পনা ও ডিজাইন অনুমোদিত", "সপ্তাহ ২ · পণ্য, কার্ট ও চেকআউট", "সপ্তাহ ৩ · বিকাশ ও ক্যাশ অন ডেলিভারি যুক্ত", "সপ্তাহ ৩ · SEO, সাইটম্যাপ ও গুগল প্রস্তুত", "সপ্তাহ ৪ · অ্যাডমিন প্যানেল ও স্টাফ রোল"]
-    : ["Week 1 · plan & design approved", "Week 2 · products, cart & checkout", "Week 3 · bKash + cash on delivery connected", "Week 3 · SEO, sitemap & Google ready", "Week 4 · admin panel & staff roles"];
+    ? ["সপ্তাহ ১ · লক্ষ্য, পরিকল্পনা ও ডিজাইন অনুমোদিত", "সপ্তাহ ২ · মূল ফিচার তৈরি ও টেস্ট", "সপ্তাহ ৩ · পেমেন্ট, API ও ইন্টিগ্রেশন যুক্ত", "সপ্তাহ ৩ · নিরাপত্তা, স্পিড ও SEO যাচাই", "সপ্তাহ ৪ · অ্যাডমিন প্যানেল, রোল ও হ্যান্ডওভার"]
+    : ["Week 1 · goals, plan & design approved", "Week 2 · core features built & tested", "Week 3 · payments, APIs & integrations connected", "Week 3 · security, speed & SEO checks", "Week 4 · admin panel, roles & handover"];
+  // Two rows that slide forever in opposite directions: the stack we work in, and what we deliver with it.
+  const stack = ["Next.js", "React", "Vue", "Angular", "Node.js", "TypeScript", "Go", "Java", "Spring Boot", "PHP", "Laravel", "Python", "Django", "FastAPI", ".NET", "Flutter", "React Native", "Swift", "Kotlin", "PostgreSQL", "MySQL", "MongoDB", "Redis", "Docker", "Kubernetes", "AWS", "Google Cloud", "Azure"];
+  const offer = bn
+    ? ["ওয়েবসাইট", "ই-কমার্স স্টোর", "মোবাইল অ্যাপ", "কাস্টম সফটওয়্যার", "ERP ও CRM", "AI ও চ্যাটবট", "API ইন্টিগ্রেশন", "পেমেন্ট গেটওয়ে", "UI/UX ডিজাইন", "ক্লাউড ও হোস্টিং", "DevOps ও CI/CD", "সাইবার নিরাপত্তা", "ডেটা ও অ্যানালিটিক্স", "অটোমেশন", "মেইনটেন্যান্স ও সাপোর্ট"]
+    : ["Websites", "E-commerce stores", "Mobile apps", "Custom software", "ERP & CRM", "AI & chatbots", "API integration", "Payment gateways", "UI/UX design", "Cloud & hosting", "DevOps & CI/CD", "Cybersecurity", "Data & analytics", "Automation", "Maintenance & support"];
+  const row = (items: string[], reverse = false) => <div className={`v2-marquee v2-marquee-dark${reverse ? " is-reverse" : ""}`}><div className="v2-marquee-track">
+    <div className="v2-chips">{items.map(x => <span key={x}>{x}</span>)}</div><div className="v2-chips" aria-hidden="true">{items.map(x => <span key={x}>{x}</span>)}</div>
+  </div></div>;
   return <section id="studio" className="v2-studio" aria-labelledby="studio-title"><div className="container v2-studio-grid">
     <div>
-      <p className="v2-eyebrow">{t("OANRO Studio · Website & app development", "OANRO স্টুডিও · ওয়েবসাইট ও অ্যাপ ডেভেলপমেন্ট")}</p>
+      <p className="v2-eyebrow">{t("OANRO Studio · Software, web, app & IT solutions", "OANRO স্টুডিও · সফটওয়্যার, ওয়েব, অ্যাপ ও আইটি সলিউশন")}</p>
       <h2 id="studio-title" className="v2-h2 v2-on-dark">{bn ? <>আমরা বানাই।<br />আপনি ব্যবসা চালান।</> : <>We build it.<br />You run your business.</>}</h2>
-      <p className="v2-lede">{t("Website & app development for businesses in Bangladesh and abroad — fixed quote, live preview, launched on your own domain.", "বাংলাদেশ ও বিদেশের ব্যবসার জন্য ওয়েবসাইট ও অ্যাপ ডেভেলপমেন্ট — নির্দিষ্ট দাম, লাইভ প্রিভিউ, আপনার নিজের ডোমেইনে লঞ্চ।")}</p>
+      <p className="v2-lede">{t("Software, websites, apps and IT solutions for businesses anywhere — a fixed quote, a live preview, launched on your own domain.", "যেকোনো জায়গার ব্যবসার জন্য সফটওয়্যার, ওয়েবসাইট, অ্যাপ ও আইটি সলিউশন — নির্দিষ্ট দাম, লাইভ প্রিভিউ, আপনার নিজের ডোমেইনে লঞ্চ।")}</p>
       <ul className="v2-service-rows">{services.map(s => <li key={s.slug}><Link href={`/services/${s.slug}`}>{bn && s.bn ? s.bn.title : s.title}<span>{t("Get a quote", "কোট নিন")} →</span></Link></li>)}</ul>
       <div className="v2-actions"><Link href="/contact" className="v2-btn v2-btn-light">{t("Get a free quote", "ফ্রি কোট নিন")} <ArrowUpRight size={17} /></Link></div>
     </div>
     <div>
       <div className="v2-terminal" aria-hidden="true">
-        <div className="v2-terminal-bar"><i /><i /><i /><span>oanro-studio — your project</span></div>
+        <div className="v2-terminal-bar"><i /><i /><i /><span>studio — your-project</span></div>
         <div className="v2-terminal-body">
-          <div className="t-line" style={{ animationDelay: "0s" }}><b>$</b> oanro new your-store</div>
+          <div className="t-line" style={{ animationDelay: "0s" }}><b>$</b> build your-project</div>
           {lines.map((l, k) => <div key={l} className="t-line t-dim" style={{ animationDelay: `${0.8 * (k + 1)}s` }}>✓ {l}</div>)}
-          <div className="t-line t-go" style={{ animationDelay: "4.8s" }}>→ {t("Live at yourstore.com", "লাইভ: yourstore.com")} <span className="t-caret">▍</span></div>
+          <div className="t-line t-go" style={{ animationDelay: "4.8s" }}>→ {t("Live on your own domain", "লাইভ: আপনার নিজের ডোমেইনে")} <span className="t-caret">▍</span></div>
         </div>
       </div>
-      <div className="v2-chips"><span>Next.js</span><span>PostgreSQL</span><span>2FA</span><span>{t("Fast on phones", "ফোনে দ্রুত")}</span><span>{t("Same stack as OANRO.com", "OANRO.com-এর একই প্রযুক্তি")}</span></div>
+      {row(stack)}
+      {row(offer, true)}
     </div>
   </div></section>;
 }
