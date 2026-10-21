@@ -105,7 +105,7 @@ export function Footer({ config }: { config: SiteConfig }) {
   return <footer className="site-footer"><div className="container">
     <div className="footer-grid">
       <div className="footer-brand"><Link className="brand" href="/"><Image src="/logo.svg" alt="" width={42} height={42} />OANRO</Link>
-        <p>{t("Find your next. Build what's next. A Bangladesh-based brand: e-commerce and IT services for the world.", "আপনার পরেরটা খুঁজুন। আগামীকে গড়ুন। বাংলাদেশভিত্তিক ব্র্যান্ড: বিশ্বের জন্য ই-কমার্স ও আইটি সেবা।")}</p>
+        <p>{t("Thoughtfully chosen products and dependable technology, from Bangladesh to the world.", "যত্নে বাছাই করা পণ্য আর নির্ভরযোগ্য প্রযুক্তি — বাংলাদেশ থেকে বিশ্বের জন্য।")}</p>
         <a href="#top" className="text-link">{t("Back to top", "উপরে ফিরে যান")}<ArrowUpRight size={16} /></a></div>
       {config.products && lines.length > 0 && <nav aria-label={t("Shop", "শপ")} className="footer-col"><strong>{t("Shop", "শপ")}</strong>{lines.map(({ collection }) => <Link key={collection.id} href={`/${collection.slug}`}>{bn && collection.bn ? collection.bn.name : collection.name}</Link>)}</nav>}
       {config.services && services.length > 0 && <nav aria-label={t("Services", "সেবা")} className="footer-col"><strong>{t("Services", "সেবা")}</strong>{services.map(s => <Link key={s.slug} href={`/services/${s.slug}`}>{bn && s.bn ? s.bn.title : s.title}</Link>)}</nav>}
