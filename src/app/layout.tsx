@@ -22,16 +22,16 @@ import { JsonLd } from "@/components/json-ld";
 import { requestLocale, alternatesFor } from "@/lib/request-locale";
 import { DEFAULT_DESCRIPTION, DEFAULT_DESCRIPTION_BN, DEFAULT_OG_IMAGE, DEFAULT_TITLE, DEFAULT_TITLE_BN, SITE_NAME, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 
-const sans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: "swap" });
+const sans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: "swap", preload: false });
 // Bangla glyphs: Geist has none, so Bangla text falls through to Hind Siliguri.
 const bangla = Hind_Siliguri({ variable: "--font-bangla", subsets: ["bengali"], weight: ["400", "500", "600"], display: "swap" });
 // Accent serif for the brand words only (italic).
 // New brand fonts (I1 design): condensed headings, grotesk body, mono labels, handwritten signature.
 const display = Barlow_Condensed({ variable: "--font-display", subsets: ["latin"], weight: ["400", "500", "600"], display: "swap" });
 const body = Space_Grotesk({ variable: "--font-body", subsets: ["latin"], weight: ["400", "500", "700"], display: "swap" });
-const mono = JetBrains_Mono({ variable: "--font-label", subsets: ["latin"], weight: ["400", "500"], display: "swap" });
-const script = Parisienne({ variable: "--font-script", subsets: ["latin"], weight: "400", display: "swap" });
-const accent = Instrument_Serif({ variable: "--font-accent", subsets: ["latin"], weight: "400", style: ["normal", "italic"], display: "swap" });
+const mono = JetBrains_Mono({ variable: "--font-label", subsets: ["latin"], weight: ["400", "500"], display: "swap", preload: false });
+const script = Parisienne({ variable: "--font-script", subsets: ["latin"], weight: "400", display: "swap", preload: false });
+const accent = Instrument_Serif({ variable: "--font-accent", subsets: ["latin"], weight: "400", style: ["normal", "italic"], display: "swap", preload: false });
 export async function generateMetadata(): Promise<Metadata> {
   const { locale, path } = await requestLocale();
   const bn = locale === "bn";
