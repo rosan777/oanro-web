@@ -224,9 +224,14 @@ html[lang="bn"] .pulse-heading h2 { font-family: var(--font-bangla), sans-serif;
 @media (prefers-reduced-motion: reduce) { .pulse-live { animation: none; } }
 
 /* ---------- Privacy preference center ---------- */
-.privacy-center { width: min(560px, calc(100% - 1.5rem)); max-height: calc(100dvh - 1.5rem); padding: 0; border: 1px solid var(--edge); border-radius: 22px; background: var(--space); color: #ededE6; overflow-y: auto; }
-.privacy-center::backdrop { background: rgb(7 9 10 / 0.72); backdrop-filter: blur(4px); }
-.privacy-center[open] { animation: v2-in 0.4s cubic-bezier(.2,.7,.2,1); }
+dialog.privacy-center { position: fixed; inset: 0; margin: auto; width: min(560px, calc(100% - 1.5rem)); height: fit-content; max-height: calc(100dvh - 2rem); padding: 0; border: 0; border-radius: 22px; background: var(--space); color: #ededE6; overflow-y: auto; overscroll-behavior: contain;
+  box-shadow: 0 0 0 1px rgb(61 220 151 / 0.22), 0 40px 90px -25px rgb(31 81 60 / 0.85); }
+/* Same pop-up as the message pop: a thin blurred haze with a soft gold glow top-left and green glow bottom-right. */
+dialog.privacy-center::backdrop { background:
+    radial-gradient(circle at 15% 15%, color-mix(in srgb, var(--accent, #c9a227) 22%, transparent), transparent 60%),
+    radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--brand) 26%, transparent), transparent 60%),
+    color-mix(in srgb, var(--planet) 55%, transparent); backdrop-filter: blur(2.4px) saturate(.85); animation: pop-fade .5s ease both; }
+dialog.privacy-center[open] { animation: pop-reveal .75s cubic-bezier(.22,.9,.3,1) both; }
 .pc-inner { padding: 2rem 2rem 1.75rem; }
 .pc-brand { display: flex; align-items: center; gap: 0.6rem; font-weight: 700; letter-spacing: 0.22em; }
 .pc-title { margin-top: 1.4rem; padding-bottom: 0.8rem; border-bottom: 1px solid #2a2f33; font-family: var(--font-display), var(--font-bangla), sans-serif; font-weight: 500; font-size: 1.9rem; text-transform: uppercase; }
@@ -255,4 +260,4 @@ html[lang="bn"] .pc-title { font-family: var(--font-bangla), sans-serif; text-tr
 .pc-actions .pc-primary { margin-top: 0; }
 .footer-tools { display: inline-flex; flex-wrap: wrap; gap: 1.25rem; align-items: center; }
 @media (max-width: 560px) { .pc-inner { padding: 1.5rem 1.25rem; } .pc-title { font-size: 1.6rem; } }
-@media (prefers-reduced-motion: reduce) { .privacy-center[open] { animation: none; } .pc-switch, .pc-switch span, .pc-expand svg { transition: none; } }
+@media (prefers-reduced-motion: reduce) { dialog.privacy-center[open], dialog.privacy-center::backdrop { animation: none; } .pc-switch, .pc-switch span, .pc-expand svg { transition: none; } }
