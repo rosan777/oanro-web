@@ -494,3 +494,24 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   dialog.privacy-center .pc-inner { padding-inline: 0.75rem; }
   dialog.privacy-center .pc-text { font-size: 0.72rem; }
 }
+
+/* Language menu (header) and country + language picker (footer) */
+.lang-menu, .region-picker { position: relative; }
+.lang-trigger { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border: 1px solid #2a2f33; border-radius: 999px; background: transparent; color: inherit; font: 500 0.78rem var(--font-label), monospace; letter-spacing: .04em; cursor: pointer; }
+.lang-trigger:hover, .lang-trigger[aria-expanded="true"] { border-color: #3ddc97; }
+.lang-list { position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; min-width: 168px; margin: 0; padding: 6px; list-style: none; background: #fff; color: #151515; border-radius: 12px; box-shadow: 0 16px 40px rgb(0 0 0 / .28); }
+.lang-list button { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 42px; padding: 8px 12px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: .92rem; text-align: left; cursor: pointer; }
+.lang-list button:hover, .lang-list button:focus-visible { background: #f0efe9; }
+.lang-list button[aria-checked="true"] { color: #1f513c; font-weight: 600; }
+.lang-list button[lang="bn"] { font-family: var(--font-bangla), sans-serif; }
+.bd-flag { flex: none; border-radius: 2px; }
+.region-trigger { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 2px; border: 0; background: transparent; color: inherit; font: inherit; font-size: .85rem; cursor: pointer; }
+.region-trigger:hover span, .region-trigger[aria-expanded="true"] span { text-decoration: underline; text-underline-offset: 3px; }
+.region-panel { position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 60; width: min(300px, 86vw); padding: 14px; background: #fff; color: #151515; border-radius: 12px; box-shadow: 0 16px 40px rgb(0 0 0 / .35); display: grid; gap: 10px; }
+.region-panel > p { margin: 0; font: 500 .7rem var(--font-label), monospace; letter-spacing: .08em; text-transform: uppercase; color: #686862; }
+.region-row { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: center; }
+.region-row small { grid-column: 2; color: #686862; font-size: .78rem; }
+.region-langs { display: flex; gap: 8px; }
+.region-langs button { flex: 1; min-height: 40px; border: 1px solid #deded8; border-radius: 8px; background: #fff; font: inherit; font-size: .9rem; cursor: pointer; }
+.region-langs button[lang="bn"] { font-family: var(--font-bangla), sans-serif; }
+.region-langs button[aria-pressed="true"] { background: #1f513c; border-color: #1f513c; color: #fff; }
