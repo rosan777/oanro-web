@@ -22,7 +22,8 @@ export function PrivacyCenter({ gaId }: { gaId: string }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [saved, setSaved] = useState<Consent | null>(null);
   const [draft, setDraft] = useState<ConsentChoice>(NONE);
-  const [open, setOpen] = useState<string | null>("essential");
+  const [open, setOpen] = useState<string | null>(null);
+  const [manage, setManage] = useState(false);
   const validGa = /^G-[A-Z0-9]+$/.test(gaId);
   const pathname = usePathname();
   const onPolicy = /\/privacy$/.test(pathname ?? "");
@@ -32,7 +33,7 @@ export function PrivacyCenter({ gaId }: { gaId: string }) {
     // The saved choice lives in the browser, so it can only be read after hydration.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSaved(current);
-    const show = () => { const c = readConsent(); setDraft(c ? { functional: c.functional, analytics: c.analytics, personalisation: c.personalisation } : NONE); if (!dialog.current?.open) dialog.current?.showModal(); };
+    const show = () => { const c = readConsent(); setDraft(c ? { functional: c.functional, analytics: c.analytics, personalisation: c.personalisation } : NONE); setManage(Boolean(c)); if (!dialog.current?.open) dialog.current?.show(); };
     window.addEventListener(OPEN_PRIVACY_EVENT, show);
     const sync = (e: Event) => setSaved((e as CustomEvent<Consent>).detail);
     window.addEventListener(CONSENT_EVENT, sync);
@@ -69,13 +70,10 @@ export function PrivacyCenter({ gaId }: { gaId: string }) {
       <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
       <Script id="ga4-init" strategy="afterInteractive">{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');`}</Script>
     </>}
-    <dialog ref={dialog} className="privacy-center" aria-labelledby="privacy-title" onCancel={e => { if (!readConsent()) e.preventDefault(); }}>
+    {/* A horizontal bar fixed to the bottom of the screen (not blocking the page). "Manage preferences" opens the details above it. */}
+    <dialog ref={dialog} className={`privacy-center${manage ? " is-managing" : ""}`} aria-labelledby="privacy-title">
       <div className="pc-inner">
-        <div className="pc-brand"><Image src="/logo.svg" alt="" width={34} height={34} /><span>OANRO</span></div>
-        <h2 id="privacy-title" className="pc-title">{t("Privacy preferences", "প্রাইভেসি পছন্দ")}</h2>
-        <p className="pc-text">{t("We use cookies and similar storage to run this website, understand how it's used, and — if you allow it — recommend products and power our shopping assistant. You choose what's on. ", "এই ওয়েবসাইট চালাতে, কীভাবে ব্যবহার হয় তা বুঝতে এবং — আপনি অনুমতি দিলে — পণ্য সাজেস্ট করতে ও শপিং অ্যাসিস্ট্যান্ট চালাতে আমরা কুকি ও এ ধরনের স্টোরেজ ব্যবহার করি। কী চালু থাকবে, আপনি ঠিক করুন। ")}<Link href="/privacy#cookies" onClick={() => dialog.current?.close()}>{t("Privacy & cookie policy", "প্রাইভেসি ও কুকি পলিসি")}</Link></p>
-        <button type="button" className="pc-btn pc-primary" onClick={() => finish(ALL)}>{t("Accept all", "সব মেনে নিন")}</button>
-        <h3 className="pc-sub">{t("Manage preferences", "পছন্দ ঠিক করুন")}</h3>
+        {manage && <div className="pc-manage">
         <ul className="pc-list">
           {rows.map(r => <li key={r.id}>
             <div className="pc-row">
@@ -85,9 +83,18 @@ export function PrivacyCenter({ gaId }: { gaId: string }) {
             <p id={`pc-${r.id}`} className="pc-desc" hidden={open !== r.id}>{r.text}</p>
           </li>)}
         </ul>
-        <div className="pc-actions">
-          <button type="button" className="pc-btn pc-primary" onClick={() => finish(draft)}>{t("Confirm my choices", "আমার পছন্দ সেভ করুন")}</button>
-          <button type="button" className="pc-btn pc-ghost" onClick={() => finish(NONE)}>{t("Only essential", "শুধু প্রয়োজনীয়")}</button>
+          <button type="button" className="pc-btn pc-primary pc-confirm" onClick={() => finish(draft)}>{t("Confirm my choices", "আমার পছন্দ সেভ করুন")}</button>
+        </div>}
+        <div className="pc-bar">
+          <div className="pc-copy">
+            <h2 id="privacy-title" className="pc-title"><Image src="/logo.svg" alt="" width={26} height={26} />{t("Privacy preferences", "প্রাইভেসি পছন্দ")}</h2>
+            <p className="pc-text">{t("We use cookies and similar storage to run this website, understand how it's used, and — if you allow it — recommend products and power our shopping assistant. You choose what's on. ", "এই ওয়েবসাইট চালাতে, কীভাবে ব্যবহার হয় তা বুঝতে এবং — আপনি অনুমতি দিলে — পণ্য সাজেস্ট করতে ও শপিং অ্যাসিস্ট্যান্ট চালাতে আমরা কুকি ও এ ধরনের স্টোরেজ ব্যবহার করি। কী চালু থাকবে, আপনি ঠিক করুন। ")}<Link href="/privacy#cookies" onClick={() => dialog.current?.close()}>{t("Privacy & cookie policy", "প্রাইভেসি ও কুকি পলিসি")}</Link></p>
+          </div>
+          <div className="pc-bar-actions">
+            <button type="button" className="pc-btn pc-primary" onClick={() => finish(ALL)}>{t("Accept all", "সব মেনে নিন")}</button>
+            <button type="button" className="pc-btn pc-ghost" onClick={() => finish(NONE)}>{t("Only essential", "শুধু প্রয়োজনীয়")}</button>
+            <button type="button" className="pc-btn pc-link" aria-expanded={manage} onClick={() => setManage(m => !m)}>{t("Manage preferences", "পছন্দ ঠিক করুন")}</button>
+          </div>
         </div>
       </div>
     </dialog>
