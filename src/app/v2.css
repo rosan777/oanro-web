@@ -196,7 +196,9 @@ html[lang="bn"] .v2-h1, html[lang="bn"] .v2-h2, html[lang="bn"] .v2-h3 { font-fa
 .v2-contact { margin-block: 4.5rem 0; border-radius: 28px; background: var(--brand); color: #eaf4ee; padding: 2.5rem; display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center; justify-content: space-between; }
 .v2-contact .v2-h2 { font-size: clamp(2rem, 3.6vw, 2.8rem); }
 .v2-contact p { margin-top: 0.6rem; color: #bfd8cb; }
-.v2-contact .button.light-button { border-radius: 999px; }
+/* Both contact buttons share one look: cream pill, deep-green text, green glow on hover. */
+.v2-contact .contact-actions .button { min-height: 56px; border-radius: 999px; border: 1px solid transparent; background: var(--planet); color: #153c2c; font-weight: 700; box-shadow: 0 10px 24px -14px rgb(0 0 0 / 0.5); transition: background 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s; }
+.v2-contact .contact-actions .button:hover, .v2-contact .contact-actions .button:focus-visible { background: var(--glow); color: var(--space); transform: translateY(-1px); box-shadow: 0 14px 28px -12px rgb(61 220 151 / 0.55); }
 
 /* ---------- FAQ on the new page ---------- */
 .home-faq h2 { font-family: var(--font-display), var(--font-bangla), sans-serif; text-transform: uppercase; font-weight: 600; }
