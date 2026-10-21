@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Barlow_Condensed, Geist, Hind_Siliguri, Instrument_Serif, JetBrains_Mono, Mrs_Saint_Delafield, Space_Grotesk } from "next/font/google";
+import { Barlow_Condensed, Geist, Hind_Siliguri, Instrument_Serif, JetBrains_Mono, Parisienne, Space_Grotesk } from "next/font/google";
 import { TrustBar } from "@/components/trust-bar";
 import { publicRules } from "@/lib/public-rules";
 import { Experience, Intro } from "@/components/experience";
@@ -30,7 +30,7 @@ const bangla = Hind_Siliguri({ variable: "--font-bangla", subsets: ["bengali"], 
 const display = Barlow_Condensed({ variable: "--font-display", subsets: ["latin"], weight: ["400", "500", "600"], display: "swap" });
 const body = Space_Grotesk({ variable: "--font-body", subsets: ["latin"], weight: ["400", "500", "700"], display: "swap" });
 const mono = JetBrains_Mono({ variable: "--font-label", subsets: ["latin"], weight: ["400", "500"], display: "swap" });
-const script = Mrs_Saint_Delafield({ variable: "--font-script", subsets: ["latin"], weight: "400", display: "swap" });
+const script = Parisienne({ variable: "--font-script", subsets: ["latin"], weight: "400", display: "swap" });
 const accent = Instrument_Serif({ variable: "--font-accent", subsets: ["latin"], weight: "400", style: ["normal", "italic"], display: "swap" });
 export async function generateMetadata(): Promise<Metadata> {
   const { locale, path } = await requestLocale();
