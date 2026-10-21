@@ -3,7 +3,7 @@ import { Reveal } from "@/components/experience";
 import { formatPrice } from "@/lib/catalog";
 import type { Locale } from "@/lib/locale-path";
 import type { CheckoutRules } from "@/lib/order-store";
-import { bnDigits, dayText } from "@/lib/public-rules";
+import { bnDigits, dayText } from "@/lib/text-format";
 
 // Home page trust strip, "How we work" steps and FAQ. Every number comes from the owner's admin rules.
 export function TrustStrip({ rules, locale }: { rules: CheckoutRules; locale: Locale }) {

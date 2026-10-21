@@ -7,7 +7,7 @@ import { ArrowUpRight } from "lucide-react";
 import Link from "@/components/locale-link";
 import { formatPrice } from "@/lib/catalog";
 import type { CheckoutRules } from "@/lib/order-store";
-import { bnDigits, dayText } from "@/lib/public-rules";
+import { bnDigits, dayText } from "@/lib/text-format";
 import { useProductLines, useProducts, useServices } from "./products-context";
 import { PriceTag, ProductPhoto } from "./shell";
 import { useLocale } from "./locale";
