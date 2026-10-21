@@ -37,6 +37,8 @@ export function ShopTabs({ showServices, chips }: { showServices: boolean; chips
   ];
   const [active, setActive] = useState(tabs[0]?.id ?? "");
   const [sub, setSub] = useState("all");
+  // Card photo chosen by hovering/tapping a colour dot (that colour's real photo; main photo if it has none).
+  const [swatch, setSwatch] = useState<Record<string, string | null | undefined>>({});
   if (!tabs.length) return null;
   const current = tabs.find(x => x.id === active) ?? tabs[0];
   const isTech = current.id === "tech";
@@ -69,9 +71,9 @@ export function ShopTabs({ showServices, chips }: { showServices: boolean; chips
           // Second photo for the hover reveal: the first colour photo that differs from the main one (real photos only).
           const alt = p.colors?.find(c => c.image && c.image !== p.image)?.image ?? null;
           return <Link key={p.slug} href={`/products/${p.slug}`} className={`v2-card v2-tilt${alt ? " has-alt" : ""}`} onMouseMove={tilt} onMouseLeave={untilt}>
-            <div className="v2-card-photo"><ProductPhoto position={p.position} image={p.image} label={pname} />{alt && <ProductPhoto position={p.position} image={alt} label="" className="v2-card-alt" />}{out && <span className="v2-badge v2-badge-dark">{t("Out of stock", "স্টক শেষ")}</span>}<span className="v2-card-cta">{out ? t("View details", "বিস্তারিত দেখুন") : p.sizes.length > 1 ? t("Choose size", "সাইজ বেছে নিন") : t("View & add to bag", "দেখুন ও ব্যাগে নিন")}</span></div>
+            <div className="v2-card-photo"><ProductPhoto position={p.position} image={swatch[p.slug] !== undefined ? swatch[p.slug] : p.image} label={pname} />{alt && <ProductPhoto position={p.position} image={alt} label="" className="v2-card-alt" />}{out && <span className="v2-badge v2-badge-dark">{t("Out of stock", "স্টক শেষ")}</span>}<span className="v2-card-cta">{out ? t("View details", "বিস্তারিত দেখুন") : p.sizes.length > 1 ? t("Choose size", "সাইজ বেছে নিন") : t("View & add to bag", "দেখুন ও ব্যাগে নিন")}</span></div>
             <div className="v2-card-body"><strong>{pname}</strong>
-              {p.colors && p.colors.length > 0 && <span className="v2-swatches" aria-label={t(`${p.colors.length} colours`, `${p.colors.length}টি রং`)}>{p.colors.slice(0, 5).map(col => <span key={col.id} style={{ background: col.hex }} title={bn ? col.bn : col.name} />)}</span>}
+              {p.colors && p.colors.length > 0 && <span className="v2-swatches" aria-label={t(`${p.colors.length} colours`, `${p.colors.length}টি রং`)}>{p.colors.slice(0, 5).map(col => <span key={col.id} className={swatch[p.slug] !== undefined && swatch[p.slug] === (col.image ?? p.image ?? null) ? "is-picked" : undefined} onMouseEnter={() => setSwatch(x => ({ ...x, [p.slug]: col.image ?? p.image ?? null }))} onClick={e => { e.preventDefault(); setSwatch(x => ({ ...x, [p.slug]: col.image ?? p.image ?? null })); }} style={{ background: col.hex }} title={bn ? col.bn : col.name} />)}</span>}
               <div className="v2-card-foot"><PriceTag price={p.price} compareAt={p.compareAt} locale={locale} /><small className={out ? "is-out" : "is-in"}>{out ? t("Out of stock", "স্টক শেষ") : t("In stock", "স্টকে আছে")}</small></div>
             </div>
           </Link>;
@@ -138,7 +140,7 @@ export function StudioTerminal() {
   return <section id="studio" className="v2-studio" aria-labelledby="studio-title"><div className="container v2-studio-grid">
     <div>
       <p className="v2-eyebrow">{t("OANRO Studio · Software, web, app & IT solutions", "OANRO স্টুডিও · সফটওয়্যার, ওয়েব, অ্যাপ ও আইটি সলিউশন")}</p>
-      <h2 id="studio-title" className="v2-h2 v2-on-dark">{bn ? <>আমরা বানাই।<br />আপনি ব্যবসা চালান।</> : <>We build it.<br />You run your business.</>}</h2>
+      <h2 id="studio-title" className="v2-h2 v2-on-dark v2-mask">{bn ? <>আমরা বানাই।<br />আপনি ব্যবসা চালান।</> : <>We build it.<br />You run your business.</>}</h2>
       <p className="v2-lede">{t("Software, websites, apps and IT solutions for businesses anywhere — a fixed quote, a live preview, launched on your own domain.", "যেকোনো জায়গার ব্যবসার জন্য সফটওয়্যার, ওয়েবসাইট, অ্যাপ ও আইটি সলিউশন — নির্দিষ্ট দাম, লাইভ প্রিভিউ, আপনার নিজের ডোমেইনে লঞ্চ।")}</p>
       <ul className="v2-service-rows">{services.map(s => <li key={s.slug}><Link href={`/services/${s.slug}`}>{bn && s.bn ? s.bn.title : s.title}<span>{t("Get a quote", "কোট নিন")} →</span></Link></li>)}</ul>
       <div className="v2-actions"><Link href="/contact" className="v2-btn v2-btn-light">{t("Get a free quote", "ফ্রি কোট নিন")} <ArrowUpRight size={17} /></Link></div>
@@ -155,7 +157,7 @@ export function StudioTerminal() {
       {row(stack)}
       {row(offer, true)}
     </div>
-  </div></section>;
+  </div><StudioProcess /><StudioDevices /></section>;
 }
 
 const MEANING = {
@@ -257,4 +259,28 @@ export function WhyBento({ rules, services }: { rules: CheckoutRules; services: 
       </Link>}
     </div>
   </section>;
+}
+
+/** "How we work": five steps; the line between them draws itself as you scroll. */
+function StudioProcess() {
+  const { locale } = useLocale(); const bn = locale === "bn";
+  const steps = bn
+    ? [["আলোচনা", "লক্ষ্য, বাজেট ও সময় বুঝে নিই"], ["ডিজাইন", "লেআউট দেখে আপনি অনুমোদন দেন"], ["তৈরি", "ফিচার বানাই, প্রতি সপ্তাহে প্রিভিউ"], ["লঞ্চ", "আপনার নিজের ডোমেইনে লাইভ"], ["সাপোর্ট", "আপডেট, ঠিকঠাক রাখা ও সাহায্য"]]
+    : [["Discover", "We learn your goals, budget and timeline"], ["Design", "You see the layout and approve it"], ["Build", "Features built, with a live preview every week"], ["Launch", "Live on your own domain"], ["Support", "Updates, upkeep and help after launch"]];
+  return <div className="container v2-process" aria-label={bn ? "আমরা কীভাবে কাজ করি" : "How we work"}>
+    <p className="v2-eyebrow">{bn ? "আমরা কীভাবে কাজ করি" : "How we work"}</p>
+    <ol className="v2-process-list">{steps.map(([title, text], i) => <li key={title}><span className="v2-process-dot">{bn ? bnDigits(String(i + 1)) : i + 1}</span><strong>{title}</strong><small>{text}</small></li>)}</ol>
+  </div>;
+}
+
+/** One website on three screens at once (laptop, tablet, phone), each slowly scrolling. A neutral sample layout, not a client project. */
+function StudioDevices() {
+  const { locale } = useLocale(); const bn = locale === "bn";
+  const page = <div className="v2-mock"><i className="m-nav" /><i className="m-hero" /><i className="m-row" /><i className="m-cards"><b /><b /><b /></i><i className="m-row" /><i className="m-hero m-alt" /><i className="m-cards"><b /><b /><b /></i><i className="m-row" /></div>;
+  return <div className="container v2-devices" role="img" aria-label={bn ? "একই ওয়েবসাইট ল্যাপটপ, ট্যাবলেট ও ফোনে" : "The same website on a laptop, a tablet and a phone"}>
+    <div className="v2-device is-laptop"><div className="v2-screen">{page}</div></div>
+    <div className="v2-device is-tablet"><div className="v2-screen">{page}</div></div>
+    <div className="v2-device is-phone"><div className="v2-screen">{page}</div></div>
+    <p className="v2-devices-note">{bn ? "প্রতিটি সাইট ল্যাপটপ, ট্যাবলেট ও ফোনে সমান সুন্দর — একবার বানাই, সব স্ক্রিনে চলে।" : "Every site we build works beautifully on laptop, tablet and phone — built once, ready for every screen."}</p>
+  </div>;
 }

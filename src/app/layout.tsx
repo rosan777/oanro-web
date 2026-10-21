@@ -9,7 +9,7 @@ import { LocaleProvider } from "@/components/locale";
 import { getSiteConfig } from "@/lib/site-config";
 import "./globals.css";
 import "./v2.css";
-import { FloatingHelp } from "@/components/site-extras";
+import { CustomCursor, FloatingHelp } from "@/components/site-extras";
 import { PrivacyCenter } from "@/components/privacy-center";
 import { storeLive } from "@/lib/seo";
 import { getApprovedPulseStories, getSectionState } from "@/lib/website-sections";
@@ -51,5 +51,5 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // The admin Services switch hides services everywhere (rows, menu, search), on top of the environment switch.
   const site = { ...config, services: config.services && sections.services };
   const [stories, catalog, serviceList, lines, popular] = await Promise.all([sections["global-pulse"] ? getApprovedPulseStories() : [], config.products ? getStoreProducts() : [], site.services ? getStoreServices() : [], config.products ? getStoreCollections() : [], config.products && process.env.DATABASE_URL ? popularSlugs() : []]);
-  return <html lang={locale} data-scroll-behavior="smooth" className={`${sans.variable} ${bangla.variable} ${accent.variable} ${display.variable} ${body.variable} ${mono.variable} ${script.variable}`}><body><JsonLd data={organizationJsonLd(config)} /><JsonLd data={websiteJsonLd()} /><LocaleProvider initialLocale={locale}><ProductsProvider products={catalog} services={serviceList} collections={lines} popular={popular}><Experience><a className="skip-link" href="#main-content">Skip to content</a><div id="top" />{config.intro && <Intro />}<TrustBar rules={rules} locale={locale} live={storeLive()} services={site.services} /><Header config={site} />{children}<GlobalPulse stories={stories} /><Footer config={site} /><FloatingHelp whatsappUrl={config.whatsappUrl} /><PrivacyCenter gaId={process.env.NEXT_PUBLIC_GA_ID ?? ""} /></Experience></ProductsProvider></LocaleProvider></body></html>;
+  return <html lang={locale} data-scroll-behavior="smooth" className={`${sans.variable} ${bangla.variable} ${accent.variable} ${display.variable} ${body.variable} ${mono.variable} ${script.variable}`}><body><JsonLd data={organizationJsonLd(config)} /><JsonLd data={websiteJsonLd()} /><LocaleProvider initialLocale={locale}><ProductsProvider products={catalog} services={serviceList} collections={lines} popular={popular}><Experience><a className="skip-link" href="#main-content">Skip to content</a><div id="top" />{config.intro && <Intro />}<TrustBar rules={rules} locale={locale} live={storeLive()} services={site.services} /><Header config={site} />{children}<GlobalPulse stories={stories} /><Footer config={site} /><CustomCursor /><FloatingHelp whatsappUrl={config.whatsappUrl} /><PrivacyCenter gaId={process.env.NEXT_PUBLIC_GA_ID ?? ""} /></Experience></ProductsProvider></LocaleProvider></body></html>;
 }

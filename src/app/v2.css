@@ -586,3 +586,83 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   .v2-tile-big .v2-tile-num { font-size: 3.4rem; }
 }
 @media (prefers-reduced-motion: reduce) { .v2-tilt, .v2-tile, .v2-card-photo .product-photo { transition: none; transform: none !important; } }
+
+/* ---------- 4. Colour dots switch the card photo ---------- */
+.v2-card .v2-swatches span { cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.v2-card .v2-swatches span:hover, .v2-card .v2-swatches span.is-picked { transform: scale(1.25); box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--brand); }
+
+/* ---------- 5. Smooth page change: each new page fades and rises in ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  #main-content { animation: page-in .45s cubic-bezier(.2,.7,.2,1) both; }
+}
+@keyframes page-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ---------- 6. Small feedback: bag count pops, "Added ✓" on the button ---------- */
+.bag-count { animation: bag-pop .45s cubic-bezier(.3,1.6,.5,1); }
+@keyframes bag-pop { 0% { transform: scale(.4); } 60% { transform: scale(1.3); } 100% { transform: scale(1); } }
+.add-to-bag.is-added { background: #2f7a57; border-color: #2f7a57; }
+.added-tick { animation: tick-in .35s ease-out; }
+@keyframes tick-in { from { transform: scale(0) rotate(-30deg); } to { transform: none; } }
+
+/* ---------- 7. How we work: the line draws itself while scrolling ---------- */
+.v2-process { margin-top: 4rem; }
+.v2-process-list { position: relative; list-style: none; margin: 1.5rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; }
+.v2-process-list::before, .v2-process-list::after { content: ""; position: absolute; left: 22px; right: 22px; top: 21px; height: 2px; background: #22292d; }
+.v2-process-list::after { background: linear-gradient(90deg, var(--glow), #9ff0c9); transform-origin: left; transform: scaleX(1); }
+.v2-process-list li { position: relative; z-index: 1; display: grid; gap: .45rem; }
+.v2-process-dot { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--space); border: 2px solid var(--glow); color: var(--glow); font: 600 .95rem var(--font-label), monospace; }
+.v2-process-list strong { font-family: var(--font-display), var(--font-bangla), sans-serif; font-weight: 500; font-size: 1.35rem; text-transform: uppercase; color: #ededE6; }
+.v2-process-list small { color: #a9afab; font-size: .88rem; line-height: 1.5; }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .v2-process-list::after { animation: line-draw linear both; animation-timeline: view(); animation-range: entry 20% cover 55%; }
+    .v2-process-list li { animation: v2-rise-in linear both; animation-timeline: view(); animation-range: entry 10% entry 70%; }
+  }
+}
+@keyframes line-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (max-width: 767px) {
+  .v2-process-list { grid-template-columns: 1fr; gap: 1.1rem; }
+  .v2-process-list::before, .v2-process-list::after { left: 21px; right: auto; top: 22px; bottom: 22px; width: 2px; height: auto; }
+  .v2-process-list::after { transform-origin: top; }
+  @keyframes line-draw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  .v2-process-list li { grid-template-columns: 44px 1fr; column-gap: .9rem; align-items: center; }
+  .v2-process-list li small { grid-column: 2; }
+}
+
+/* ---------- 8. One site on three screens ---------- */
+.v2-devices { position: relative; display: grid; grid-template-columns: 1fr; justify-items: center; margin-top: 4rem; padding-bottom: 1rem; }
+.v2-device { background: #15191b; border: 1px solid #2a3034; box-shadow: 0 30px 60px -25px rgb(0 0 0 / .7); overflow: hidden; }
+.v2-screen { height: 100%; overflow: hidden; background: #f6f5f0; }
+.v2-device.is-laptop { width: min(640px, 92%); aspect-ratio: 16 / 10; border-radius: 14px; padding: 10px; }
+.v2-device.is-tablet { position: absolute; left: calc(50% - min(380px, 46vw)); bottom: 0; width: min(200px, 30%); aspect-ratio: 3 / 4; border-radius: 16px; padding: 8px; }
+.v2-device.is-phone { position: absolute; right: calc(50% - min(360px, 45vw)); bottom: -10px; width: min(110px, 18%); aspect-ratio: 9 / 19; border-radius: 18px; padding: 6px; }
+.v2-device .v2-screen { border-radius: 6px; }
+.v2-mock { display: grid; gap: 8px; padding: 8px; animation: mock-scroll 14s ease-in-out infinite alternate; }
+.v2-mock i { display: block; border-radius: 4px; background: #dedcd4; }
+.v2-mock .m-nav { height: 10px; background: #07090a; }
+.v2-mock .m-hero { height: 70px; background: linear-gradient(135deg, #07090a, #1f513c); }
+.v2-mock .m-alt { background: linear-gradient(135deg, #1f513c, #3ddc97); }
+.v2-mock .m-row { height: 8px; width: 70%; }
+.v2-mock .m-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: none; }
+.v2-mock .m-cards b { display: block; height: 40px; border-radius: 4px; background: #fff; border: 1px solid #e3e1da; }
+.is-phone .v2-mock .m-cards { grid-template-columns: 1fr; }
+@keyframes mock-scroll { from { transform: translateY(0); } to { transform: translateY(-40%); } }
+.v2-devices-note { margin: 2rem auto 0; max-width: 34rem; text-align: center; color: #a9afab; }
+@media (max-width: 640px) { .v2-device.is-tablet { left: 2%; } .v2-device.is-phone { right: 2%; } }
+
+/* ---------- 9. Headline with a slow light moving through the letters ---------- */
+.v2-mask { background: linear-gradient(100deg, #ededE6 0%, #ededE6 35%, #3ddc97 50%, #ededE6 65%, #ededE6 100%); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: mask-sweep 7s ease-in-out infinite; }
+@keyframes mask-sweep { 0% { background-position: 100% 0; } 100% { background-position: -150% 0; } }
+
+/* ---------- 11. Desktop cursor ring ---------- */
+.cursor-ring { position: fixed; left: -16px; top: -16px; z-index: 9999; width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid #3ddc97; pointer-events: none; transition: width .2s, height .2s, left .2s, top .2s, background .2s, opacity .2s; mix-blend-mode: difference; }
+.cursor-ring.is-hover { width: 54px; height: 54px; left: -27px; top: -27px; background: rgb(61 220 151 / .18); }
+.cursor-ring.is-off { opacity: 0; }
+
+/* ---------- 12. Section headings rise in as you reach them ---------- */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    #main-content .v2-h2:not(.v2-hero *):not(.v2-mask), #main-content .v2-eyebrow:not(.v2-hero *) { animation: v2-rise-in linear both; animation-timeline: view(); animation-range: entry 0% entry 55%; }
+  }
+}
+@media (prefers-reduced-motion: reduce) { .v2-mask, .v2-mock, .bag-count, .added-tick { animation: none; } }
