@@ -1,3 +1,2 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-export function AdminBack() { return <Link className="back-link" href="/admin"><ArrowLeft size={16} />All sections</Link>; }
+/** The side menu (AdminShell) now handles navigation, so the old "All sections" back link renders nothing. */
+export function AdminBack() { return null; }
