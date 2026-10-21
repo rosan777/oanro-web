@@ -17,6 +17,7 @@ export function menuFor(access: Access, counts: AdminCounts): MenuGroup[] {
     ] },
     { label: "Store", items: [
       { href: "/admin/sections", label: "Products & sections", need: [...productPermissions, "services.manage", "pulse.manage", "site.manage"] },
+      { href: "/admin/published", label: "Published products", need: [...productPermissions] },
       { href: "/admin/services", label: "Services", need: ["services.manage", "site.manage"] },
       { href: "/admin/campaigns", label: "Campaigns", need: ["campaigns.manage"] },
       { href: "/admin/pulse", label: "Global Pulse", need: ["pulse.manage", "site.manage"] },

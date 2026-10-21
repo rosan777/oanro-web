@@ -37,7 +37,7 @@ export const POST = adminHandler(anyProduct, async (actor, data, access) => {
   await createProduct(catalogDb(), actor, input, photoField(data.image) ?? null);
   return respond();
 });
-// Full edit ({ id, ...fields, image? }), quick status ({ id, status }) or quick stock ({ id, stock: 0 | null }).
+// Full edit ({ id, ...fields, image? }), quick status ({ id, status }) or quick stock ({ id, stock: number | null }).
 export const PATCH = adminHandler(anyProduct, async (actor, data, access) => {
   const id = requireUuid(data.id); const keys = Object.keys(data);
   if (data.action === "color-image") {
@@ -51,8 +51,9 @@ export const PATCH = adminHandler(anyProduct, async (actor, data, access) => {
     await setProductStatus(catalogDb(), actor, id, data.status as ProductStatus);
   } else if (keys.length === 2 && "stock" in data) {
     deny(can(access, "manage"));
-    if (data.stock !== 0 && data.stock !== null) throw new ProductInputError("stock");
-    await setProductStock(catalogDb(), actor, id, data.stock);
+    // 0 = out of stock, null = unlimited, or an exact count.
+    if (data.stock !== null && !(Number.isInteger(data.stock) && (data.stock as number) >= 0 && (data.stock as number) <= 1_000_000)) throw new ProductInputError("stock");
+    await setProductStock(catalogDb(), actor, id, data.stock as number | null);
   } else {
     const input = parseProductInput(data), current = await currentStatus(id);
     // Draft writers may only touch drafts; live and hidden products need full product rights.

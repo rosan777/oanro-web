@@ -120,3 +120,20 @@ a.today-stat:hover { border-color: var(--brand); }
 .admin-side-group .admin-side-link.is-on::before { opacity: 1; top: 6px; bottom: 6px; }
 .admin-side-group .admin-side-count { background: var(--tone); color: #07090a; }
 @media (prefers-reduced-motion: reduce) { .admin-side-group p::before { animation: none; } }
+
+/* Published products list */
+.pub-wrap { margin-top: 1.25rem; }
+.pub-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .75rem; }
+.pub-bar b.is-out { color: #b45309; } .pub-bar b.is-low { color: #a16207; }
+.pub-bar input { min-width: 240px; padding: .55rem .75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+.pub-msg { min-height: 1.4em; margin: .6rem 0; font-size: .85rem; color: var(--brand); }
+.pub-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pub-row { display: grid; grid-template-columns: 34px minmax(0, 1.6fr) 150px minmax(0, 2fr) auto; align-items: center; gap: .9rem; padding: .8rem 1rem; border: 1px solid var(--line); border-left: 4px solid #3ddc97; border-radius: 10px; background: var(--surface); }
+.pub-row.is-out { border-left-color: #d97706; } .pub-row.is-low { border-left-color: #eab308; }
+.pub-no { font: 600 .85rem var(--font-label), monospace; color: var(--muted); }
+.pub-main { display: grid; gap: 2px; min-width: 0; } .pub-main strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .pub-main small { color: var(--muted); }
+.pub-state { font-size: .8rem; font-weight: 600; color: #1f513c; } .pub-state.is-out { color: #b45309; } .pub-state.is-low { color: #a16207; }
+.pub-stock { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pub-stock input { width: 84px; padding: .45rem .55rem; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+.pub-links { display: flex; gap: .8rem; font-size: .85rem; } .pub-links a { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 900px) { .pub-row { grid-template-columns: 30px minmax(0, 1fr) auto; } .pub-stock, .pub-state { grid-column: 2 / -1; } .pub-links { grid-column: 2 / -1; } }
