@@ -2,7 +2,7 @@ import Link from "@/components/locale-link";
 import { formatPrice } from "@/lib/catalog";
 import type { Locale } from "@/lib/locale-path";
 import type { CheckoutRules } from "@/lib/order-store";
-import { bnDigits, dayText } from "@/lib/public-rules";
+import { bnDigits, dayText } from "@/lib/text-format";
 
 // Rotating announcement bar above the header. Every number comes from the owner's admin rules.
 export function TrustBar({ rules, locale, live, services }: { rules: CheckoutRules; locale: Locale; live: boolean; services: boolean }) {
