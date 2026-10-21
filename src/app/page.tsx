@@ -43,7 +43,11 @@ export default async function Home() {
       <span className="is-bkash"><Localized en="bKash" bn="বিকাশ" /></span>
       <span className="is-nagad"><Localized en="Nagad" bn="নগদ" /></span>
       {rules.returnDays > 0 && <span>{bn ? `${bnDigits(String(rules.returnDays))} দিনের মধ্যে সমাধান` : `Problem? Fixed within ${rules.returnDays} days`}</span>}
-      <span><Localized en="Licensed business · 002039" bn="লাইসেন্সপ্রাপ্ত · ০০২০৩৯" /></span>
+      <span><Localized en="Hand-picked products" bn="বাছাই করা পণ্য" /></span>
+      {config.services && <span><Localized en="Software, website & app development" bn="সফটওয়্যার, ওয়েবসাইট ও অ্যাপ ডেভেলপমেন্ট" /></span>}
+      {config.services && <span><Localized en="Working with clients worldwide" bn="বিশ্বজুড়ে ক্লায়েন্টদের সাথে কাজ" /></span>}
+      <span><Localized en="A real person replies" bn="উত্তর দেন একজন মানুষ" /></span>
+      <span><Localized en="Shop in Bangla or English" bn="বাংলা বা ইংরেজিতে কেনাকাটা" /></span>
     </>} />}
 
     {config.products && <div className="container v2-help-row">
