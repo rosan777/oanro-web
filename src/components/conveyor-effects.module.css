@@ -14,8 +14,8 @@
 .flip[data-allowed="true"] .rotor { animation: flip-cycle 18s ease-in-out infinite; animation-delay: var(--flip-delay, 0s); }
 .shelf .flip[data-allowed="true"] .rotor { animation-duration: 13.3s; }
 .front { position: relative; }
-/* Photo side stays ~64% of the cycle, the text side ~20%, the turns take the rest. */
-@keyframes flip-cycle { 0%, 33% { transform: rotateY(0deg); } 41%, 61% { transform: rotateY(180deg); } 69%, 100% { transform: rotateY(360deg); } }
+/* Photo side stays ~76% of the cycle, the text side ~12%, the turns take the rest. */
+@keyframes flip-cycle { 0%, 38% { transform: rotateY(0deg); } 44%, 56% { transform: rotateY(180deg); } 62%, 100% { transform: rotateY(360deg); } }
 /* Pause the entire shelf and flip together when somebody is reading it. */
 :global(.conveyor:hover) .rotor, :global(.conveyor:has(:focus-visible)) .rotor, .shelf:hover .rotor, .shelf:has(:focus-visible) .rotor { animation-play-state: paused; }
 .flip[data-allowed="false"] .rotor { animation: none; transform: none; }
