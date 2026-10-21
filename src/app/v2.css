@@ -39,7 +39,7 @@ html[lang="bn"] .v2-h1, html[lang="bn"] .v2-h2, html[lang="bn"] .v2-h3 { font-fa
 @keyframes v2-announce { 0%, 20% { transform: translateY(0); } 25%, 45% { transform: translateY(calc(-38px * min(1, var(--n) - 1))); } 50%, 70% { transform: translateY(calc(-38px * min(2, var(--n) - 1))); } 75%, 95% { transform: translateY(calc(-38px * min(3, var(--n) - 1))); } 100% { transform: translateY(calc(-38px * var(--n))); } }
 
 /* ---------- Header: dark, sticky ---------- */
-.site-header { background: rgb(7 9 10 / 0.64); -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); color: #ededE6; border-bottom-color: rgb(255 255 255 / 0.06); }
+.site-header { background: rgb(7 9 10 / 0.8); -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3); color: #ededE6; border-bottom-color: rgb(255 255 255 / 0.06); }
 .site-header .brand span { letter-spacing: 0.22em; font-weight: 700; }
 .nav-group > button { color: #b7bcb8; font-size: 0.92rem; }
 .nav-group > button:hover, .nav-group > button[aria-expanded="true"] { color: var(--glow); }
