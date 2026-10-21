@@ -145,7 +145,7 @@ html[lang="bn"] .v2-h1, html[lang="bn"] .v2-h2, html[lang="bn"] .v2-h3 { font-fa
 .v2-brand-copy p.v2-body { margin-top: 1rem; font-size: 1.12rem; line-height: 1.7; color: #3f4542; }
 /* Brand signature: a handwritten executive-style sign-off with a fine pen stroke underneath. */
 .v2-sign { margin-top: 1.4rem; line-height: 1; }
-.v2-sign span { position: relative; display: inline-block; padding: 0 0.6rem 0.5rem 0; font-family: var(--font-script), cursive; font-size: clamp(2.6rem, 4.6vw, 3.4rem); color: var(--brand); letter-spacing: 0.01em; transform: rotate(-3deg); transform-origin: left center; }
+.v2-sign span { position: relative; display: inline-block; padding: 0 0.6rem 0.5rem 0; font-family: var(--font-script), cursive; font-size: clamp(2.1rem, 3.6vw, 2.7rem); color: var(--brand); letter-spacing: 0.02em; transform: rotate(-3deg); transform-origin: left center; }
 .v2-sign span::after { content: ""; position: absolute; left: 6%; right: 0; bottom: 0.1rem; height: 1.5px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--brand) 18%, var(--brand) 70%, transparent); transform: rotate(-1.5deg); opacity: 0.7; }
 
 /* ---------- Click a letter (values) ---------- */
