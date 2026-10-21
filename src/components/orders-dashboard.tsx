@@ -8,6 +8,7 @@ import { couriers } from "@/lib/order-input";
 import { stageText } from "@/lib/order-stages";
 import { nextStages } from "@/lib/order-flow";
 import { formatDhaka } from "@/lib/dhaka-time";
+import { ChevronDown } from "lucide-react";
 
 type Filter = "pending" | "delivery" | "paid" | "cod" | "rejected" | "all";
 const statusText = { pending: "Pending check", paid: "Paid", rejected: "Rejected" } as const;
@@ -93,19 +94,25 @@ function RulesCard({ rules, busy, save }: { rules: Rules; busy: boolean; save: (
     <div className="product-form-actions"><button className="btn btn-primary" disabled={busy}><ActionIcon name="save" />Save rules</button><a className="btn btn-neutral" href="/delivery-returns" target="_blank" rel="noreferrer"><ActionIcon name="route" />View public page</a></div>
   </form>;
 }
-export function OrdersDashboard({ initial, numbers: initialNumbers, rules: initialRules, canReview, canCod, isOwner }: { initial: AdminOrder[]; numbers: { bkash: string; nagad: string }; rules: Rules; canReview: boolean; canCod: boolean; isOwner: boolean }) {
+/** Order code, customer, phone or Transaction ID contains the search text. */
+const found = (o: AdminOrder, q: string) => !q || [o.code, o.customerName, o.phone, o.trxId, o.payerNumber, o.accountEmail].some(v => (v ?? "").toLowerCase().includes(q));
+/** mode "orders": the order list. mode "settings": the owner's payment numbers and delivery rules (own page in the side menu). */
+export function OrdersDashboard({ initial, numbers: initialNumbers, rules: initialRules, canReview, canCod, isOwner, mode = "orders", openId, query = "" }: { initial: AdminOrder[]; numbers: { bkash: string; nagad: string }; rules: Rules; canReview: boolean; canCod: boolean; isOwner: boolean; mode?: "orders" | "settings"; openId?: string; query?: string }) {
   const [rules, setRules] = useState(initialRules);
   const mailTest = useAdminCall<{ sentTo: string }>("/api/admin/orders", {}, () => {});
   const [orders, setOrders] = useState(initial);
   const [numbers, setNumbers] = useState(initialNumbers);
-  const [filter, setFilter] = useState<Filter>("pending");
+  const [filter, setFilter] = useState<Filter>(query || (openId && initial.find(o => o.id === openId)?.status !== "pending") ? "all" : "pending");
+  const [search, setSearch] = useState(query);
+  const [open, setOpen] = useState<string | null>(openId ?? initial.find(o => o.status === "pending" && (canCod || o.paymentType !== "cod"))?.id ?? null);
   const [rejecting, setRejecting] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const { busy, notice, call } = useAdminCall<{ orders: AdminOrder[]; numbers: { bkash: string; nagad: string }; rules: Rules }>("/api/admin/orders", { bkash: "bKash number", nagad: "Nagad number", decision: "Decision", shippingCost: "Courier charge", deliveryCharge: "Delivery charge", codLimit: "Cash on delivery limit", dhakaDays: "Inside Dhaka (days, like 1-3)", outsideDays: "Outside Dhaka (days, like 3-5)", returnDays: "Report a problem within (0–30 days)" }, data => { setOrders(data.orders); setNumbers(data.numbers); setRules(data.rules); });
-  const shown = orders.filter(o => matches(o, filter));
+  const term = search.trim().toLowerCase();
+  const shown = orders.filter(o => matches(o, filter) && found(o, term));
   const count = (f: Filter) => orders.filter(o => matches(o, f)).length;
   return <section className="admin-sections orders-dashboard">
-    {isOwner && <form className="pulse-form product-form payment-numbers" onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); void call("PUT", { bkash: f.get("bkash"), nagad: f.get("nagad") }, "Payment numbers saved. Customers now see these at checkout."); }}>
+    {mode === "settings" && isOwner && <form className="pulse-form product-form payment-numbers" onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); void call("PUT", { bkash: f.get("bkash"), nagad: f.get("nagad") }, "Payment numbers saved. Customers now see these at checkout."); }}>
       <h2>Your payment numbers</h2>
       <small>Customers send money to these personal numbers. Leave one empty to hide that option. Only you (the owner) can change them.</small>
       <div className="product-form-row">
@@ -117,12 +124,19 @@ export function OrdersDashboard({ initial, numbers: initialNumbers, rules: initi
       {mailTest.notice && <small role="status">{mailTest.notice}</small>}
       <small>New orders email you (and staff who can approve payments). Customers get an email when their payment is confirmed or rejected and at each delivery step.</small>
     </form>}
-    {isOwner && <RulesCard rules={rules} busy={busy} save={body => void call("PUT", body, "Rules saved. Checkout and the Delivery & returns page now show the new values.")} />}
-    {!numbers.bkash && !numbers.nagad && <p className="admin-callout">Checkout is closed until a bKash or Nagad number is saved.</p>}
+    {mode === "settings" && isOwner && <RulesCard rules={rules} busy={busy} save={body => void call("PUT", body, "Rules saved. Checkout and the Delivery & returns page now show the new values.")} />}
+    {!numbers.bkash && !numbers.nagad && <p className="admin-callout">Checkout is closed until a bKash or Nagad number is saved.{mode === "orders" && isOwner && <> <a href="/admin/settings">Add one in Payment &amp; delivery</a>.</>}</p>}
+    {mode === "orders" && <>
+    <div className="order-search"><input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search order code, name, phone or Transaction ID" aria-label="Search orders" maxLength={60} /></div>
     <div className="order-filters" role="tablist" aria-label="Filter orders">{(["pending", "delivery", "paid", ...(canCod ? ["cod"] : []), "rejected", "all"] as Filter[]).map(f => <button key={f} type="button" role="tab" aria-selected={filter === f} onClick={() => setFilter(f)}>{filterText[f]} ({count(f)})</button>)}</div>
-    {!shown.length && <p>No orders here.</p>}
-    <ul className="admin-order-list">{shown.map(o => <li key={o.id} className={`order-card is-${o.status}`}>
-      <div className="order-head"><strong>{o.code}</strong><span className="order-badges">{o.deliveryStatus && <span className={`order-status is-delivery is-${o.deliveryStatus}`}>{stageText[o.deliveryStatus][0]}</span>}{o.paymentType === "cod" && <span className="order-status is-cod">COD</span>}<span className={`order-status is-${o.status}`}>{statusText[o.status]}</span></span></div>
+    {!shown.length && <p>{term ? "No orders match your search." : "No orders here."}</p>}
+    <ul className="admin-order-list">{shown.map(o => <li key={o.id} className={`order-card is-${o.status}${open === o.id ? " is-open" : ""}`}>
+      <button type="button" className="order-row" aria-expanded={open === o.id} aria-controls={`order-${o.id}`} onClick={() => setOpen(open === o.id ? null : o.id)}>
+        <code>{o.code}</code><span>{o.customerName}<br /><small>{formatDhaka(o.createdAt, "en")}</small></span><strong>{formatPrice(o.total)}</strong><span>{o.method === "bkash" ? "bKash" : "Nagad"}</span>
+        <span className="order-badges">{o.deliveryStatus && <span className={`order-status is-delivery is-${o.deliveryStatus}`}>{stageText[o.deliveryStatus][0]}</span>}{o.paymentType === "cod" && <span className="order-status is-cod">COD</span>}<span className={`order-status is-${o.status}`}>{statusText[o.status]}</span></span>
+        <ChevronDown size={18} aria-hidden="true" />
+      </button>
+      {open === o.id && <div className="order-body" id={`order-${o.id}`}>
       <dl className="order-facts">
         <div><dt>Customer</dt><dd>{o.customerName} <small>({o.accountName} · {o.accountEmail})</small></dd></div>
         <div><dt>Phone</dt><dd><a href={`tel:${o.phone}`}>{o.phone}</a></dd></div>
@@ -155,7 +169,9 @@ export function OrdersDashboard({ initial, numbers: initialNumbers, rules: initi
       {canReview && o.status === "paid" && <Refund order={o} busy={busy} act={(body, done) => call("PATCH", { id: o.id, action: "refund", ...body }, done)} />}
       {!canReview && o.refundAmount > 0 && <p className="small-note">Refunded {formatPrice(o.refundAmount)}{o.refundNote ? `: ${o.refundNote}` : ""}</p>}
       {canReview && o.status === "paid" && <DeliveryControls order={o} busy={busy} act={(body, done) => call("PATCH", { id: o.id, action: "delivery", ...body }, done)} />}
+      </div>}
     </li>)}</ul>
+    </>}
     <p role="status" aria-live="polite">{notice}</p>
   </section>;
 }
