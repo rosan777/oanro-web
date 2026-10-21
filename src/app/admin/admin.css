@@ -97,3 +97,7 @@ a.today-stat:hover { border-color: var(--brand); }
 .order-body { padding: 4px 14px 16px; }
 @media (max-width: 640px) { .order-row { grid-template-columns: 1fr auto; } .order-row > :nth-child(3), .order-row > :nth-child(4) { display: none; } .order-row > .order-badges { grid-column: 1 / -1; } }
 .admin-order-list .order-card { padding: 0; gap: 0; overflow: hidden; }
+.customer-email { display: grid; gap: .8rem; margin-top: 1.5rem; }
+.customer-email label { display: grid; gap: .35rem; font-weight: 500; }
+.customer-email input, .customer-email textarea { width: 100%; padding: .6rem .75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit; background: #fff; }
+.customer-email textarea { resize: vertical; min-height: 140px; }

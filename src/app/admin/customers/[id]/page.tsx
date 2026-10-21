@@ -7,6 +7,7 @@ import { formatDhaka } from "@/lib/dhaka-time";
 import { formatPrice } from "@/lib/catalog";
 import { AdminBack } from "@/components/admin-nav";
 import { CustomerDelete } from "@/components/customer-delete";
+import { CustomerEmail } from "@/components/customer-email";
 export const dynamic = "force-dynamic";
 const orderState = (o: { status: string; delivery: string | null; paymentType: string; collected: Date | null }) =>
   o.status === "pending" ? "Waiting for review" : o.status === "rejected" ? "Rejected" : o.delivery === "delivered" ? (o.paymentType === "cod" && !o.collected ? "Delivered, cash not received" : "Delivered") : o.delivery === "returned" ? "Returned" : o.delivery ? `Approved, ${o.delivery.replaceAll("_", " ")}` : "Approved";
@@ -33,6 +34,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
     {!c.deleted && <section className="profile-card"><h2>Inquiries</h2>{!c.inquiries.length ? <p className="report-empty">No inquiries from this email.</p> : <ul className="customer-inquiries">{c.inquiries.map(i =>
       <li key={i.id}><strong>{i.subject || i.kind}</strong> <small>{formatDhaka(i.createdAt, "en", { year: true })} / {i.status}</small><p>{i.message.slice(0, 240)}</p></li>)}</ul>}
       {access.permissions.has("leads.read") && c.inquiries.length > 0 && <Link className="text-link" href="/admin/leads">Open inquiries</Link>}</section>}
+    {!c.deleted && access.owner && <CustomerEmail customerId={c.user.id} name={c.user.name} />}
     {!c.deleted && access.permissions.has("customers.delete") && <CustomerDelete id={c.user.id} name={c.user.name} blockers={c.blockers} />}
   </main>;
 }
