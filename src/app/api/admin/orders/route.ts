@@ -9,6 +9,7 @@ import { notifyCustomer, sendTestEmail } from "@/lib/order-notify";
 import { deliveryStages, type DeliveryStage } from "@/lib/db/schema";
 import { ProductInputError } from "@/lib/product-input";
 import { ProductStoreError } from "@/lib/product-store";
+import { sendReviewRequest } from "@/lib/marketing";
 import { catalogDb } from "@/lib/store-products";
 import { storefrontChanged } from "@/lib/storefront-cache";
 import { parseMoney, setRefund, setShippingCost } from "@/lib/report-store";
@@ -35,6 +36,8 @@ export const PATCH = adminHandler("orders.manage", async (actor, data, access) =
     await updateDelivery(catalogDb(), actor, requireUuid(data.id), data.stage as DeliveryStage, { courier: str(data.courier), trackingCode: str(data.trackingCode), note: str(data.note) });
     const stage = data.stage as DeliveryStage, orderId = requireUuid(data.id);
     if (stage !== "processing") after(() => notifyCustomer(catalogDb(), orderId, stage).catch(() => {}));
+    // A day after delivery is better for feedback, but sending right away keeps this simple and reliable (no scheduler needed).
+    if (stage === "delivered") after(() => sendReviewRequest(catalogDb(), orderId).catch(() => {}));
     return respond(access);
   }
   if (data.action === "shipping-cost") {

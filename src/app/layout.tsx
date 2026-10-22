@@ -11,11 +11,15 @@ import "./globals.css";
 import "./v2.css";
 import { CustomCursor, FloatingHelp } from "@/components/site-extras";
 import { PrivacyCenter } from "@/components/privacy-center";
+import { storefrontCached } from "@/lib/storefront-cache";
+import { activeBanners, listBanners } from "@/lib/banner-store";
+import { getSiteContent } from "@/lib/site-content";
+import { SiteContentProvider } from "@/components/site-content-context";
 import { storeLive } from "@/lib/seo";
 import { getApprovedPulseStories, getSectionState } from "@/lib/website-sections";
 import { GlobalPulse } from "@/components/global-pulse";
 import { ProductsProvider } from "@/components/products-context";
-import { getStoreCollections, getStoreProducts, getStoreServices } from "@/lib/store-products";
+import { catalogDb, getStoreCollections, getStoreProducts, getStoreServices } from "@/lib/store-products";
 import { siteUrl } from "@/lib/site-url";
 import { popularSlugs } from "@/lib/product-views";
 import { JsonLd } from "@/components/json-ld";
@@ -47,9 +51,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const config = getSiteConfig();
   const { locale } = await requestLocale();
   const rules = await publicRules();
+  const content = await getSiteContent();
+  // Owner messages for the top bar (cached with the storefront; dates compared now, so they switch on and off on time).
+  const custom = activeBanners(process.env.DATABASE_URL ? await storefrontCached("banners", () => listBanners(catalogDb()))().catch(() => []) : [], locale);
   const sections = await getSectionState();
   // The admin Services switch hides services everywhere (rows, menu, search), on top of the environment switch.
   const site = { ...config, services: config.services && sections.services };
   const [stories, catalog, serviceList, lines, popular] = await Promise.all([sections["global-pulse"] ? getApprovedPulseStories() : [], config.products ? getStoreProducts() : [], site.services ? getStoreServices() : [], config.products ? getStoreCollections() : [], config.products && process.env.DATABASE_URL ? popularSlugs() : []]);
-  return <html lang={locale} data-scroll-behavior="smooth" className={`${sans.variable} ${bangla.variable} ${accent.variable} ${display.variable} ${body.variable} ${mono.variable} ${script.variable}`}><body><JsonLd data={organizationJsonLd(config)} /><JsonLd data={websiteJsonLd()} /><LocaleProvider initialLocale={locale}><ProductsProvider products={catalog} services={serviceList} collections={lines} popular={popular}><Experience><a className="skip-link" href="#main-content">Skip to content</a><div id="top" />{config.intro && <Intro />}<TrustBar rules={rules} locale={locale} live={storeLive()} services={site.services} /><Header config={site} />{children}<GlobalPulse stories={stories} /><Footer config={site} /><CustomCursor /><FloatingHelp whatsappUrl={config.whatsappUrl} /><PrivacyCenter gaId={process.env.NEXT_PUBLIC_GA_ID ?? ""} /></Experience></ProductsProvider></LocaleProvider></body></html>;
+  return <html lang={locale} data-scroll-behavior="smooth" className={`${sans.variable} ${bangla.variable} ${accent.variable} ${display.variable} ${body.variable} ${mono.variable} ${script.variable}`}><body><JsonLd data={organizationJsonLd(config)} /><JsonLd data={websiteJsonLd()} /><LocaleProvider initialLocale={locale}><ProductsProvider products={catalog} services={serviceList} collections={lines} popular={popular}><Experience><SiteContentProvider value={content}><a className="skip-link" href="#main-content">Skip to content</a><div id="top" />{config.intro && <Intro />}<TrustBar rules={rules} locale={locale} live={storeLive()} services={site.services} custom={custom} /><Header config={site} />{children}<GlobalPulse stories={stories} /><Footer config={site} />{content.features.cursorRing && <CustomCursor />}<FloatingHelp whatsappUrl={config.whatsappUrl} /><PrivacyCenter gaId={process.env.NEXT_PUBLIC_GA_ID ?? ""} /></SiteContentProvider></Experience></ProductsProvider></LocaleProvider></body></html>;
 }

@@ -13,6 +13,11 @@ import { useLocale } from "./locale";
 type Method = "bkash" | "nagad";
 const methodName: Record<Method, string> = { bkash: "bKash", nagad: "Nagad" };
 const errorText = (bn: boolean): Record<string, string> => ({
+  DISCOUNT_INVALID: bn ? "এই ডিসকাউন্ট কোডটি সঠিক নয়।" : "This discount code isn't valid.",
+  DISCOUNT_EXPIRED: bn ? "এই কোডের মেয়াদ শেষ।" : "This code has expired.",
+  DISCOUNT_NOT_STARTED: bn ? "এই কোড এখনো চালু হয়নি।" : "This code isn't active yet.",
+  DISCOUNT_USED_UP: bn ? "এই কোডের সব ব্যবহার শেষ।" : "This code has been fully used.",
+  DISCOUNT_MIN_SUBTOTAL: bn ? "এই কোডের জন্য আরও কিছু পণ্য যোগ করুন।" : "Add a little more to use this code.",
   TRX_USED: bn ? "এই Transaction ID আগেই ব্যবহার হয়েছে। সঠিক ID দিন।" : "This transaction ID has already been used. Check and enter the correct one.",
   OUT_OF_STOCK: bn ? "দুঃখিত, একটি পণ্যের স্টক শেষ হয়ে গেছে। ব্যাগ থেকে সরিয়ে আবার চেষ্টা করুন।" : "Sorry, an item just sold out. Remove it from your bag and try again.",
   UNAVAILABLE: bn ? "একটি পণ্য বা সাইজ আর পাওয়া যাচ্ছে না।" : "An item or size is no longer available.",
@@ -45,7 +50,20 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
   const [method, setMethod] = useState<Method | null>(null);
   const codAllowed = subtotal <= rules.codLimit;
   const cod = payType === "cod";
-  const payNow = cod ? rules.deliveryCharge : subtotal + rules.deliveryCharge, payLater = cod ? subtotal : 0;
+  // Discount code: checked by the server, re-checked when the order is placed.
+  const [codeInput, setCodeInput] = useState("");
+  const [discount, setDiscount] = useState<{ code: string; amount: number; base: number } | null>(null);
+  const [codeMsg, setCodeMsg] = useState("");
+  const off = discount && discount.base === subtotal ? discount.amount : 0;
+  const payNow = cod ? rules.deliveryCharge : subtotal - off + rules.deliveryCharge, payLater = cod ? subtotal - off : 0;
+  async function applyCode() {
+    setCodeMsg("");
+    const res = await fetch("/api/discounts/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: codeInput, subtotal }) }).catch(() => null);
+    const r = await res?.json().catch(() => ({})) as { amount?: number; code?: string; error?: string; min?: number } | undefined;
+    if (r?.amount && r.code) { setDiscount({ code: r.code, amount: r.amount, base: subtotal }); setCodeMsg(bn ? `কোড ${r.code}: ${formatPrice(r.amount, locale)} ছাড়।` : `Code ${r.code}: ${formatPrice(r.amount, locale)} off.`); return; }
+    setDiscount(null);
+    setCodeMsg(r?.error === "MIN_SUBTOTAL" && r.min ? (bn ? `এই কোডের জন্য কমপক্ষে ${formatPrice(r.min, locale)}-এর পণ্য লাগবে।` : `This code needs at least ${formatPrice(r.min, locale)} of products.`) : errorText(bn)[`DISCOUNT_${r?.error ?? "INVALID"}`] ?? errorText(bn).DISCOUNT_INVALID);
+  }
   const [shot, setShot] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -68,7 +86,7 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
     setBusy(true); setError(""); setShortage(null);
     try {
       const response = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
-        items: lines.map(({ item }) => ({ slug: item.slug, size: item.size, color: item.color, quantity: item.quantity })), method, paymentType: payType, expectedTotal: subtotal,
+        items: lines.map(({ item }) => ({ slug: item.slug, size: item.size, color: item.color, quantity: item.quantity })), method, paymentType: payType, expectedTotal: subtotal, discountCode: off ? discount!.code : "",
         trxId: form.get("trxId"), payerNumber: form.get("payerNumber"), name: form.get("name"), phone: form.get("phone"), address: form.get("address"), note: form.get("note") ?? "", screenshot: shot }) });
       const result = await response.json().catch(() => ({})) as { code?: string; error?: string; field?: string; slug?: string; available?: number; color?: string; size?: string };
       if (result.error === "OUT_OF_STOCK" && result.slug && typeof result.available === "number") {
@@ -92,7 +110,13 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
       <ul>{lines.map(({ item, p }) => <li key={`${item.slug}-${item.size}-${item.color}`}><span>{bn && p.bn ? p.bn.name : p.name} <small>{optionLabel(p, item.size, item.color, bn)} × {item.quantity}</small></span><strong>{formatPrice(p.price * item.quantity, locale)}</strong></li>)}</ul>
       <p className="checkout-line"><span>{bn ? "পণ্যের দাম" : "Subtotal"}</span><span>{formatPrice(subtotal, locale)}</span></p>
       <p className="checkout-line"><span>{bn ? "ডেলিভারি চার্জ" : "Delivery charge"}</span><span>{formatPrice(rules.deliveryCharge, locale)}</span></p>
-      <p className="checkout-total"><span>{bn ? "মোট" : "Total"}</span><strong>{formatPrice(subtotal + rules.deliveryCharge, locale)}</strong></p>
+      <div className="checkout-code">
+        <input value={codeInput} onChange={e => setCodeInput(e.target.value.toUpperCase())} placeholder={bn ? "ডিসকাউন্ট কোড" : "Discount code"} aria-label={bn ? "ডিসকাউন্ট কোড" : "Discount code"} maxLength={20} autoComplete="off" />
+        <button type="button" className="button light-button" disabled={codeInput.trim().length < 3} onClick={applyCode}>{bn ? "প্রয়োগ" : "Apply"}</button>
+        {codeMsg && <p className="checkout-code-msg" role="status">{codeMsg}</p>}
+      </div>
+      {off > 0 && <p className="checkout-line is-discount"><span>{bn ? `ছাড় (${discount!.code})` : `Discount (${discount!.code})`}</span><span>−{formatPrice(off, locale)}</span></p>}
+      <p className="checkout-total"><span>{bn ? "মোট" : "Total"}</span><strong>{formatPrice(subtotal - off + rules.deliveryCharge, locale)}</strong></p>
       {cod && <div className="checkout-split" role="status">
         <p><span>{bn ? "এখন দিচ্ছেন (bKash/Nagad)" : "Pay now (bKash/Nagad)"}</span><strong>{formatPrice(payNow, locale)}</strong></p>
         <p><span>{bn ? "ডেলিভারির সময় নগদ" : "Cash on delivery"}</span><strong>{formatPrice(payLater, locale)}</strong></p>

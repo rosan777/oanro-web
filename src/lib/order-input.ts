@@ -7,6 +7,8 @@ export type CartLine = { slug: string; size: string; color: string; quantity: nu
 export type OrderInput = {
   items: CartLine[]; paymentType: PaymentType; method: PaymentMethod; payerNumber: string; trxId: string;
   name: string; phone: string; address: string; note: string; expectedTotal: number;
+  /** Optional discount code typed at checkout (upper-case, letters/numbers/dash). */
+  discountCode: string;
 };
 /** Bangladeshi mobile numbers: 01[3-9] + 8 digits. Accepts +880 / 880 prefixes, spaces and dashes. */
 export function normalizePhone(value: unknown, field: string) {
@@ -46,8 +48,20 @@ export function parseOrderInput(data: Record<string, unknown>): OrderInput {
     items: [...merged.values()], method: data.method, trxId, paymentType: data.paymentType === "cod" ? "cod" : "prepaid",
     payerNumber: normalizePhone(data.payerNumber, "payerNumber"), phone: normalizePhone(data.phone, "phone"),
     name: text(data.name, "name", 2, 80), address: text(data.address, "address", 10, 300), note: text(data.note, "note", 0, 300),
-    expectedTotal: data.expectedTotal as number,
+    expectedTotal: data.expectedTotal as number, discountCode: parseDiscountCode(data.discountCode),
   };
 }
 /** Common couriers in Bangladesh, offered as quick picks (any name can be typed). */
 export const couriers = ["Pathao Courier", "Steadfast Courier", "RedX", "Sundarban Courier", "SA Paribahan", "eCourier", "Paperfly", "Delivery Tiger", "OANRO self-delivery"];
+/** "", or 3-20 letters/numbers/dashes, upper-cased. */
+export function parseDiscountCode(value: unknown) {
+  if (value === undefined || value === null || value === "") return "";
+  if (typeof value !== "string") throw new ProductInputError("discountCode");
+  const code = value.trim().toUpperCase();
+  if (!/^[A-Z0-9-]{3,20}$/.test(code)) throw new ProductInputError("discountCode");
+  return code;
+}
+/** Discount for a subtotal: whole taka, never more than the subtotal. */
+export function discountAmount(kind: "percent" | "amount", value: number, subtotal: number) {
+  return Math.max(0, Math.min(subtotal, kind === "percent" ? Math.floor(subtotal * value / 100) : value));
+}

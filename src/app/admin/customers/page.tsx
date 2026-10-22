@@ -1,3 +1,4 @@
+import { ExportButton } from "@/components/team-extras";
 import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { listCustomers } from "@/lib/customer-store";
@@ -17,7 +18,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
   const [{ rows, total }, reach] = await Promise.all([listCustomers(catalogDb(), { q, limit: PAGE, offset: (page - 1) * PAGE }), access.owner ? audienceCount(catalogDb()).catch(() => 0) : 0]);
   const link = (p: number) => `/admin/customers?${new URLSearchParams({ ...(q ? { q } : {}), page: String(p) })}`;
   return <main id="main-content" className="container auth-page admin-customers">
-    <h1>Customers</h1>
+    <h1>Customers</h1><p className="admin-tools">{access.permissions.has("data.export") && <ExportButton type="customers" label="Export customers (CSV)" />} {access.permissions.has("newsletter.read") && <ExportButton type="newsletter" label="Export newsletter list (CSV)" />}</p>
     <p>Everyone with a customer account, newest first. Total spent counts approved orders (cash on delivery only after the cash is received). {total} customer{total === 1 ? "" : "s"}{q ? " match" : ""}.</p>
     <form className="activity-filters" method="get" action="/admin/customers">
       <label>Search<input name="q" defaultValue={q} placeholder="Name, email or phone" maxLength={60} /></label>

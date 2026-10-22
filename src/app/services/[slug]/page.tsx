@@ -9,6 +9,9 @@ import { serviceGuide } from "@/lib/seo-copy";
 import { absoluteUrl } from "@/lib/seo";
 import { siteUrl } from "@/lib/site-url";
 import { JsonLd } from "@/components/json-ld";
+import { getSiteContent } from "@/lib/site-content";
+import { FormPopup } from "@/components/form-popup";
+import { InquiryForm } from "@/components/inquiry-form";
 import Link from "@/components/locale-link";
 
 // One page per published service (e.g. /services/web), so each service can rank on its own keywords.
@@ -38,6 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ServicePage({ params }: Props) {
   const service = await load((await params).slug); if (!service) notFound();
   const { locale } = await requestLocale(); const bn = locale === "bn";
+  const content = await getSiteContent(); const showPkgs = content.features.studioPackages && content.packages.length > 0, showFaq = content.features.serviceFaq && content.faq.length > 0;
   const copy = copyFor(service, bn);
   const guide = serviceGuide(copy.title, locale);
   const pageUrl = absoluteUrl(localePath(`/services/${service.slug}`, locale));
@@ -54,6 +58,17 @@ export default async function ServicePage({ params }: Props) {
     {copy.text && <p className="legal-intro">{copy.text}</p>}
     {copy.detail && <p>{copy.detail}</p>}
     <section><h2>{guide.heading}</h2>{guide.paragraphs.map(text => <p key={text.slice(0, 24)}>{text}</p>)}</section>
-    <div className="contact-actions"><Link href="/contact" className="button brand-button">{bn ? "আপনার প্রজেক্ট নিয়ে কথা বলুন" : "Talk about your project"}</Link></div>
+    {showPkgs && <section className="studio-packages" aria-labelledby="pkg-title"><h2 id="pkg-title">{bn ? "যেভাবে আমরা কাজ নিই" : "Ways to work with us"}</h2>
+      <div className="pkg-grid">{content.packages.map(p => <article key={p.name.en} className="pkg-card"><h3>{p.name[locale]}</h3><p>{p.for[locale]}</p><ul>{p.includes.map(i => <li key={i.en}>{i[locale]}</li>)}</ul></article>)}</div>
+      <p className="small-note">{bn ? "প্রতিটি প্রজেক্টের দাম ফ্রি কলের পর লিখিতভাবে নির্দিষ্ট করে দেওয়া হয়।" : "Every project gets a fixed written price after a free call."}</p>
+    </section>}
+    {showFaq && <><section className="service-faq" aria-labelledby="faq-title"><h2 id="faq-title">{bn ? "সাধারণ প্রশ্ন" : "Common questions"}</h2>
+      {content.faq.map(f => <details key={f.q.en}><summary>{f.q[locale]}</summary><p>{f.a[locale]}</p></details>)}
+    </section>
+    <JsonLd data={{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: content.faq.map(f => ({ "@type": "Question", name: f.q[locale], acceptedAnswer: { "@type": "Answer", text: f.a[locale] } })) }} /></>}
+    <div className="contact-actions">
+      <FormPopup label={bn ? "ফ্রি কল বুক করুন" : "Book a free call"} dialogLabel={bn ? "ফ্রি কল বুক করুন" : "Book a free call"}><InquiryForm kind="general" services={[{ slug: service.slug, title: copy.title }]} /></FormPopup>
+      <Link href="/contact" className="button light-button">{bn ? "আপনার প্রজেক্ট নিয়ে কথা বলুন" : "Talk about your project"}</Link>
+    </div>
   </main>;
 }

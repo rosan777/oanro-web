@@ -1,4 +1,6 @@
 "use client";
+import { OrderExtras } from "./team-extras";
+import Link from "next/link";
 import { useState } from "react";
 import { formatPrice } from "@/lib/catalog";
 import type { AdminOrder } from "@/lib/order-store";
@@ -125,7 +127,7 @@ export function OrdersDashboard({ initial, numbers: initialNumbers, rules: initi
       <small>New orders email you (and staff who can approve payments). Customers get an email when their payment is confirmed or rejected and at each delivery step.</small>
     </form>}
     {mode === "settings" && isOwner && <RulesCard rules={rules} busy={busy} save={body => void call("PUT", body, "Rules saved. Checkout and the Delivery & returns page now show the new values.")} />}
-    {!numbers.bkash && !numbers.nagad && <p className="admin-callout">Checkout is closed until a bKash or Nagad number is saved.{mode === "orders" && isOwner && <> <a href="/admin/settings">Add one in Payment &amp; delivery</a>.</>}</p>}
+    {!numbers.bkash && !numbers.nagad && <p className="admin-callout">Checkout is closed until a bKash or Nagad number is saved.{mode === "orders" && isOwner && <> <Link href="/admin/settings">Add one in Payment &amp; delivery</Link>.</>}</p>}
     {mode === "orders" && <>
     <div className="order-search"><input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search order code, name, phone or Transaction ID" aria-label="Search orders" maxLength={60} /></div>
     <div className="order-filters" role="tablist" aria-label="Filter orders">{(["pending", "delivery", "paid", ...(canCod ? ["cod"] : []), "rejected", "all"] as Filter[]).map(f => <button key={f} type="button" role="tab" aria-selected={filter === f} onClick={() => setFilter(f)}>{filterText[f]} ({count(f)})</button>)}</div>
@@ -150,6 +152,7 @@ export function OrdersDashboard({ initial, numbers: initialNumbers, rules: initi
         {o.courier && <div><dt>Courier</dt><dd>{o.courier}{o.trackingCode && <> · <code>{o.trackingCode}</code></>}</dd></div>}
         <div className="wide"><dt>Timeline</dt><dd><ol className="order-timeline compact">{o.events.map((e, i) => <li key={i}><strong>{stageText[e.stage]?.[0] ?? e.stage}</strong> <small>{formatDhaka(e.at, "en", { year: true })}{e.note && ` · ${e.note}`}</small></li>)}</ol></dd></div>
       </dl>
+      <OrderExtras orderId={o.id} />
       {o.paymentType === "cod" && (() => { const [label, tone] = codState(o); return <div className={`cod-panel ${tone}`}>
         <h3><ActionIcon name="wallet" />Cash on delivery</h3>
         <dl><div><dt>Advance (delivery charge)</dt><dd>{formatPrice(o.deliveryCharge)} by {o.method === "bkash" ? "bKash" : "Nagad"}</dd></div>

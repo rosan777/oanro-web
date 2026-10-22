@@ -20,7 +20,12 @@ export function menuFor(access: Access, counts: AdminCounts): MenuGroup[] {
       { href: "/admin/published", label: "Published products", need: [...productPermissions] },
       { href: "/admin/services", label: "Services", need: ["services.manage", "site.manage"] },
       { href: "/admin/campaigns", label: "Campaigns", need: ["campaigns.manage"] },
+      { href: "/admin/discounts", label: "Discount codes", need: ["discounts.manage"] },
       { href: "/admin/pulse", label: "Global Pulse", need: ["pulse.manage", "site.manage"] },
+    ] },
+    { label: "Website", items: [
+      { href: "/admin/content", label: "Website content", need: ["content.manage"] },
+      { href: "/admin/banners", label: "Announcement bar", need: ["banners.manage"] },
     ] },
     { label: "Insights", items: [
       { href: "/admin/reports/sales", label: "Sales & stock", need: ["reports.read"] },
