@@ -443,7 +443,7 @@ html[lang="bn"] .pc-title { font-family: var(--font-bangla), sans-serif; text-tr
   dialog.message-pop .inquiry-form label { gap: 0.2rem; font-size: 0.8rem; }
   dialog.message-pop .inquiry-form input:not([type=checkbox]), dialog.message-pop .inquiry-form select { padding: 0.4rem 0.55rem; font-size: 16px; }
   dialog.message-pop .inquiry-form textarea { padding: 0.4rem 0.55rem; font-size: 16px; min-height: 0; height: 84px; }
-  dialog.message-pop .inquiry-form .inquiry-consent { font-size: 0.72rem; }
+  dialog.message-pop .inquiry-form .inquiry-consent { font-size: 0.75rem; }
   dialog.message-pop .product-form-row { gap: 0.55rem; }
   .message-pop-close { width: 34px; height: 34px; top: 0.5rem; margin: 0.5rem 0.5rem -2.9rem 0; }
 }
@@ -503,9 +503,9 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   .pc-long { display: none; } .pc-short { display: inline; }
   .pc-bar { gap: 0.5rem; }
   .pc-bar-actions { gap: 0.3rem; }
-  .pc-bar-actions .pc-btn { flex: none; min-height: 30px; padding: 0 0.6rem; font-size: 0.72rem; }
+  .pc-bar-actions .pc-btn { flex: none; min-height: 30px; padding: 0 0.6rem; font-size: 0.75rem; }
   dialog.privacy-center .pc-inner { padding-inline: 0.75rem; }
-  dialog.privacy-center .pc-text { font-size: 0.72rem; }
+  dialog.privacy-center .pc-text { font-size: 0.75rem; }
 }
 
 /* Language menu (header) and country + language picker (footer) */
@@ -922,7 +922,7 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   .bottom-bar [aria-current="page"] { color: var(--brand); font-weight: 600; }
   .bottom-bar a:active, .bottom-bar button:active { transform: scale(.94); }
   .bb-icon { position: relative; display: grid; }
-  .bb-count { position: absolute; top: -6px; right: -10px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--brand); color: #fff; font-size: .7rem; line-height: 18px; text-align: center; }
+  .bb-count { position: absolute; top: -6px; right: -10px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--brand); color: #fff; font-size: .75rem; line-height: 18px; text-align: center; }
   /* Room for the bar: page end, floating buttons and the sticky buy bar sit above it. */
   body:has(.bottom-bar) { padding-bottom: calc(62px + env(safe-area-inset-bottom)); }
   body:has(.bottom-bar) .floating-help { bottom: calc(72px + env(safe-area-inset-bottom)); }
@@ -966,9 +966,9 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   .site-header .brand img { width: 24px; height: 24px; }
   .site-header .header-actions .icon-button { width: 40px; height: 40px; }
   .site-header .header-actions .icon-button svg { width: 18px; height: 18px; }
-  .site-header .language-switch button { min-height: 26px; padding: 0.22rem 0.45rem; font-size: 0.68rem; }
+  .site-header .language-switch button { min-height: 26px; padding: 0.22rem 0.45rem; font-size: 0.75rem; }
   .bottom-bar { padding: 4px 4px calc(4px + env(safe-area-inset-bottom)); }
-  .bottom-bar a, .bottom-bar button { min-height: 44px; font-size: 0.68rem; gap: 1px; }
+  .bottom-bar a, .bottom-bar button { min-height: 44px; font-size: 0.75rem; gap: 1px; }
   .bottom-bar svg { width: 20px; height: 20px; }
   body:has(.bottom-bar) { padding-bottom: calc(54px + env(safe-area-inset-bottom)); }
   body:has(.bottom-bar) .floating-help { bottom: calc(64px + env(safe-area-inset-bottom)); }
@@ -1042,7 +1042,7 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
 @media (max-width: 1024px), (hover: none), (pointer: coarse) {
   .v2-values-wrap { margin-block: 0.5rem 2.5rem; }
   .v2-values { padding: 1.6rem 1.1rem 1.4rem; border-radius: 22px; }
-  .v2-values .v2-eyebrow { font-size: 0.68rem; letter-spacing: 0.14em; }
+  .v2-values .v2-eyebrow { font-size: 0.75rem; letter-spacing: 0.14em; }
   .v2-letters { flex-wrap: nowrap; gap: 0; margin-top: 0.6rem; }
   .v2-letters button { font-size: clamp(2.6rem, 11vw, 4.5rem); padding: 0 0.14em; min-height: 44px; }
   .v2-value-panel { flex-wrap: nowrap; align-items: flex-start; gap: 0.9rem; margin-top: 0.9rem; padding-top: 0.9rem; }
@@ -1064,9 +1064,9 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   .news-row { gap: 0.4rem; }
   .news-row input { min-height: 40px; padding: 0 0.65rem; border-radius: 9px; }
   .news-row button { min-height: 40px; padding: 0 0.9rem; font-size: 0.85rem; border-radius: 9px; }
-  .news-consent { font-size: 0.74rem; line-height: 1.4; gap: 0.4rem; align-items: center; }
+  .news-consent { font-size: 0.75rem; line-height: 1.4; gap: 0.4rem; align-items: center; }
   .news-consent input { width: 16px; height: 16px; flex: none; margin: 0; }
-  .site-footer .footer-bottom { gap: 0.4rem 1rem; padding-block: 0.8rem 1rem; font-size: 0.72rem; }
+  .site-footer .footer-bottom { gap: 0.4rem 1rem; padding-block: 0.8rem 1rem; font-size: 0.75rem; }
   .footer-tools { gap: 0.25rem 1rem; }
 }
 
@@ -1077,33 +1077,32 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   .v2-studio { padding-block: clamp(2rem, 6vw, 4rem); }
   .v2-studio-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(0.75rem, 3vw, 2.5rem); align-items: center; }
   .v2-studio-grid > div { flex: none; }
-  .v2-studio .v2-eyebrow { font-size: clamp(0.5rem, 1.6vw, 0.75rem); letter-spacing: 0.1em; }
+  .v2-studio .v2-eyebrow { font-size: clamp(0.75rem, 1.6vw, 0.75rem); letter-spacing: 0.1em; }
   .v2-studio .v2-h2 { font-size: clamp(1.25rem, 5.6vw, 3rem); }
-  .v2-studio .v2-lede { font-size: clamp(0.62rem, 2.1vw, 1rem); line-height: 1.5; margin-top: 0.5rem; }
-  .v2-service-rows { margin-top: clamp(0.6rem, 2vw, 1.4rem); }
-  .v2-service-rows a { gap: 0.4rem; padding: clamp(0.4rem, 1.6vw, 0.9rem) 0.2rem; font-size: clamp(0.66rem, 2.3vw, 1.05rem); }
+  .v2-studio .v2-lede { font-size: clamp(0.75rem, 2.1vw, 1rem); line-height: 1.5; margin-top: 0.5rem; }
+  .v2-service-rows { margin-top: clamp(0.75rem, 2vw, 1.4rem); }
+  .v2-service-rows a { gap: 0.4rem; padding: clamp(0.75rem, 1.6vw, 0.9rem) 0.2rem; font-size: clamp(0.75rem, 2.3vw, 1.05rem); }
   .v2-service-rows a:hover { padding-left: 0.2rem; }
-  .v2-service-rows span { font-size: clamp(0.5rem, 1.7vw, 0.82rem); }
-  .v2-studio .v2-actions { margin-top: clamp(0.7rem, 2.5vw, 1.5rem); }
-  .v2-studio .v2-actions .v2-btn { padding: clamp(0.45rem, 1.6vw, 0.85rem) clamp(0.7rem, 2.6vw, 1.4rem); font-size: clamp(0.66rem, 2.2vw, 1rem); min-height: 36px; }
+  .v2-service-rows span { font-size: clamp(0.75rem, 1.7vw, 0.82rem); }
+  .v2-studio .v2-actions { margin-top: clamp(0.75rem, 2.5vw, 1.5rem); }
+  .v2-studio .v2-actions .v2-btn { padding: clamp(0.75rem, 1.6vw, 0.85rem) clamp(0.75rem, 2.6vw, 1.4rem); font-size: clamp(0.75rem, 2.2vw, 1rem); min-height: 36px; }
   .v2-terminal { border-radius: clamp(10px, 2.4vw, 20px); }
   .v2-terminal-bar { gap: 4px; padding: clamp(6px, 1.6vw, 14px) clamp(8px, 2vw, 16px); }
   .v2-terminal-bar i { width: clamp(6px, 1.4vw, 11px); height: clamp(6px, 1.4vw, 11px); }
-  .v2-terminal-bar span { margin-left: 6px; font-size: clamp(0.46rem, 1.5vw, 0.72rem); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .v2-terminal-body { padding: clamp(0.55rem, 2.4vw, 1.4rem); font-size: clamp(0.45rem, 1.75vw, 0.88rem); line-height: 1.9; white-space: nowrap; overflow: hidden; }
-  .t-line { overflow: hidden; text-overflow: ellipsis; }
+  .v2-terminal-bar span { margin-left: 6px; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .v2-terminal-body { padding: clamp(0.75rem, 2.4vw, 1.4rem); font-size: clamp(0.75rem, 1.75vw, 0.88rem); line-height: 1.7; }
   .v2-marquee-dark { margin-top: 0.5rem; }
-  .v2-marquee-dark .v2-chips { gap: 5px; font-size: clamp(0.46rem, 1.6vw, 0.72rem); }
+  .v2-marquee-dark .v2-chips { gap: 5px; font-size: 0.75rem; }
   .v2-marquee-dark .v2-chips span { padding: 0.22rem 0.5rem; }
 
   .v2-process { margin-top: clamp(1.8rem, 6vw, 3.5rem); }
-  .v2-process-list, .v2-process-list[class] { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(0.3rem, 1.6vw, 1rem); }
+  .v2-process-list, .v2-process-list[class] { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(0.75rem, 1.6vw, 1rem); }
   .v2-process-list::before, .v2-process-list::after { left: clamp(12px, 3vw, 22px); right: clamp(12px, 3vw, 22px); top: clamp(12px, 3vw, 21px); bottom: auto; width: auto; height: 2px; }
   .v2-process-list::after { transform-origin: left; animation-name: line-draw-x; }
   .v2-process-list li { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.3rem; align-items: start; }
-  .v2-process-list li small { grid-column: auto; font-size: clamp(0.5rem, 1.8vw, 0.85rem); line-height: 1.35; }
-  .v2-process-dot { width: clamp(24px, 6vw, 44px); height: clamp(24px, 6vw, 44px); font-size: clamp(0.6rem, 1.9vw, 0.95rem); border-width: 1.5px; }
-  .v2-process-list strong { font-size: clamp(0.72rem, 2.8vw, 1.3rem); }
+  .v2-process-list li small { grid-column: auto; font-size: clamp(0.75rem, 1.8vw, 0.85rem); line-height: 1.35; }
+  .v2-process-dot { width: clamp(24px, 6vw, 44px); height: clamp(24px, 6vw, 44px); font-size: clamp(0.75rem, 1.9vw, 0.95rem); border-width: 1.5px; }
+  .v2-process-list strong { font-size: clamp(0.75rem, 2.8vw, 1.3rem); }
 }
 
 /* Homepage "Let's start a conversation" box on phones: compact card, smaller heading and text, the two buttons side by side in one row. */
@@ -1117,4 +1116,10 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   .v2-contact .contact-actions .button { width: 100%; min-height: 40px; padding: 0.5rem 0.6rem; font-size: 0.76rem; gap: 0.35rem; overflow: hidden; }
   .v2-contact .contact-actions .button svg { width: 14px; height: 14px; flex: none; }
   .v2-contact .contact-actions .button { white-space: nowrap; text-overflow: ellipsis; }
+}
+
+/* Google mobile check: the terminal keeps 12px text on phones, so its lines wrap instead of shrinking; tech chips scroll as before. */
+@media (max-width: 640px) {
+  .v2-terminal-body .t-line { white-space: normal; overflow-wrap: anywhere; }
+  .v2-studio-grid { align-items: start; }
 }

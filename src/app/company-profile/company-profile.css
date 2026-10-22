@@ -7,6 +7,7 @@
 .cp-head > div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .cp-eyebrow { font-family: var(--font-label), monospace; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand); }
 .is-dark .cp-eyebrow { color: var(--glow); }
+.cp-cover-top .cp-eyebrow { font-size: 1rem; }
 .cp-eyebrow-small { font-size: 0.77em; letter-spacing: 0.12em; opacity: 0.85; } /* 10 : 13 ratio to the main label */
 .cp-h2, .cp h3, .cp-cover-title h1, .cp-cover-title h2, .cp-thanks-title { font-family: var(--font-display), var(--font-bangla), sans-serif; text-transform: uppercase; line-height: 0.95; letter-spacing: 0.005em; }
 .cp-h2 { font-size: clamp(2rem, 4.2vw, 2.9rem); font-weight: 700; }
@@ -15,12 +16,12 @@
 .is-dark .cp-aside, .is-dark .cp-muted { color: #a9b1ac; }
 .cp-muted { color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
 .cp-lead { font-size: 1.08rem; line-height: 1.55; }
-.cp-num { font-family: var(--font-label), monospace; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; color: var(--brand); }
+.cp-num { font-family: var(--font-label), monospace; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; color: var(--brand); }
 .is-dark .cp-num { color: var(--glow); }
 .cp-ico { display: inline-grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 8px; background: #e3eee8; color: var(--brand); }
 .is-dark .cp-ico { background: #12261d; color: var(--glow); }
 .cp-ico-lg { width: 52px; height: 52px; border-radius: 12px; }
-.cp-strip { align-self: stretch; padding: 10px 14px; border-radius: 10px; background: var(--brand); color: #f6f5f0; text-align: center; font-family: var(--font-label), monospace; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
+.cp-strip { align-self: stretch; padding: 10px 14px; border-radius: 10px; background: var(--brand); color: #f6f5f0; text-align: center; font-family: var(--font-label), monospace; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
 .is-dark .cp-strip { background: transparent; border-top: 1px solid var(--edge); border-radius: 0; padding: 14px 0 0; color: #a9b1ac; text-align: left; }
 .cp .v2-sign { margin-top: 0; }
 .cp-sign-dark span { color: var(--glow); }
@@ -73,7 +74,7 @@
 .cp-side { display: flex; flex-direction: column; gap: 10px; }
 .cp-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 0; }
 .cp-facts div { padding: 12px 14px; border-radius: 12px; background: var(--space); color: #f6f5f0; }
-.cp-facts dt { font-family: var(--font-label), monospace; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: #87918c; }
+.cp-facts dt { font-family: var(--font-label), monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: #87918c; }
 .cp-facts dd { margin: 4px 0 0; font-family: var(--font-display), sans-serif; font-size: 1.2rem; text-transform: uppercase; line-height: 1.05; }
 
 /* Grouped list (Streamline your business): a corporate four-column index with hairlines */
@@ -84,7 +85,7 @@
 .is-dark .cp-col + .cp-col { border-color: var(--edge); }
 .cp-col:first-child { padding-left: 0; }
 .cp-col-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; font-family: var(--font-display), sans-serif; font-size: 1.3rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
-.cp-col-head span { font-family: var(--font-label), monospace; font-size: 0.72rem; color: var(--brand); letter-spacing: 0.08em; }
+.cp-col-head span { font-family: var(--font-label), monospace; font-size: 0.75rem; color: var(--brand); letter-spacing: 0.08em; }
 .is-dark .cp-col-head span { color: var(--glow); }
 .cp-col ul { list-style: none; margin: 0; padding: 0; }
 .cp-col li { display: flex; gap: 11px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--line); }
@@ -133,7 +134,7 @@
 .is-dark .cp-techbox h3 { color: var(--glow); }
 .cp-techbox ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; }
 .cp-techbox li { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 0.88rem; }
-.cp-logo { display: grid; place-items: center; flex: none; width: 26px; height: 26px; border-radius: 6px; background: #f1f0ea; font-family: var(--font-label), monospace; font-size: 0.62rem; font-weight: 600; color: var(--brand); }
+.cp-logo { display: grid; place-items: center; flex: none; width: 26px; height: 26px; border-radius: 6px; background: #f1f0ea; font-family: var(--font-label), monospace; font-size: 0.75rem; font-weight: 600; color: var(--brand); }
 .cp-logo svg { width: 16px; height: 16px; }
 
 /* Notice (Portfolio): text and email on the left, numbered steps on the right */
@@ -162,7 +163,7 @@
 .cp-thanks-title { font-size: clamp(3.6rem, 9vw, 6rem); font-weight: 700; }
 .cp-contact { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 4px 0 0; }
 .cp-contact div { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--edge); }
-.cp-contact dt { font-family: var(--font-label), monospace; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: #87918c; }
+.cp-contact dt { font-family: var(--font-label), monospace; font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: #87918c; }
 .cp-contact dd { margin: 5px 0 0; font-weight: 500; overflow-wrap: anywhere; user-select: all; }
 .cp-terms { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--edge); }
 .cp-terms ol { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; font-size: 0.84rem; color: #a9b1ac; }
