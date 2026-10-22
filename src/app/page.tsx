@@ -1,3 +1,4 @@
+import { Signature } from "@/components/signature";
 import Image from "next/image";
 import Link from "@/components/locale-link";
 import { ArrowUpRight, Mail } from "lucide-react";
@@ -79,7 +80,7 @@ export default async function Home() {
         <p className="v2-eyebrow">{tx("about.eyebrow")}</p>
         <h2 id="about-title" className="v2-h2" style={{ marginTop: "0.6rem" }}>{tx("about.title")}</h2>
         <p className="v2-body">{tx("about.body")}</p>
-        <p className="v2-sign"><span>Team oanro</span></p>
+        <Signature />
       </div>
     </section>}
 

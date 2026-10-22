@@ -80,7 +80,7 @@ export function ShopTabs({ showServices, chips }: { showServices: boolean; chips
             </div>
           </Link>;
         }) : services.slice(0, 8).map(s => <Link key={s.slug} href={`/services/${s.slug}`} className="v2-card v2-card-service">
-          <div className="v2-card-photo v2-service-photo"><span>{s.word}</span><span className="v2-card-cta">{t("Get a free quote", "ফ্রি কোট নিন")}</span></div>
+          <div className="v2-card-photo v2-service-photo"><i className="v2-svc-orbit" aria-hidden /><span className="v2-svc-word">{s.word}</span><span className="v2-svc-cta">{t("Get a free quote", "ফ্রি কোট নিন")} <ArrowUpRight size={15} aria-hidden /></span></div>
           <div className="v2-card-body"><strong>{bn && s.bn ? s.bn.title : s.title}</strong><p>{bn && s.bn ? s.bn.text : s.text}</p></div>
         </Link>)}
       </div>

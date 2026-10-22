@@ -25,6 +25,7 @@ export function menuFor(access: Access, counts: AdminCounts): MenuGroup[] {
     ] },
     { label: "Website", items: [
       { href: "/admin/content", label: "Website content", need: ["content.manage"] },
+      { href: "/admin/company-profile", label: "Company profile", need: ["content.manage"] },
       { href: "/admin/banners", label: "Announcement bar", need: ["banners.manage"] },
     ] },
     { label: "Insights", items: [
