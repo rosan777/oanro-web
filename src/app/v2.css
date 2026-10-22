@@ -1037,3 +1037,19 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   }
 }
 @media (prefers-reduced-motion: reduce) { .v2-bento .v2-tile, .v2-bento .v2-tile::before { transition: none; } .v2-bento .v2-tile:hover { transform: none; } }
+
+/* O-A-N-R-O values on phones and tablets: compact card; letters on one line, and the chosen value laid out horizontally (word on the left, text on the right). */
+@media (max-width: 1024px), (hover: none), (pointer: coarse) {
+  .v2-values-wrap { margin-block: 0.5rem 2.5rem; }
+  .v2-values { padding: 1.6rem 1.1rem 1.4rem; border-radius: 22px; }
+  .v2-values .v2-eyebrow { font-size: 0.68rem; letter-spacing: 0.14em; }
+  .v2-letters { flex-wrap: nowrap; gap: 0; margin-top: 0.6rem; }
+  .v2-letters button { font-size: clamp(2.6rem, 11vw, 4.5rem); padding: 0 0.14em; min-height: 44px; }
+  .v2-value-panel { flex-wrap: nowrap; align-items: flex-start; gap: 0.9rem; margin-top: 0.9rem; padding-top: 0.9rem; }
+  .v2-value-panel > div:first-child { flex: 0 0 34%; min-width: 0; }
+  .v2-value-panel > div:last-child { flex: 1 1 auto; min-width: 0; }
+  .v2-value-word { font-size: clamp(1.25rem, 5.4vw, 1.9rem); overflow-wrap: anywhere; }
+  .v2-value-bn { font-size: 0.85rem; margin-top: 0.25rem; }
+  .v2-value-panel p { font-size: 0.92rem; line-height: 1.5; }
+  .v2-value-panel .v2-value-you { margin-top: 0.4rem; font-size: 0.82rem; }
+}
