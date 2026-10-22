@@ -3,13 +3,13 @@
 .front, .back { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .front { min-width: 0; transform: rotateY(0deg); }
 .back { display: flex; flex-direction: column; justify-content: center; gap: 1rem; padding: 1.6rem; background: var(--brand); color: var(--surface); transform: rotateY(180deg); }
-.back span { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--accent); }
+.back span { font-size: 0.75rem; letter-spacing: 0.2em; color: var(--accent); }
 .back strong { font-size: 1.55rem; line-height: 1.15; }
 .back p { font-size: 0.82rem; line-height: 1.6; }
-.back small { font-size: 0.7rem; margin-top: 1rem; }
+.back small { font-size: 0.75rem; margin-top: 1rem; }
 .shelf .back { padding: 0.8rem; gap: 0.35rem; }
 .shelf .back strong { font-size: 1rem; line-height: 1.1; }
-.shelf .back p { font-size: 0.67rem; line-height: 1.25; }
+.shelf .back p { font-size: 0.75rem; line-height: 1.3; }
 .shelf .back small { display: none; }
 .flip[data-allowed="true"] .rotor { animation: flip-cycle 16s ease-in-out infinite; animation-delay: var(--flip-delay, 0s); }
 .shelf .flip[data-allowed="true"] .rotor { animation-duration: 11.85s; }
@@ -31,8 +31,8 @@
 .symbol { color: var(--brand); width: 38px; height: 38px; }
 .word { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.04em; color: var(--brand); }
 .label { padding-top: 0.55rem; }
-.label small { font-size: 0.64rem; color: var(--brand); text-transform: uppercase; letter-spacing: 0.08em; }
-.label h3 { font-size: 0.82rem; margin-top: 0.25rem; line-height: 1.35; }
+.label small { font-size: 0.75rem; color: var(--brand); text-transform: uppercase; letter-spacing: 0.08em; }
+.label h3 { font-size: 0.9rem; margin-top: 0.25rem; line-height: 1.35; }
 .card:focus-visible, .shelf:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
-@media (max-width: 767px) { .section { padding: 2.3rem 0; } .card { width: 136px; } .visual { height: 110px; } .back { padding: 0.7rem; gap: 0.25rem; } .back span { font-size: 0.5rem; } .back strong { font-size: 0.94rem; } .back p { font-size: 0.6rem; line-height: 1.2; } .back small { display: none; } }
+@media (max-width: 767px) { .section { padding: 2.3rem 0; } .card { width: 136px; } .visual { height: 110px; } .back { padding: 0.7rem; gap: 0.25rem; } .back span { font-size: 0.75rem; } .back strong { font-size: 0.94rem; } .back p { font-size: 0.75rem; line-height: 1.3; } .back small { display: none; } }
 @media (prefers-reduced-motion: reduce) { .flip[data-allowed="true"] .rotor { animation: none; transform: none; } }
