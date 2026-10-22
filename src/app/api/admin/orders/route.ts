@@ -65,7 +65,7 @@ export const PUT = adminHandler("orders.manage", async (actor, data, access) => 
   if (data.action === "rules") {
     const days = (v: unknown, field: string) => { const s = typeof v === "string" ? v.trim().replace(/[–—]/g, "-") : ""; if (!dayRange.test(s)) throw new ProductInputError(field); return s; };
     const returnDays = money(data.returnDays, "returnDays"); if (returnDays > 30) throw new ProductInputError("returnDays");
-    await setCheckoutRules(db, actor, { deliveryCharge: money(data.deliveryCharge, "deliveryCharge"), codLimit: money(data.codLimit, "codLimit"), dhakaDays: days(data.dhakaDays, "dhakaDays"), outsideDays: days(data.outsideDays, "outsideDays"), returnDays });
+    await setCheckoutRules(db, actor, { deliveryCharge: money(data.deliveryCharge, "deliveryCharge"), outsideCharge: money(data.outsideCharge, "outsideCharge"), codLimit: money(data.codLimit, "codLimit"), dhakaDays: days(data.dhakaDays, "dhakaDays"), outsideDays: days(data.outsideDays, "outsideDays"), returnDays });
     storefrontChanged();
     return respond(access);
   }

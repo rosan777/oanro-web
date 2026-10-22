@@ -1,0 +1,1 @@
+ALTER TABLE "shop_order" ADD COLUMN "delivery_area" text DEFAULT 'dhaka' NOT NULL;

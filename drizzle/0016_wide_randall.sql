@@ -1,0 +1,2 @@
+ALTER TABLE "discount_code" ADD COLUMN "collections" text[] DEFAULT '{}'::text[] NOT NULL;--> statement-breakpoint
+ALTER TABLE "discount_code" ADD COLUMN "products" text[] DEFAULT '{}'::text[] NOT NULL;

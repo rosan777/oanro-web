@@ -5,6 +5,7 @@ import { LegalPage, type LegalSection } from "@/components/legal-page";
 import { DEFAULT_RULES, getCheckoutRules } from "@/lib/order-store";
 import { catalogDb } from "@/lib/store-products";
 import { formatPrice } from "@/lib/catalog";
+import { feeText } from "@/lib/delivery-fee";
 // Title and description follow the page language (/bn = Bangla) so both versions can rank.
 export async function generateMetadata(): Promise<Metadata> {
   const { locale } = await requestLocale();
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic";
 const bnNum = (s: string) => s.replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[Number(d)]);
 export default async function DeliveryReturnsPage() {
   const r = process.env.DATABASE_URL ? await getCheckoutRules(catalogDb()).catch(() => DEFAULT_RULES) : DEFAULT_RULES;
-  const fee = formatPrice(r.deliveryCharge), feeBn = formatPrice(r.deliveryCharge, "bn");
+  const fee = feeText(r, "en"), feeBn = feeText(r, "bn");
   const limit = formatPrice(r.codLimit), limitBn = formatPrice(r.codLimit, "bn");
   const dhaka = r.dhakaDays.replace("-", "–"), outside = r.outsideDays.replace("-", "–");
   const ret = r.returnDays;

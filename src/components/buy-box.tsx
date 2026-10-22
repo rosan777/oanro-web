@@ -10,6 +10,7 @@ import { useLocale } from "./locale";
 import { PriceTag, ProductPhoto } from "./shell";
 import Link from "./locale-link";
 import { useFeature } from "./site-content-context";
+import { chargeFor } from "@/lib/delivery-fee";
 
 const DAY_MS = 86_400_000;
 /** "1-3" business days from today in Bangladesh time → "Fri 24 – Sun 26 Oct" (Friday is skipped as a non-delivery day). */
@@ -30,11 +31,12 @@ export function BuyBox({ product, rules, soldOut }: { product: Product; rules: C
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setReady(true), []);
   const days = area === "dhaka" ? rules.dhakaDays : rules.outsideDays;
+  const fee = chargeFor(rules, area);
   const n = (s: string) => bn ? bnDigits(s) : s;
   if (!enabled) return null;
   return <div className="buy-box">
     {product.left && !soldOut ? <p className="buy-left" role="status">{t(`Only ${product.left} left`, `মাত্র ${bnDigits(String(product.left))}টি বাকি`)}</p> : null}
-    <p className="buy-total">{formatPrice(product.price, locale)} <span>+ {formatPrice(rules.deliveryCharge, locale)} {t("delivery", "ডেলিভারি")}</span> = <b>{formatPrice(product.price + rules.deliveryCharge, locale)}</b></p>
+    <p className="buy-total">{formatPrice(product.price, locale)} <span>+ {formatPrice(fee, locale)} {t("delivery", "ডেলিভারি")}</span> = <b>{formatPrice(product.price + fee, locale)}</b></p>
     <div className="buy-ship">
       <Truck size={18} aria-hidden="true" />
       <div>
