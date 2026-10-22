@@ -954,3 +954,6 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   .footer-extra > :first-child:not(.footer-top) { max-width: none; flex-basis: auto; }
   .footer-top { align-self: flex-start; }
 }
+
+/* Product scroll story: desktop computers only (Mac, Windows, Linux with a mouse/trackpad). Hidden on phones and tablets, including large touch tablets, where the tall sticky photo took most of the screen. */
+@media (max-width: 1024px), (hover: none), (pointer: coarse) { .v2-story { display: none; } }
