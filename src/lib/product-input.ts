@@ -16,6 +16,7 @@ export type ProductInput = {
   price: number; stock: number | null; lowStockAt: number | null; sizes: string[];
   specsEn: [string, string][]; specsBn: [string, string][]; displayOrder: number;
   compareAtPrice: number | null; colors: ProductColor[];
+  featuredEligible: boolean; featuredNoteEn: string; featuredNoteBn: string; featuredVideoUrl: string;
   /** null = one stock number for the whole product (or not counted); a list = stock per colour × size. */
   variants: VariantStock[] | null;
 };
@@ -107,6 +108,8 @@ export function parseProductInput(data: Record<string, unknown>): ProductInput {
   const sizeList = sizes(data.sizes), colorList = colors(data.colors), variantList = variants(data.variants, sizeList, colorList);
   const price = int(data.price, "price", 0, 10_000_000);
   const compareAtPrice = data.compareAtPrice === null || data.compareAtPrice === undefined || data.compareAtPrice === "" ? null : int(data.compareAtPrice, "compareAtPrice", 0, 10_000_000);
+  const featuredVideoUrl = text(data, "featuredVideoUrl", 500);
+  if (featuredVideoUrl) { try { if (new URL(featuredVideoUrl).protocol !== "https:") throw new Error(); } catch { throw new ProductInputError("featuredVideoUrl"); } }
   if (compareAtPrice !== null && compareAtPrice <= price) throw new ProductInputError("compareAtPrice");
   // With stock per colour/size, the product's stock is their total.
   const stock = variantList ? variantList.reduce((s, v) => s + v.stock, 0) : data.stock === null || data.stock === undefined || data.stock === "" ? null : int(data.stock, "stock", 0, 1_000_000);
@@ -119,6 +122,8 @@ export function parseProductInput(data: Record<string, unknown>): ProductInput {
     price, compareAtPrice, stock, sizes: sizeList, colors: colorList, variants: variantList,
     lowStockAt: data.lowStockAt === null || data.lowStockAt === undefined || data.lowStockAt === "" ? null : int(data.lowStockAt, "lowStockAt", 0, 100_000),
     specsEn: specs(data.specsEn, "specsEn"), specsBn: specs(data.specsBn, "specsBn"),
+    featuredEligible: data.featuredEligible === true || data.featuredEligible === "true",
+    featuredNoteEn: text(data, "featuredNoteEn", 1200), featuredNoteBn: text(data, "featuredNoteBn", 1200), featuredVideoUrl,
     displayOrder: order(data),
   };
 }

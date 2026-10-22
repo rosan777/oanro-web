@@ -115,7 +115,9 @@ html[lang="bn"] .v2-h1, html[lang="bn"] .v2-h2, html[lang="bn"] .v2-h3 { font-fa
 .v2-card-body { display: grid; gap: 0.5rem; padding: 1rem 1.1rem 1.25rem; }
 .v2-card-body strong { font-weight: 500; }
 .v2-card-body p { margin: 0; font-size: 0.88rem; color: #5e6461; line-height: 1.5; }
-.v2-swatches { display: flex; gap: 6px; } .v2-swatches span { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgb(0 0 0 / 0.12); }
+.v2-swatches { display: flex; gap: 6px; } .v2-swatches > :is(span, button) { width: 16px; height: 16px; padding: 0; border-radius: 50%; border: 1px solid rgb(0 0 0 / 0.12); }
+.v2-swatches button { cursor: pointer; }
+.v2-swatches button:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
 .v2-card-foot { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
 .v2-card-foot small { font-size: 0.75rem; } .v2-card-foot .is-in { color: var(--brand); } .v2-card-foot .is-out { color: #b45309; }
 .v2-card-foot .price { color: var(--brand); font-weight: 700; }
@@ -349,10 +351,11 @@ html[lang="bn"] .pc-title { font-family: var(--font-bangla), sans-serif; text-tr
   /* Brighter secondary text on dark sections (easier to read in daylight). */
   .v2-hero .v2-lede, .v2-studio .v2-lede, .v2-letters-line, .pulse-card time { color: #c9cfcb; }
 
-  /* Shop tabs: one swipeable row of equal pills instead of wrapping. */
-  .v2-tabs { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; width: 100%; border-radius: 999px; scrollbar-width: none; }
-  .v2-tabs::-webkit-scrollbar { display: none; }
-  .v2-tabs button { flex: 0 0 auto; min-height: 44px; padding: 0.7rem 1rem; font-size: 0.92rem; }
+  /* Mobile shop navigation stays in one compact box; the last tab fills row two when there are three. */
+  .v2-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; width: min(100%, 380px); padding: 4px; border-radius: 20px; background: #fff; box-shadow: 0 14px 34px rgb(18 22 20 / 0.10); }
+  .v2-tabs[data-count="1"] { display: flex; width: fit-content; max-width: 100%; }
+  .v2-tabs[data-count="3"] button:last-child { grid-column: 1 / -1; }
+  .v2-tabs button { min-width: 0; min-height: 44px; padding: 0.55rem 0.65rem; font-size: 0.82rem; line-height: 1.25; text-align: center; white-space: normal; }
 
   /* Products: two per row, labels at least 13px. */
   .v2-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -431,7 +434,7 @@ html[lang="bn"] .pc-title { font-family: var(--font-bangla), sans-serif; text-tr
   .button { min-height: 36px; padding: 0.6rem 1rem; font-size: 0.78rem; }
   .v2-contact .contact-actions .button { min-height: 42px; font-size: 0.82rem; }
   .pc-btn { min-height: 38px; font-size: 0.82rem; border-radius: 11px; }
-  .v2-tabs button { min-height: 33px; padding: 0.5rem 0.8rem; font-size: 0.8rem; }
+  .v2-tabs button { min-height: 44px; padding: 0.55rem 0.65rem; font-size: 0.8rem; }
   .v2-subtabs button { min-height: 30px; padding: 0.35rem 0.75rem; font-size: 0.8rem; }
   .v2-pills button { min-height: 33px; padding: 0.45rem 0.8rem; font-size: 0.82rem; }
 }
@@ -547,6 +550,17 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
 .v2-story-media { position: sticky; top: 96px; }
 .v2-story-photo { aspect-ratio: 4 / 5; border-radius: 28px; overflow: hidden; background: #eef0ec; box-shadow: 0 30px 60px -30px rgb(18 22 20 / 0.35); }
 .v2-story-photo .product-photo { width: 100%; height: 100%; }
+.v2-story-photo .product-photo { animation: v2-story-photo-in .5s ease both; }
+@keyframes v2-story-photo-in { from { opacity: .25; transform: scale(1.015); } to { opacity: 1; transform: none; } }
+.v2-story-dots { display: flex; justify-content: center; gap: 8px; margin-top: .75rem; }
+.v2-story-dots button { width: 44px; height: 44px; padding: 0; border: 0; background: transparent; position: relative; }
+.v2-story-dots button::after { content: ""; position: absolute; inset: 17px 6px; border-radius: 99px; background: #c8ccc9; }
+.v2-story-dots button[aria-pressed="true"]::after { background: var(--brand); }
+.v2-story-video, .v2-story-video-file { width: min(100%, 560px); margin-top: .5rem; border-radius: 16px; overflow: hidden; background: #080b0a; }
+.v2-story-video { aspect-ratio: 16 / 9; }
+.v2-story-video iframe { width: 100%; height: 100%; border: 0; }
+.v2-story-video-file { display: block; aspect-ratio: 16 / 9; object-fit: contain; }
+.product-feature-video { width: 100%; height: 100%; border: 0; background: #080b0a; }
 .v2-story-panel { min-height: 62vh; display: flex; flex-direction: column; justify-content: center; gap: 0.9rem; padding-block: 2rem; }
 .v2-story-panel .v2-body { font-size: 1.1rem; line-height: 1.7; color: #3f4542; max-width: 30rem; }
 .v2-story-specs { display: grid; gap: 0.6rem; margin: 0.5rem 0 0; }
@@ -627,6 +641,7 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
 .v2-process-dot { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--space); border: 2px solid var(--glow); color: var(--glow); font: 600 .95rem var(--font-label), monospace; }
 .v2-process-list strong { font-family: var(--font-display), var(--font-bangla), sans-serif; font-weight: 500; font-size: 1.35rem; text-transform: uppercase; color: #ededE6; }
 .v2-process-list small { color: #a9afab; font-size: .88rem; line-height: 1.5; }
+.v2-process-select, .v2-process-detail { display: none; }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .v2-process-list::after { animation: line-draw linear both; animation-timeline: view(); animation-range: entry 20% cover 55%; }
@@ -682,6 +697,7 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   }
 }
 @media (prefers-reduced-motion: reduce) { .v2-mask, .v2-mock, .bag-count, .added-tick { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .v2-story-photo .product-photo { animation: none; } }
 
 /* ---------- 16/17/19/20. Buy box under "Add to bag" ---------- */
 .buy-box { display: grid; gap: .7rem; margin-top: 1rem; padding: 1rem 1.1rem; border: 1px solid #e3e1da; border-radius: 16px; background: #fff; }
@@ -1059,20 +1075,25 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
 @media (max-width: 767px) {
   .footer-extra { padding-block: 1rem; gap: 0.75rem; }
   .footer-top { display: none; }
-  .news-form { gap: 0.4rem; margin-top: 0; max-width: none; }
-  .news-form > label:first-child { font-size: 0.92rem; }
-  .news-row { gap: 0.4rem; }
-  .news-row input { min-height: 40px; padding: 0 0.65rem; border-radius: 9px; }
-  .news-row button { min-height: 40px; padding: 0 0.9rem; font-size: 0.85rem; border-radius: 9px; }
-  .news-consent { font-size: 0.75rem; line-height: 1.4; gap: 0.4rem; align-items: center; }
+  .footer-extra > :first-child:not(.footer-top) { flex: none; align-self: flex-start; width: min(100%, 300px); max-width: 300px; }
+  .news-form { gap: 0.25rem; margin-top: 0; max-width: 300px; }
+  .news-form > label:first-child { font-size: 0.78rem; line-height: 1.25; }
+  .news-row { gap: 0.35rem; }
+  .news-row input { min-width: 0; min-height: 42px; padding: 0 0.55rem; border-radius: 8px; font-size: 1rem; }
+  .news-row button { min-height: 42px; padding: 0 0.62rem; font-size: 0.76rem; border-radius: 8px; }
+  .news-consent { font-size: 0.72rem; line-height: 1.3; gap: 0.35rem; align-items: center; }
   .news-consent input { width: 16px; height: 16px; flex: none; margin: 0; }
   .site-footer .footer-bottom { gap: 0.4rem 1rem; padding-block: 0.8rem 1rem; font-size: 0.75rem; }
   .footer-tools { gap: 0.25rem 1rem; }
 }
 
-/* Studio on every screen size: the same side-by-side layout as desktop (text and services left, live-build terminal right), scaled down smoothly with the screen width.
-   The "How we work" timeline also stays horizontal (5 steps in a row). */
+/* Studio keeps its two-column composition on desktop and tablet. */
 @keyframes line-draw-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.v2-studio-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); grid-template-areas: "intro console" "services console" "process process"; column-gap: 3.5rem; row-gap: 0; align-items: start; }
+.v2-studio-intro { grid-area: intro; }
+.v2-studio-services { grid-area: services; }
+.v2-studio-console { grid-area: console; }
+.v2-studio .v2-process { grid-area: process; }
 @media (max-width: 1024px) {
   .v2-studio { padding-block: clamp(2rem, 6vw, 4rem); }
   .v2-studio-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(0.75rem, 3vw, 2.5rem); align-items: center; }
@@ -1105,21 +1126,114 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   .v2-process-list strong { font-size: clamp(0.75rem, 2.8vw, 1.3rem); }
 }
 
-/* Homepage "Let's start a conversation" box on phones: compact card, smaller heading and text, the two buttons side by side in one row. */
+/* Phone Studio: one readable story, then a terminal window, the process, and service links. */
+@media (max-width: 767px) {
+  .v2-studio { padding-block: 2.5rem; }
+  .v2-studio-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "intro" "console" "process" "services" "tracks"; gap: 1.35rem; align-items: start; }
+  .v2-studio-console { display: contents; }
+  .v2-terminal { grid-area: console; border-radius: 15px; border-color: #30393c; }
+  .v2-studio-tracks { grid-area: tracks; min-width: 0; overflow: hidden; }
+  .v2-studio .v2-eyebrow { font-size: 0.7rem; line-height: 1.45; letter-spacing: 0.08em; }
+  .v2-studio .v2-h2 { margin-top: 0.4rem; font-size: clamp(1.7rem, 7.2vw, 2.35rem); line-height: 1.08; letter-spacing: 0.01em; }
+  .v2-studio .v2-h2 br { display: none; }
+  .v2-studio .v2-h2 span + span::before { content: " "; }
+  .v2-studio .v2-lede { margin-top: 0.7rem; font-size: 0.92rem; line-height: 1.5; }
+  .v2-terminal-bar { gap: 7px; padding: 10px 12px; background: #161b1d; border-bottom-color: #30393c; }
+  .v2-terminal-bar i { width: 10px; height: 10px; flex: none; }
+  .v2-terminal-bar i:first-child { background: #ff5f57; }
+  .v2-terminal-bar i:nth-child(2) { background: #febc2e; }
+  .v2-terminal-bar i:nth-child(3) { background: #28c840; }
+  .v2-terminal-bar span { color: #bac2bd; font-size: 0.7rem; }
+  .v2-terminal-body { padding: 0.9rem 1rem 1rem; font-size: 0.75rem; line-height: 1.55; }
+  .v2-terminal-body .t-line { overflow-wrap: break-word; }
+  .v2-studio .v2-process { margin-top: 0; }
+  .v2-studio .v2-process-list { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; margin-top: 0.8rem; }
+  .v2-studio .v2-process-list::before, .v2-studio .v2-process-list::after { display: block; left: 10%; right: 10%; top: 15px; bottom: auto; width: auto; height: 2px; }
+  .v2-studio .v2-process-list::after { transform-origin: left; animation-name: line-draw-x; }
+  .v2-studio .v2-process-list li { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: start; gap: 0.4rem; min-width: 0; padding: 0; border: 0; background: transparent; text-align: center; }
+  .v2-studio .v2-process-dot { grid-row: auto; width: 30px; height: 30px; font-size: 0.75rem; }
+  .v2-studio .v2-process-list strong { font-size: clamp(0.65rem, 2.7vw, 0.8rem); line-height: 1.15; overflow-wrap: anywhere; }
+  .v2-studio .v2-process-list li small { display: none; }
+  .v2-studio .v2-process-list li.is-selected .v2-process-dot { background: var(--glow); color: var(--space); }
+  .v2-studio .v2-process-select { display: block; position: absolute; inset: 0; width: 100%; min-height: 48px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+  .v2-studio .v2-process-select:focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 8px; }
+  .v2-studio .v2-process-detail { display: block; margin-top: 0.9rem; padding: 0.8rem 1rem; border: 1px solid #27302d; border-radius: 12px; background: #0d1211; }
+  .v2-studio .v2-process-detail strong { color: var(--glow); font-family: var(--font-display), var(--font-bangla), sans-serif; font-size: 1.05rem; text-transform: uppercase; }
+  .v2-studio .v2-process-detail p { margin-top: 0.2rem; color: #c2c9c4; font-size: 0.88rem; line-height: 1.45; }
+  .v2-studio-services { padding-top: 0.2rem; }
+  .v2-service-rows { margin-top: 0; }
+  .v2-studio .v2-actions .v2-btn { min-height: 44px; }
+}
+
+/* Keep the mobile contact card compact while letting each action show its full label. */
 @media (max-width: 640px) {
-  .v2-contact { margin-block: 2.5rem 0; padding: 1.2rem 1.1rem; border-radius: 20px; gap: 0.9rem; }
+  .v2-contact { margin-block: 2rem 0; padding: 1rem; border-radius: 18px; gap: 0.7rem; }
   .v2-contact > div:first-child { min-width: 0; }
-  .v2-contact .v2-h2 { font-size: clamp(1.35rem, 6.2vw, 1.7rem); }
-  .v2-contact p { margin-top: 0.35rem; font-size: 0.86rem; line-height: 1.45; }
-  .v2-contact .contact-actions { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.5rem; margin-top: 0; }
-  .v2-contact .contact-actions > * { min-width: 0; max-width: none; }
-  .v2-contact .contact-actions .button { width: 100%; min-height: 40px; padding: 0.5rem 0.6rem; font-size: 0.76rem; gap: 0.35rem; overflow: hidden; }
+  .v2-contact .v2-h2 { font-size: clamp(1.25rem, 5.5vw, 1.5rem); }
+  .v2-contact p { margin-top: 0.3rem; font-size: 0.875rem; line-height: 1.45; }
+  .v2-contact .contact-actions { width: 100%; display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: flex-start; gap: 0.5rem; margin-top: 0; }
+  .v2-contact .contact-actions > .button { flex: 0 1 auto; width: auto; min-width: 0; max-width: 100%; min-height: 44px; padding: 0.45rem 0.68rem; font-size: 0.8rem; gap: 0.35rem; white-space: normal; overflow-wrap: anywhere; }
   .v2-contact .contact-actions .button svg { width: 14px; height: 14px; flex: none; }
-  .v2-contact .contact-actions .button { white-space: nowrap; text-overflow: ellipsis; }
+  .v2-values-wrap { margin-block: 0.25rem 1.75rem; }
+  .v2-values { padding: 1.15rem 0.85rem 1rem; border-radius: 18px; }
+  .v2-values .v2-eyebrow { max-width: 18rem; margin-inline: auto; font-size: 0.68rem; line-height: 1.45; letter-spacing: 0.1em; }
+  .v2-letters { margin-top: 0.35rem; }
+  .v2-letters button { min-height: 44px; padding-inline: 0.12em; font-size: clamp(2.2rem, 10vw, 3rem); }
+  .v2-value-panel { gap: 0.65rem; margin-top: 0.55rem; padding-top: 0.65rem; }
+  .v2-value-panel > div:first-child { flex-basis: 31%; }
+  .v2-value-word { font-size: clamp(1.05rem, 4.7vw, 1.4rem); }
+  .v2-value-panel p { font-size: 0.84rem; line-height: 1.4; }
+  .v2-value-panel .v2-value-you { margin-top: 0.25rem; font-size: 0.76rem; line-height: 1.4; }
+  .v2-help-row { grid-template-columns: minmax(0, 1fr); gap: 10px; padding-block: 0.85rem 2.25rem; }
+  .v2-panel { padding: 1rem; border-radius: 17px; }
+  .v2-panel .v2-h3 { font-size: 1.2rem; line-height: 1.15; }
+  .v2-pills { gap: 6px; margin-top: 0.65rem; }
+  .v2-pills button { min-height: 40px; padding: 0.4rem 0.72rem; font-size: 0.78rem; }
+  .v2-result { margin-top: 0.65rem; padding: 0.7rem 0.75rem; border-radius: 11px; font-size: 0.84rem; line-height: 1.45; }
+  .v2-panel-list { margin-top: 0.65rem; gap: 0.4rem; }
+  .v2-panel-list li { gap: 0.45rem; font-size: 0.84rem; line-height: 1.4; }
+  .v2-panel .v2-link { margin-top: 0.65rem !important; min-height: 40px; font-size: 0.8rem; }
+  .v2-devices { margin-top: 1.5rem; padding-bottom: 0.25rem; }
+  .v2-devices-stage { width: min(100%, 280px); padding-bottom: 2rem; }
+  .v2-device.is-laptop { width: 88%; padding: 5px; border-radius: 10px; }
+  .v2-device.is-tablet { left: 0; width: 26%; padding: 4px; border-radius: 10px; }
+  .v2-device.is-phone { right: 0; width: 16%; padding: 3px; border-radius: 10px; }
+  .v2-devices-note { margin-top: 1rem; max-width: 19rem; padding-inline: 0.25rem; font-size: 0.875rem; line-height: 1.45; }
 }
 
 /* Google mobile check: the terminal keeps 12px text on phones, so its lines wrap instead of shrinking; tech chips scroll as before. */
 @media (max-width: 640px) {
   .v2-terminal-body .t-line { white-space: normal; overflow-wrap: anywhere; }
   .v2-studio-grid { align-items: start; }
+}
+
+/* Compact phone shopping: actions stay below the photograph, with usable tap areas. */
+.v2-card-mobile-action { display: none; }
+@media (max-width: 640px) {
+  .v2-tabs { background: transparent; box-shadow: none; padding: 0; gap: 8px; }
+  .v2-tabs button { background: #fff; border-radius: 16px; min-width: 0; }
+  .v2-tabs button.is-active { background: #151917; color: #fff; }
+  .v2-tabs[data-count="3"] button:last-child { grid-column: auto; }
+  .v2-tabs button[data-category="store"] { order: 3; grid-column: 1 / -1; justify-self: center; padding-inline: 1.25rem; font-size: .78rem; }
+  .v2-card .v2-card-cta { display: none; }
+  .v2-card-mobile-action { display: flex; align-items: center; justify-content: space-between; min-height: 44px; border-top: 1px solid #e7e6df; color: var(--brand); font-size: .8rem; font-weight: 600; gap: .3rem; }
+  .v2-card-body .v2-swatches button { width: 28px; height: 28px; }
+  .v2-card:hover, .v2-card.v2-tilt { transform: none; }
+  .v2-card.has-alt:hover .v2-card-alt { opacity: 0; }
+  .v2-card:hover .v2-card-photo .product-photo:first-child { transform: none; }
+  .product-page .contact-actions { gap: .5rem; }
+  .product-page .contact-actions > .button { flex: 1 1 140px; max-width: 100%; min-height: 44px; padding: .55rem .75rem; font-size: .85rem; white-space: normal; }
+  .product-page .contact-actions svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .checkout-page { padding-block: 1.5rem 2.5rem; }
+  .checkout-grid { gap: 1.25rem; }
+  .checkout-summary { padding: 1rem; gap: .6rem; }
+  .checkout-submit, .bag-checkout, .sticky-buy .button { min-height: 44px; padding: .6rem .8rem; font-size: .85rem; }
+  .checkout-fields input:not([type=file]), .checkout-fields textarea { font-size: 16px; }
+  .v2-story { display: grid; margin-block: 2rem; }
+  .v2-story-media { position: static; }
+  .v2-story-panel { min-height: 0; padding: 1rem; }
+  .v2-story-panel .v2-body { font-size: .9rem; line-height: 1.5; }
+  .v2-story-dots { margin-top: .4rem; }
+  .v2-story-video, .v2-story-video-file { border-radius: 11px; }
+  .v2-bento-wrap { display: none; }
 }

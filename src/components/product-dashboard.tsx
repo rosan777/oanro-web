@@ -10,11 +10,11 @@ import { CategoryPicker, PhotoPicker, StatusSelect, statusLabel, useAdminCall } 
 type Item = OwnerCatalog["products"][number];
 type Section = OwnerCatalog["collections"][number];
 type Draft = Record<string, string> & { status: ProductStatus };
-const fieldLabel: Record<string, string> = { slug: "Web address", nameEn: "Name", nameBn: "Bangla name", categoryEn: "Category", price: "Price", stock: "Stock quantity", lowStockAt: "Restock alert level", costPrice: "Cost price", compareAtPrice: "Original price (must be higher than the price)", colors: "Colours", variants: "Stock per colour/size", en: "Colour name", bn: "Colour Bangla name", sizes: "Sizes / options", specsEn: "Specifications", specsBn: "Bangla specifications", descriptionEn: "Description", image: "Photo", status: "Status", displayOrder: "Display order", collectionId: "Section" };
+const fieldLabel: Record<string, string> = { slug: "Web address", nameEn: "Name", nameBn: "Bangla name", categoryEn: "Category", price: "Price", stock: "Stock quantity", lowStockAt: "Restock alert level", costPrice: "Cost price", compareAtPrice: "Original price (must be higher than the price)", colors: "Colours", variants: "Stock per colour/size", en: "Colour name", bn: "Colour Bangla name", sizes: "Sizes / options", specsEn: "Specifications", specsBn: "Bangla specifications", descriptionEn: "Description", image: "Photo", featuredImage: "Feature close-up photo", featuredVideoUrl: "Feature video URL", status: "Status", displayOrder: "Display order", collectionId: "Section" };
 const lines = (rows: [string, string][]) => rows.map(([k, v]) => `${k}: ${v}`).join("\n");
-const blank = (collectionId: string): Draft => ({ compareAtPrice: "", slug: "", status: "draft", collectionId, nameEn: "", nameBn: "", categoryEn: "", categoryBn: "", taglineEn: "", taglineBn: "", descriptionEn: "", descriptionBn: "", price: "", stock: "", lowStockAt: "", costPrice: "", sizes: "Standard", specsEn: "", specsBn: "", displayOrder: "0" });
+const blank = (collectionId: string): Draft => ({ compareAtPrice: "", slug: "", status: "draft", collectionId, nameEn: "", nameBn: "", categoryEn: "", categoryBn: "", taglineEn: "", taglineBn: "", descriptionEn: "", descriptionBn: "", price: "", stock: "", lowStockAt: "", costPrice: "", sizes: "Standard", specsEn: "", specsBn: "", featuredEligible: "false", featuredNoteEn: "", featuredNoteBn: "", featuredVideoUrl: "", displayOrder: "0" });
 // Stock: "" = not counted (unlimited), a number = units left (orders take from it automatically).
-const toDraft = (p: Item, cost: number | null = null): Draft => ({ compareAtPrice: p.compareAtPrice === null ? "" : String(p.compareAtPrice), lowStockAt: p.lowStockAt === null ? "" : String(p.lowStockAt), costPrice: cost === null ? "" : String(cost), slug: p.slug, status: p.status, collectionId: p.collectionId, nameEn: p.nameEn, nameBn: p.nameBn, categoryEn: p.categoryEn, categoryBn: p.categoryBn, taglineEn: p.taglineEn, taglineBn: p.taglineBn, descriptionEn: p.descriptionEn, descriptionBn: p.descriptionBn, price: String(p.price), stock: p.stock === null ? "" : String(p.stock), sizes: p.sizes.join(", "), specsEn: lines(p.specsEn), specsBn: lines(p.specsBn), displayOrder: String(p.displayOrder) });
+const toDraft = (p: Item, cost: number | null = null): Draft => ({ compareAtPrice: p.compareAtPrice === null ? "" : String(p.compareAtPrice), lowStockAt: p.lowStockAt === null ? "" : String(p.lowStockAt), costPrice: cost === null ? "" : String(cost), slug: p.slug, status: p.status, collectionId: p.collectionId, nameEn: p.nameEn, nameBn: p.nameBn, categoryEn: p.categoryEn, categoryBn: p.categoryBn, taglineEn: p.taglineEn, taglineBn: p.taglineBn, descriptionEn: p.descriptionEn, descriptionBn: p.descriptionBn, price: String(p.price), stock: p.stock === null ? "" : String(p.stock), sizes: p.sizes.join(", "), specsEn: lines(p.specsEn), specsBn: lines(p.specsBn), featuredEligible: String(p.featuredEligible), featuredNoteEn: p.featuredNoteEn, featuredNoteBn: p.featuredNoteBn, featuredVideoUrl: p.featuredVideoUrl, displayOrder: String(p.displayOrder) });
 const outOfStock = (stock: number | string | null) => stock === 0 || stock === "0";
 /** Colours being edited (id is made from the English name, like the server does). */
 type ColorRow = { en: string; bn: string; hex: string; key: string };
@@ -43,8 +43,9 @@ export function ProductDashboard({ initial, collectionId, costs: initialCosts = 
   const costApi = useAdminCall<{ costs: Record<string, number | null> }>("/api/admin/costs", { costPrice: "Cost price" }, data => setCosts(data.costs));
   const [all, setAll] = useState(initial.products);
   const [sections, setSections] = useState(initial.collections);
-  const [editing, setEditing] = useState<{ id: string | null; draft: Draft; hasImage: boolean } | null>(null);
+  const [editing, setEditing] = useState<{ id: string | null; draft: Draft; hasImage: boolean; hasFeaturedImage: boolean } | null>(null);
   const [photo, setPhoto] = useState<string | null | undefined>(undefined);
+  const [featuredPhoto, setFeaturedPhoto] = useState<string | null | undefined>(undefined);
   const [opts, setOpts] = useState<Options>(optionsOf(null));
   const latest = useRef<Item[]>(initial.products);
   const [slugTouched, setSlugTouched] = useState(false);
@@ -54,8 +55,8 @@ export function ProductDashboard({ initial, collectionId, costs: initialCosts = 
   const options = productCategories[section?.preset ?? "general"];
 
   function open(item: Item | null) {
-    setEditing(item ? { id: item.id, draft: toDraft(item, costs?.[item.id] ?? null), hasImage: item.hasImage } : { id: null, draft: blank(collectionId), hasImage: false });
-    setPhoto(undefined); setOpts(optionsOf(item)); setSlugTouched(Boolean(item)); setNotice("");
+    setEditing(item ? { id: item.id, draft: toDraft(item, costs?.[item.id] ?? null), hasImage: item.hasImage, hasFeaturedImage: item.hasFeaturedImage } : { id: null, draft: blank(collectionId), hasImage: false, hasFeaturedImage: false });
+    setPhoto(undefined); setFeaturedPhoto(undefined); setOpts(optionsOf(item)); setSlugTouched(Boolean(item)); setNotice("");
   }
   function set(patch: Record<string, string>) {
     setEditing(e => {
@@ -73,7 +74,7 @@ export function ProductDashboard({ initial, collectionId, costs: initialCosts = 
     const colorIds = colors.length ? colors.map(c => slugify(c.en).slice(0, 30)) : [""];
     const sizes = sizeList(editing.draft.sizes);
     const variants = opts.track ? colorIds.flatMap(color => sizes.map(size => ({ color, size, stock: opts.grid[`${color}|${size}`] ?? "0" }))) : null;
-    const body: Record<string, unknown> = { ...draft, colors, variants, ...(photo !== undefined ? { image: photo } : {}) };
+    const body: Record<string, unknown> = { ...draft, colors, variants, ...(photo !== undefined ? { image: photo } : {}), ...(featuredPhoto !== undefined ? { featuredImage: featuredPhoto } : {}) };
     const moved = editing.draft.collectionId !== collectionId ? ` It moved to “${sections.find(s => s.id === editing.draft.collectionId)?.nameEn}”.` : "";
     const ok = editing.id ? await call("PATCH", { id: editing.id, ...body }, `Product saved.${moved} Refresh the storefront to see it.`)
       : await call("POST", body, editing.draft.status === "published" ? `Product created and published.${moved}` : `Product saved as a draft.${moved} Publish it when ready.`);
@@ -150,6 +151,16 @@ export function ProductDashboard({ initial, collectionId, costs: initialCosts = 
         {area("descriptionBn", "বিবরণ")}{area("specsBn", "স্পেসিফিকেশন", "প্রতি লাইনে একটি, যেমন “ম্যাটেরিয়াল: কটন”।")}
       </details>
       <PhotoPicker value={photo} hasCurrent={editing.hasImage} disabled={busy} onChange={setPhoto} onError={setNotice} />
+      <fieldset className="variant-editor"><legend>Homepage feature story (optional)</legend>
+        <label className="check-row"><input type="checkbox" checked={editing.draft.featuredEligible === "true"} disabled={busy} onChange={e => set({ featuredEligible: String(e.target.checked) })} /> Allow this product to appear in the homepage featured-product selector</label>
+        <small>When enabled and published, this product appears in Admin → Website content → Sections on/off → Product scroll story.</small>
+        {editing.draft.featuredEligible === "true" && <>
+          {area("featuredNoteEn", "Extra story or tutorial text (optional)", "Shown only in the homepage feature story. Leave blank to use the normal product content without an extra block.")}
+          <label>Video URL (optional)<input type="url" value={editing.draft.featuredVideoUrl} placeholder="https://… (YouTube, Vimeo, MP4 or WebM)" disabled={busy} onChange={e => set({ featuredVideoUrl: e.target.value })} /><small>Use an HTTPS link. Nothing is shown when this is blank.</small></label>
+          <PhotoPicker legend="Close-up or special feature photo (optional)" value={featuredPhoto} hasCurrent={editing.hasFeaturedImage} disabled={busy} onChange={setFeaturedPhoto} onError={setNotice} />
+          <details><summary>Bangla feature text (optional)</summary>{area("featuredNoteBn", "বিশেষ লেখা বা টিউটোরিয়াল")}</details>
+        </>}
+      </fieldset>
       <div className="product-form-row">
         <StatusSelect value={editing.draft.status} disabled={busy} onChange={status => set({ status })} allowed={allowedStatuses(rights, "draft")} />
         <label>Section<select value={editing.draft.collectionId} disabled={busy} onChange={e => set({ collectionId: e.target.value })}>{sections.map(s => <option key={s.id} value={s.id}>{s.nameEn}</option>)}</select></label>

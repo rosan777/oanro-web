@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 export default async function ProductPage({ params }: Props) {
   const product = await find((await params).slug); if (!product) notFound();
-  const [all, collections] = await Promise.all([getStoreProducts(), getStoreCollections()]);
+  const [all, collections, rules] = await Promise.all([getStoreProducts(), getStoreCollections(), publicRules()]);
   // Same section first, then everything else; in-stock items before sold-out ones (stable sort keeps the shop's order).
   const rest = all.filter(p => p.slug !== product.slug).sort((a, b) => Number(a.inStock === false) - Number(b.inStock === false));
   const same = product.collectionId ? rest.filter(p => p.collectionId === product.collectionId) : [];
@@ -40,9 +40,15 @@ export default async function ProductPage({ params }: Props) {
     { name: bnName, item: pageUrl }];
   const breadcrumb = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: crumbs.map((c, i) => ({ "@type": "ListItem", position: i + 1, ...c })) };
   // Price and stock only when the store is really selling (OANRO_STORE_LIVE=true): sample prices would mislead Google.
-  const productSchema = storeLive() && product.price > 0 ? { "@context": "https://schema.org", "@type": "Product", name: product.name, description: product.description, sku: product.slug, category: product.category,
+  const live = storeLive();
+  const days = (range: string) => { const [min, max = min] = range.split("-").map(Number); return { minValue: min, maxValue: max, unitCode: "DAY" }; };
+  const shipping = (charge: number, region?: string) => ({ "@type": "OfferShippingDetails", shippingRate: { "@type": "MonetaryAmount", value: charge, currency: "BDT" },
+    shippingDestination: { "@type": "DefinedRegion", addressCountry: "BD", ...(region ? { addressRegion: region } : {}) },
+    deliveryTime: { "@type": "ShippingDeliveryTime", handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" }, transitTime: { "@type": "QuantitativeValue", ...days(region ? rules.dhakaDays : rules.outsideDays) } } });
+  const productSchema = live && product.price > 0 ? { "@context": "https://schema.org", "@type": "Product", name: product.name, description: product.description, sku: product.slug, category: product.category,
     image: [absoluteUrl(product.image || "/images/campaign.png")], brand: { "@type": "Brand", name: SITE_NAME },
     offers: { "@type": "Offer", url: pageUrl, priceCurrency: "BDT", price: product.price, itemCondition: "https://schema.org/NewCondition",
-      availability: product.inStock === false ? "https://schema.org/OutOfStock" : "https://schema.org/InStock", seller: { "@id": `${siteUrl()}/#organization` } } } : null;
-  return <><JsonLd data={breadcrumb} />{productSchema && <JsonLd data={productSchema} />}<ViewCounter slug={product.slug} /><ProductDetail product={product} rules={await publicRules()} contact={getSiteConfig()} related={{ same, others, sectionName }} /></>;
+      availability: product.inStock === false ? "https://schema.org/OutOfStock" : "https://schema.org/InStock", seller: { "@id": `${siteUrl()}/#organization` },
+      shippingDetails: [shipping(rules.deliveryCharge, "Dhaka"), shipping(rules.outsideCharge)] } } : null;
+  return <><JsonLd data={breadcrumb} />{productSchema && <JsonLd data={productSchema} />}<ViewCounter slug={product.slug} /><ProductDetail product={product} rules={rules} contact={getSiteConfig()} live={live} related={{ same, others, sectionName }} /></>;
 }

@@ -71,13 +71,14 @@ export type Contact = { email: string; phone: string; whatsapp: string; messenge
 /** Owner-uploaded images (Admin → Website content → Images). Only version stamps travel to pages; the image itself is at /api/site-media/<key>?v=<stamp>. */
 export type MediaSlot = "menu-products" | "menu-services" | "menu-about" | "share";
 export const mediaUrl = (c: Pick<SiteContent, "media">, key: MediaSlot) => c.media[key] ? `/api/site-media/${key}?v=${c.media[key]}` : "";
-export type SiteContent = { text: Record<TextKey, Bi>; features: Record<FeatureKey, boolean>; guides: Guide[]; packages: Package[]; faq: Faq[]; contact: Contact; media: Partial<Record<MediaSlot, string>> };
+export type FeatureSettings = Record<FeatureKey, boolean> & { featuredProductSlug: string };
+export type SiteContent = { text: Record<TextKey, Bi>; features: FeatureSettings; guides: Guide[]; packages: Package[]; faq: Faq[]; contact: Contact; media: Partial<Record<MediaSlot, string>> };
 export const emptyContact = (): Contact => ({ email: "", phone: "", whatsapp: "", messenger: "", address: { en: "", bn: "" }, socials: [], pixelId: "", pulseWhere: "everywhere" });
 
 export function defaultContent(): SiteContent {
   return {
     text: Object.fromEntries(Object.entries(textFields).map(([k, f]) => [k, { en: f.en, bn: f.bn }])) as Record<TextKey, Bi>,
-    features: Object.fromEntries(Object.keys(featureFields).map(k => [k, true])) as Record<FeatureKey, boolean>,
+    features: { ...Object.fromEntries(Object.keys(featureFields).map(k => [k, true])), featuredProductSlug: "" } as FeatureSettings,
     guides: defaultGuides, packages: defaultPackages, faq: defaultFaq, contact: emptyContact(), media: {},
   };
 }
@@ -86,7 +87,11 @@ export function defaultContent(): SiteContent {
 const str = (v: unknown, max: number) => typeof v === "string" ? v.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "").trim().slice(0, max) : "";
 const bi = (v: unknown, max: number): Bi | null => { const o = v as Record<string, unknown> | null; const en = str(o?.en, max); return en ? { en, bn: str(o?.bn, max) || en } : null; };
 export const cleanText = (v: unknown) => Object.fromEntries(Object.keys(textFields).flatMap(k => { const b = bi((v as Record<string, unknown> | null)?.[k], 600); return b ? [[k, b]] : []; })) as Partial<Record<TextKey, Bi>>;
-export const cleanFeatures = (v: unknown) => Object.fromEntries(Object.keys(featureFields).flatMap(k => { const x = (v as Record<string, unknown> | null)?.[k]; return typeof x === "boolean" ? [[k, x]] : []; })) as Partial<Record<FeatureKey, boolean>>;
+export const cleanFeatures = (v: unknown) => {
+  const o = v as Record<string, unknown> | null;
+  const slug = str(o?.featuredProductSlug, 100).toLowerCase();
+  return { ...Object.fromEntries(Object.keys(featureFields).flatMap(k => typeof o?.[k] === "boolean" ? [[k, o[k]]] : [])), featuredProductSlug: !slug || /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? slug : "" } as Partial<FeatureSettings>;
+};
 export const cleanFaq = (v: unknown): Faq[] => (Array.isArray(v) ? v : []).slice(0, 30).flatMap(x => { const q = bi(x?.q, 200), a = bi(x?.a, 1200); return q && a ? [{ q, a }] : []; });
 export const cleanPackages = (v: unknown): Package[] => (Array.isArray(v) ? v : []).slice(0, 8).flatMap(x => {
   const name = bi(x?.name, 80), f = bi(x?.for, 160); if (!name || !f) return [];

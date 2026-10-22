@@ -1,4 +1,4 @@
-import { publishedColorImage, publishedProductImage } from "@/lib/product-store";
+import { publishedColorImage, publishedFeaturedImage, publishedProductImage } from "@/lib/product-store";
 import { catalogDb } from "@/lib/store-products";
 import { imageData } from "@/lib/pulse-thumbnail";
 import { slugPattern } from "@/lib/product-input";
@@ -12,7 +12,8 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
   try {
     const color = new URL(request.url).searchParams.get("color");
     if (color !== null && !/^[a-z0-9-]{1,30}$/.test(color)) return new Response(null, { status: 404, headers: { ...headers, "Cache-Control": "no-store" } });
-    const data = color ? await publishedColorImage(catalogDb(), slug, color) : await publishedProductImage(catalogDb(), slug);
+    const feature = new URL(request.url).searchParams.get("feature") === "1";
+    const data = feature ? await publishedFeaturedImage(catalogDb(), slug) : color ? await publishedColorImage(catalogDb(), slug, color) : await publishedProductImage(catalogDb(), slug);
     const match = data?.match(/^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/]+=*)$/);
     if (!match) return new Response(null, { status: 404, headers: { ...headers, "Cache-Control": "no-store" } });
     const bytes = Buffer.from(match[2], "base64"); imageData(bytes, match[1]);

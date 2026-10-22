@@ -12,8 +12,16 @@ import type { StoreCampaign } from "./catalog";
 export const catalogDb = () => getDb() as unknown as CatalogDb;
 function missingSchema(error: unknown) {
   // 42P01 = table missing, 42703 = column missing: a migration has not run yet.
-  const e = error as { code?: string; cause?: { code?: string } };
-  return ["42P01", "42703"].includes(e?.code ?? "") || ["42P01", "42703"].includes(e?.cause?.code ?? "");
+  const seen = new Set<unknown>();
+  let current: unknown = error;
+  while (current && typeof current === "object" && !seen.has(current)) {
+    seen.add(current);
+    const e = current as { code?: string; cause?: unknown; message?: string };
+    if (["42P01", "42703"].includes(e.code ?? "")) return true;
+    if (/column .* does not exist|relation .* does not exist/i.test(e.message ?? "")) return true;
+    current = e.cause;
+  }
+  return false;
 }
 /**
  * Storefront catalog. The demo list is shown only when no database is configured or a catalog migration has not
