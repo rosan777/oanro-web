@@ -957,3 +957,21 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
 
 /* Product scroll story: desktop computers only (Mac, Windows, Linux with a mouse/trackpad). Hidden on phones and tablets, including large touch tablets, where the tall sticky photo took most of the screen. */
 @media (max-width: 1024px), (hover: none), (pointer: coarse) { .v2-story { display: none; } }
+
+/* Phones: slimmer header (smaller logo, wordmark and EN/বাং switch) and a lighter bottom tab bar. Tap areas stay at least 40–44px. */
+@media (max-width: 640px) {
+  .site-header .header-row { min-height: 50px; }
+  .site-header .brand { font-size: 0.82rem; gap: 0.4rem; }
+  .site-header .brand span { letter-spacing: 0.18em; }
+  .site-header .brand img { width: 24px; height: 24px; }
+  .site-header .header-actions .icon-button { width: 40px; height: 40px; }
+  .site-header .header-actions .icon-button svg { width: 18px; height: 18px; }
+  .site-header .language-switch button { min-height: 26px; padding: 0.22rem 0.45rem; font-size: 0.68rem; }
+  .bottom-bar { padding: 4px 4px calc(4px + env(safe-area-inset-bottom)); }
+  .bottom-bar a, .bottom-bar button { min-height: 44px; font-size: 0.68rem; gap: 1px; }
+  .bottom-bar svg { width: 20px; height: 20px; }
+  body:has(.bottom-bar) { padding-bottom: calc(54px + env(safe-area-inset-bottom)); }
+  body:has(.bottom-bar) .floating-help { bottom: calc(64px + env(safe-area-inset-bottom)); }
+  body:has(.bottom-bar) .sticky-buy { bottom: calc(52px + env(safe-area-inset-bottom)); }
+  body:has(.bottom-bar):has(.sticky-buy.is-shown) .floating-help { bottom: calc(128px + env(safe-area-inset-bottom)); }
+}
