@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requestLocale } from "@/lib/request-locale";
-import { Mail, MessagesSquare, Phone, MessageCircle } from "lucide-react";
+import { Mail, Phone, MessageCircle } from "lucide-react";
 import { contactLinks, getSiteContent } from "@/lib/site-content";
 import { SocialLinks } from "@/components/social-icon";
 import { Localized } from "@/components/locale";
@@ -19,7 +19,6 @@ export default async function ContactPage() {
     <div className="contact-actions">
       <MessageReveal />
       {c.whatsapp && <a className="button light-button" href={c.whatsapp} target="_blank" rel="noreferrer"><MessageCircle size={17} />WhatsApp</a>}
-      {c.messenger && <a className="button light-button" href={c.messenger} target="_blank" rel="noreferrer"><MessagesSquare size={17} />Messenger</a>}
       {c.phone && <a className="button light-button" href={`tel:${c.phone}`}><Phone size={17} />{c.phone}</a>}
       {c.email && <a className="button light-button" href={`mailto:${c.email}`}><Mail size={17} />{c.email}</a>}
     </div>

@@ -16,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [{ url: languages.en, changeFrequency: "weekly", priority, alternates: { languages } }, { url: languages.bn, changeFrequency: "weekly", priority, alternates: { languages } }];
   };
   const guides = await getSiteContent().then(c => c.guides).catch(() => []);
-  const paths: [string, number][] = [["/", 1], ["/about", 0.6], ["/guides", 0.6], ...guides.map(g => [`/guides/${g.slug}`, 0.5] as [string, number]), ["/track", 0.4], ["/contact", 0.4], ["/delivery-returns", 0.4], ["/privacy", 0.3], ["/terms", 0.3]];
+  const paths: [string, number][] = [["/", 1], ["/about", 0.6], ["/company-profile", 0.6], ["/guides", 0.6], ...guides.map(g => [`/guides/${g.slug}`, 0.5] as [string, number]), ["/track", 0.4], ["/contact", 0.4], ["/delivery-returns", 0.4], ["/privacy", 0.3], ["/terms", 0.3]];
   if (config.products) {
     const [products, collections] = await Promise.all([getStoreProducts(), getStoreCollections()]);
     // Only sections that have products: empty ones are kept out of Google.

@@ -1,3 +1,4 @@
+import { Signature } from "@/components/signature";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "@/components/locale-link";
@@ -34,6 +35,6 @@ export default async function AboutPage() {
         <div><dt>{t("Languages", "ভাষা")}</dt><dd>{t("English and Bangla", "ইংরেজি ও বাংলা")}</dd></div>
         <div><dt>{t("Talk to us", "কথা বলুন")}</dt><dd><Link href="/contact">{t("Contact page", "যোগাযোগ পেজ")}</Link></dd></div></dl>
     </section>
-    <p className="about-sign">Team oanro</p>
+    <Signature className="about-sign" />
   </main>;
 }

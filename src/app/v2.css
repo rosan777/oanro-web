@@ -119,7 +119,20 @@ html[lang="bn"] .v2-h1, html[lang="bn"] .v2-h2, html[lang="bn"] .v2-h3 { font-fa
 .v2-card-foot { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
 .v2-card-foot small { font-size: 0.75rem; } .v2-card-foot .is-in { color: var(--brand); } .v2-card-foot .is-out { color: #b45309; }
 .v2-card-foot .price { color: var(--brand); font-weight: 700; }
-.v2-service-photo { display: flex; align-items: center; justify-content: center; background: var(--space); color: var(--glow); font-family: var(--font-display), sans-serif; font-size: 3rem; text-transform: uppercase; }
+/* Service cards: dark tile with a faint dot grid, a slow orbit ring and a small "Get a free quote" pill (always visible on touch screens). */
+.v2-service-photo { display: flex; align-items: center; justify-content: center; color: var(--glow);
+  background: radial-gradient(circle at 50% 120%, rgb(61 220 151 / 0.16), transparent 60%), radial-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px) 0 0 / 18px 18px, var(--space); }
+.v2-svc-orbit { position: absolute; left: 50%; top: 50%; width: 62%; aspect-ratio: 1; margin: 0; border: 1px solid rgb(61 220 151 / 0.22); border-radius: 50%; transform: translate(-50%, -50%); animation: v2-spin 24s linear infinite; transition: width 0.5s ease, border-color 0.5s ease; }
+.v2-svc-orbit::after { content: ""; position: absolute; top: 12%; left: 12%; width: 7px; height: 7px; border-radius: 50%; background: var(--glow); box-shadow: 0 0 12px var(--glow); }
+.v2-svc-word { position: relative; font-family: var(--font-display), sans-serif; font-size: clamp(1.9rem, 3.2vw, 2.5rem); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; transition: transform 0.4s ease, letter-spacing 0.4s ease; }
+.v2-svc-word::after { content: ""; position: absolute; left: 50%; right: 50%; bottom: -6px; height: 2px; border-radius: 2px; background: var(--glow); transition: left 0.4s ease, right 0.4s ease; }
+.v2-svc-cta { position: absolute; left: 14px; bottom: 14px; z-index: 2; display: inline-flex; align-items: center; gap: 6px; padding: 0.45rem 0.8rem; border-radius: 999px; background: rgb(255 255 255 / 0.08); border: 1px solid rgb(255 255 255 / 0.16); color: #ededE6; font-family: var(--font-body), sans-serif; font-size: 0.82rem; font-weight: 500; letter-spacing: 0; text-transform: none; backdrop-filter: blur(6px); opacity: 0; transform: translateY(8px); transition: opacity 0.3s, transform 0.3s, background 0.3s, color 0.3s; }
+.v2-card-service:hover .v2-svc-cta, .v2-card-service:focus-visible .v2-svc-cta { opacity: 1; transform: none; background: var(--glow); border-color: var(--glow); color: var(--space); }
+.v2-card-service:hover .v2-svc-orbit, .v2-card-service:focus-visible .v2-svc-orbit { width: 78%; border-color: rgb(61 220 151 / 0.4); }
+.v2-card-service:hover .v2-svc-word, .v2-card-service:focus-visible .v2-svc-word { transform: translateY(-6px); letter-spacing: 0.12em; }
+.v2-card-service:hover .v2-svc-word::after, .v2-card-service:focus-visible .v2-svc-word::after { left: 0; right: 0; }
+@media (hover: none) { .v2-svc-cta { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .v2-svc-orbit { animation: none; } .v2-svc-orbit, .v2-svc-word, .v2-svc-word::after, .v2-svc-cta { transition: none; } }
 
 /* ---------- Delivery checker ---------- */
 .v2-help-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; padding-block: 1.5rem 4rem; }
@@ -839,7 +852,7 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
 .about-values li > span { font-family: var(--font-display), sans-serif; font-weight: 600; font-size: 2.6rem; color: var(--glow); width: 2.4rem; text-align: center; }
 .about-values li p { margin: .2rem 0 0; color: #c9cfcb; }
 .about-facts dl { display: grid; gap: .6rem; margin: 0; } .about-facts dl div { display: flex; justify-content: space-between; gap: 1rem; border-bottom: 1px solid #efeee8; padding-bottom: .6rem; } .about-facts dd { margin: 0; font-weight: 600; }
-.about-sign { margin-top: 2rem; text-align: center; font-family: var(--font-script), cursive; font-size: 2.4rem; color: var(--brand); }
+.about-sign { margin-top: 2rem; display: flex; justify-content: center; }
 .guide-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-top: 2rem; }
 .guide-card { display: grid; gap: .6rem; padding: 1.4rem; border-radius: 20px; background: #fff; border: 1px solid #e3e1da; transition: transform .2s, box-shadow .2s; }
 .guide-card:hover { transform: translateY(-3px); box-shadow: 0 16px 30px -18px rgb(18 22 20 / .25); } .guide-card h2 { font-size: 1.25rem; } .guide-card span { color: var(--brand); font-weight: 600; }
