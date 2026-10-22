@@ -283,10 +283,12 @@ function StudioProcess() {
 function StudioDevices() {
   const { locale } = useLocale(); const bn = locale === "bn";
   const page = <div className="v2-mock"><i className="m-nav" /><i className="m-hero" /><i className="m-row" /><i className="m-cards"><b /><b /><b /></i><i className="m-row" /><i className="m-hero m-alt" /><i className="m-cards"><b /><b /><b /></i><i className="m-row" /></div>;
-  return <div className="container v2-devices" role="img" aria-label={bn ? "একই ওয়েবসাইট ল্যাপটপ, ট্যাবলেট ও ফোনে" : "The same website on a laptop, a tablet and a phone"}>
+  return <div className="container v2-devices">
+    <div className="v2-devices-stage" role="img" aria-label={bn ? "একই ওয়েবসাইট ল্যাপটপ, ট্যাবলেট ও ফোনে" : "The same website on a laptop, a tablet and a phone"}>
     <div className="v2-device is-laptop"><div className="v2-screen">{page}</div></div>
     <div className="v2-device is-tablet"><div className="v2-screen">{page}</div></div>
     <div className="v2-device is-phone"><div className="v2-screen">{page}</div></div>
+    </div>
     <p className="v2-devices-note">{bn ? "প্রতিটি সাইট ল্যাপটপ, ট্যাবলেট ও ফোনে সমান সুন্দর — একবার বানাই, সব স্ক্রিনে চলে।" : "Every site we build works beautifully on laptop, tablet and phone — built once, ready for every screen."}</p>
   </div>;
 }
