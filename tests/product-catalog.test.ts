@@ -8,7 +8,7 @@ import * as schema from "../src/lib/db/schema";
 import { formatPrice } from "../src/lib/catalog";
 import { archiveService, createService, hasManagedServices, importDemoServices, listOwnerServices, listStorefrontServices, publishedServiceImage, setServiceStatus } from "../src/lib/service-store";
 import { parseCollectionInput, parseProductInput, parseServiceInput, ProductInputError, slugify } from "../src/lib/product-input";
-import { archiveCollection, createCollection, listOwnerCollections, listStorefrontCollections, setProductStock, updateCollection, archiveProduct, createProduct, hasManagedCatalog, importDemoCatalog, listOwnerProducts, listStorefrontProducts, publishedProductImage, setProductStatus, updateProduct, ProductStoreError, type CatalogDb } from "../src/lib/product-store";
+import { archiveCollection, createCollection, listOwnerCollections, listStorefrontCollections, setProductStock, updateCollection, archiveProduct, createProduct, hasManagedCatalog, importDemoCatalog, listOwnerProducts, listStorefrontProducts, publishedFeaturedImage, publishedProductImage, setProductStatus, updateProduct, ProductStoreError, type CatalogDb } from "../src/lib/product-store";
 
 const base = { slug: "river-cap", nameEn: "River Cap", nameBn: "রিভার ক্যাপ", categoryEn: "Caps", price: "1290", stock: "8", sizes: "S, M, M, L", specsEn: "Color: Navy\nFabric: Cotton twill", status: "published" };
 const rejects = (patch: Record<string, unknown>, field: string) =>
@@ -20,6 +20,9 @@ test("product input is normalized and bounded", () => {
   assert.deepEqual(input.sizes, ["S", "M", "L"]);
   assert.deepEqual(input.specsEn, [["Color", "Navy"], ["Fabric", "Cotton twill"]]);
   assert.equal(parseProductInput({ ...base, stock: "" }).stock, null);
+  const featured = parseProductInput({ ...base, featuredEligible: true, featuredNoteEn: "How to wear it", featuredVideoUrl: "https://example.com/demo.mp4" });
+  assert.equal(featured.featuredEligible, true); assert.equal(featured.featuredNoteEn, "How to wear it");
+  rejects({ featuredVideoUrl: "javascript:alert(1)" }, "featuredVideoUrl");
   rejects({ slug: "Bad Slug!" }, "slug"); rejects({ slug: "-x" }, "slug");
   rejects({ nameEn: "   " }, "nameEn"); rejects({ nameEn: "x".repeat(81) }, "nameEn");
   rejects({ price: "-1" }, "price"); rejects({ price: "12.5" }, "price"); rejects({ price: 10_000_001 }, "price");
@@ -55,17 +58,20 @@ test("catalog lifecycle: import, create, update, hide, archive, with audit and s
     await assert.rejects(importDemoCatalog(db, "owner-1"), (e: unknown) => e instanceof ProductStoreError && e.message === "CATALOG_NOT_EMPTY");
 
     const image = "data:image/png;base64,iVBORw0KGgo=";
-    const id = await createProduct(db, "owner-1", parseProductInput({ ...base, status: "draft" }), image);
+    const featuredBase = { ...base, status: "draft", featuredEligible: true, featuredNoteEn: "How to wear it", featuredVideoUrl: "https://example.com/demo.mp4" };
+    const id = await createProduct(db, "owner-1", parseProductInput(featuredBase), image, image);
     assert.ok(!(await listStorefrontProducts(db)).some(p => p.slug === "river-cap"), "drafts stay off the storefront");
     assert.equal(await publishedProductImage(db, "river-cap"), null, "draft image is not public");
     await assert.rejects(createProduct(db, "owner-1", parseProductInput(base), null), (e: unknown) => e instanceof ProductStoreError && e.message === "SLUG_TAKEN");
 
-    assert.equal(await updateProduct(db, "owner-1", id, parseProductInput({ ...base, status: "draft" }), undefined), false, "no-op update writes nothing");
-    assert.equal(await updateProduct(db, "owner-1", id, parseProductInput({ ...base, price: "1490" }), undefined), true);
+    assert.equal(await updateProduct(db, "owner-1", id, parseProductInput(featuredBase), undefined), false, "no-op update writes nothing");
+    assert.equal(await updateProduct(db, "owner-1", id, parseProductInput({ ...featuredBase, status: "published", price: "1490" }), undefined), true);
     const live = (await listStorefrontProducts(db)).find(p => p.slug === "river-cap");
     assert.equal(live?.price, 1490);
     assert.match(live?.image ?? "", /^\/api\/products\/river-cap\/image\?v=\d+$/);
     assert.equal(await publishedProductImage(db, "river-cap"), image);
+    assert.equal(await publishedFeaturedImage(db, "river-cap"), image);
+    assert.equal(live?.feature?.note, "How to wear it");
     await assert.rejects(updateProduct(db, "owner-1", id, parseProductInput({ ...base, slug: "forest-knit" }), undefined), (e: unknown) => e instanceof ProductStoreError && e.message === "SLUG_TAKEN");
 
     await setProductStock(db, "owner-1", id, 0);

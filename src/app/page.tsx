@@ -68,7 +68,7 @@ export default async function Home() {
       </div>
     </div>}
 
-    {f.productStory && config.products && <ProductStory />}
+    {f.productStory && config.products && <ProductStory featuredSlug={f.featuredProductSlug} />}
 
     {f.campaigns && campaigns.map(c => <CampaignShowcase key={c.id} campaign={c} />)}
 

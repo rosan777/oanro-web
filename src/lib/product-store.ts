@@ -10,9 +10,9 @@ import { variantKey, type CollectionInput, type ProductInput, type ProductStatus
 
 export type CatalogDb = PgDatabase<PgQueryResultHKT, typeof schema>;
 export class ProductStoreError extends Error {}
-const fields = ["slug", "status", "collectionId", "nameEn", "nameBn", "categoryEn", "categoryBn", "taglineEn", "taglineBn", "descriptionEn", "descriptionBn", "price", "compareAtPrice", "stock", "lowStockAt", "sizes", "colors", "specsEn", "specsBn", "displayOrder"] as const;
+const fields = ["slug", "status", "collectionId", "nameEn", "nameBn", "categoryEn", "categoryBn", "taglineEn", "taglineBn", "descriptionEn", "descriptionBn", "price", "compareAtPrice", "stock", "lowStockAt", "sizes", "colors", "specsEn", "specsBn", "featuredEligible", "featuredNoteEn", "featuredNoteBn", "featuredVideoUrl", "displayOrder"] as const;
 
-export type OwnerProduct = ProductInput & { id: string; hasImage: boolean; imagePosition: string; updatedAt: string; colorImages: string[] };
+export type OwnerProduct = ProductInput & { id: string; hasImage: boolean; hasFeaturedImage: boolean; imagePosition: string; updatedAt: string; colorImages: string[] };
 async function variantsFor(db: CatalogDb, ids: string[]) {
   if (!ids.length) return { variants: [], images: [] };
   const [variants, images] = await Promise.all([
@@ -30,7 +30,8 @@ export async function listOwnerProducts(db: CatalogDb): Promise<OwnerProduct[]> 
     id: row.id, slug: row.slug, status: row.status, collectionId: row.collectionId, nameEn: row.nameEn, nameBn: row.nameBn, categoryEn: row.categoryEn, categoryBn: row.categoryBn,
     taglineEn: row.taglineEn, taglineBn: row.taglineBn, descriptionEn: row.descriptionEn, descriptionBn: row.descriptionBn,
     price: row.price, stock: row.stock, lowStockAt: row.lowStockAt, sizes: row.sizes, specsEn: row.specsEn, specsBn: row.specsBn, displayOrder: row.displayOrder,
-    hasImage: Boolean(row.imageData), imagePosition: row.imagePosition, updatedAt: row.updatedAt.toISOString(),
+    featuredEligible: row.featuredEligible, featuredNoteEn: row.featuredNoteEn, featuredNoteBn: row.featuredNoteBn, featuredVideoUrl: row.featuredVideoUrl,
+    hasImage: Boolean(row.imageData), hasFeaturedImage: Boolean(row.featuredImageData), imagePosition: row.imagePosition, updatedAt: row.updatedAt.toISOString(),
   }));
 }
 /** True once the owner has any product row (even drafts or archived): the database becomes the catalog. */
@@ -53,6 +54,8 @@ export async function listStorefrontProducts(db: CatalogDb): Promise<Product[]> 
     slug: row.slug, name: row.nameEn, category: row.categoryEn, tagline: row.taglineEn, description: row.descriptionEn,
     price: row.price, inStock: row.stock === null || row.stock > 0, left: row.stock !== null && row.stock > 0 && row.stock <= 5 ? row.stock : null, sizes: row.sizes, specs: row.specsEn, position: row.imagePosition,
     image: row.imageData ? `/api/products/${encodeURIComponent(row.slug)}/image?v=${row.updatedAt.getTime()}` : null,
+    feature: { eligible: row.featuredEligible, note: row.featuredNoteEn, noteBn: row.featuredNoteBn, videoUrl: row.featuredVideoUrl,
+      image: row.featuredImageData ? `/api/products/${encodeURIComponent(row.slug)}/image?feature=1&v=${row.updatedAt.getTime()}` : null },
     bn: row.nameBn ? { name: row.nameBn, category: row.categoryBn || row.categoryEn, tagline: row.taglineBn || row.taglineEn, description: row.descriptionBn || row.descriptionEn, specs: row.specsBn.length ? row.specsBn : row.specsEn } : null,
   }));
 }
@@ -67,6 +70,11 @@ export async function publishedProductImage(db: CatalogDb, slug: string) {
     .where(and(eq(product.slug, slug), eq(product.status, "published"), isNull(product.archivedAt), eq(productCollection.status, "published"), isNull(productCollection.archivedAt))).limit(1);
   return row?.image ?? null;
 }
+export async function publishedFeaturedImage(db: CatalogDb, slug: string) {
+  const [row] = await db.select({ image: product.featuredImageData }).from(product).innerJoin(productCollection, eq(productCollection.id, product.collectionId))
+    .where(and(eq(product.slug, slug), eq(product.status, "published"), isNull(product.archivedAt), eq(productCollection.status, "published"), isNull(productCollection.archivedAt))).limit(1);
+  return row?.image ?? null;
+}
 async function slugTaken(db: CatalogDb, slug: string, exceptId?: string) {
   const [row] = await db.select({ id: product.id }).from(product).where(eq(product.slug, slug)).limit(1);
   return Boolean(row && row.id !== exceptId);
@@ -75,26 +83,27 @@ async function requireCollection(db: CatalogDb, id: string) {
   const [row] = await db.select({ id: productCollection.id }).from(productCollection).where(and(eq(productCollection.id, id), isNull(productCollection.archivedAt))).limit(1);
   if (!row) throw new ProductStoreError("COLLECTION_NOT_FOUND");
 }
-export async function createProduct(db: CatalogDb, actorId: string, input: ProductInput, image: string | null) {
+export async function createProduct(db: CatalogDb, actorId: string, input: ProductInput, image: string | null, featuredImage: string | null = null) {
   await requireCollection(db, input.collectionId);
   if (await slugTaken(db, input.slug)) throw new ProductStoreError("SLUG_TAKEN");
   const id = randomUUID();
   const { variants, ...row } = input;
   await db.transaction(async tx => {
-    await tx.insert(product).values({ id, ...row, imageData: image, createdBy: actorId, updatedBy: actorId });
+    await tx.insert(product).values({ id, ...row, imageData: image, featuredImageData: featuredImage, createdBy: actorId, updatedBy: actorId });
     if (variants?.length) await tx.insert(productVariant).values(variants.map(v => ({ productId: id, ...v })));
     await tx.insert(auditEvent).values({ id: randomUUID(), actorId, action: "product.create", targetId: id, reason: `${input.slug} (${input.status})` });
   });
   return id;
 }
 /** image: undefined keeps the current photo, null removes it. Audit reason lists the changed fields. */
-export async function updateProduct(db: CatalogDb, actorId: string, id: string, input: ProductInput, image: string | null | undefined) {
+export async function updateProduct(db: CatalogDb, actorId: string, id: string, input: ProductInput, image: string | null | undefined, featuredImage: string | null | undefined = undefined) {
   const [current] = await db.select().from(product).where(and(eq(product.id, id), isNull(product.archivedAt))).limit(1);
   if (!current) throw new ProductStoreError("NOT_FOUND");
   if (input.collectionId !== current.collectionId) await requireCollection(db, input.collectionId);
   if (input.slug !== current.slug && await slugTaken(db, input.slug, id)) throw new ProductStoreError("SLUG_TAKEN");
   const changed = fields.filter(f => JSON.stringify(current[f]) !== JSON.stringify(input[f])) as string[];
   if (image !== undefined && image !== current.imageData) changed.push("image");
+  if (featuredImage !== undefined && featuredImage !== current.featuredImageData) changed.push("featured-image");
   const before = await db.select().from(productVariant).where(eq(productVariant.productId, id));
   const sortKey = (list: VariantStock[]) => JSON.stringify([...list].map(v => [v.color, v.size, v.stock]).sort());
   const variantsChanged = sortKey(before) !== sortKey(input.variants ?? []);
@@ -102,7 +111,7 @@ export async function updateProduct(db: CatalogDb, actorId: string, id: string, 
   if (!changed.length) return false;
   const { variants, ...row } = input;
   await db.transaction(async tx => {
-    await tx.update(product).set({ ...row, ...(image !== undefined ? { imageData: image } : {}), updatedBy: actorId, updatedAt: new Date() }).where(eq(product.id, id));
+    await tx.update(product).set({ ...row, ...(image !== undefined ? { imageData: image } : {}), ...(featuredImage !== undefined ? { featuredImageData: featuredImage } : {}), updatedBy: actorId, updatedAt: new Date() }).where(eq(product.id, id));
     if (variantsChanged) {
       await tx.delete(productVariant).where(eq(productVariant.productId, id));
       if (variants?.length) await tx.insert(productVariant).values(variants.map(v => ({ productId: id, ...v })));

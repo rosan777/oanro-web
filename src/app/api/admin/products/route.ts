@@ -34,7 +34,7 @@ export const POST = adminHandler(anyProduct, async (actor, data, access) => {
   if (data.action === "import-demo") { deny(can(access, "manage")); await importDemoCatalog(catalogDb(), actor); return respond(); }
   const input = parseProductInput(data);
   deny(can(access, "draft")); deny(statusAllowed(access, input.status, "draft"));
-  await createProduct(catalogDb(), actor, input, photoField(data.image) ?? null);
+  await createProduct(catalogDb(), actor, input, photoField(data.image) ?? null, photoField(data.featuredImage) ?? null);
   return respond();
 });
 // Full edit ({ id, ...fields, image? }), quick status ({ id, status }) or quick stock ({ id, stock: number | null }).
@@ -58,7 +58,7 @@ export const PATCH = adminHandler(anyProduct, async (actor, data, access) => {
     const input = parseProductInput(data), current = await currentStatus(id);
     // Draft writers may only touch drafts; live and hidden products need full product rights.
     if (!can(access, "manage")) { deny(can(access, "draft")); deny(current === "draft", "NOT_DRAFT"); deny(statusAllowed(access, input.status, current)); }
-    await updateProduct(catalogDb(), actor, id, input, photoField(data.image));
+    await updateProduct(catalogDb(), actor, id, input, photoField(data.image), photoField(data.featuredImage));
   }
   return respond();
 });

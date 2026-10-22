@@ -52,8 +52,8 @@ export function ShopTabs({ showServices, chips }: { showServices: boolean; chips
   const pick = (id: string) => { setActive(id); setSub("all"); };
   return <section className="v2-shop" id="products" aria-labelledby="shop-title">
     <div className="container">
-      <div className="v2-tabs" role="tablist" aria-label={t("Shop by category", "ক্যাটাগরি অনুযায়ী দেখুন")}>
-        {tabs.map(tab => <button key={tab.id} type="button" role="tab" aria-selected={tab.id === current.id} className={tab.id === current.id ? "is-active" : ""} onClick={() => pick(tab.id)}>{tab.label}</button>)}
+      <div className="v2-tabs" data-count={tabs.length} role="group" aria-label={t("Shop by category", "ক্যাটাগরি অনুযায়ী দেখুন")}>
+        {tabs.map(tab => <button key={tab.id} data-category={tab.id} type="button" aria-pressed={tab.id === current.id} className={tab.id === current.id ? "is-active" : ""} onClick={() => pick(tab.id)}>{tab.label}</button>)}
       </div>
       {/* Promise strip: two identical copies slide left forever for a seamless loop (no pause control by design). */}
       {chips && <div className="v2-marquee"><div className="v2-marquee-track"><div className="v2-chips-row">{chips}</div><div className="v2-chips-row" aria-hidden="true">{chips}</div></div></div>}
@@ -75,8 +75,9 @@ export function ShopTabs({ showServices, chips }: { showServices: boolean; chips
           return <Link key={p.slug} href={`/products/${p.slug}`} className={`v2-card v2-tilt${alt ? " has-alt" : ""}`} onMouseMove={tilt} onMouseLeave={untilt}>
             <div className="v2-card-photo"><ProductPhoto position={p.position} image={swatch[p.slug] !== undefined ? swatch[p.slug] : p.image} label={pname} />{alt && <ProductPhoto position={p.position} image={alt} label="" className="v2-card-alt" />}{out && <span className="v2-badge v2-badge-dark">{t("Out of stock", "স্টক শেষ")}</span>}<span className="v2-card-cta">{out ? t("View details", "বিস্তারিত দেখুন") : p.sizes.length > 1 ? t("Choose size", "সাইজ বেছে নিন") : t("View & add to bag", "দেখুন ও ব্যাগে নিন")}</span></div>
             <div className="v2-card-body"><strong>{pname}</strong>
-              {p.colors && p.colors.length > 0 && <span className="v2-swatches" aria-label={t(`${p.colors.length} colours`, `${p.colors.length}টি রং`)}>{p.colors.slice(0, 5).map(col => <span key={col.id} className={swatch[p.slug] !== undefined && swatch[p.slug] === (col.image ?? p.image ?? null) ? "is-picked" : undefined} onMouseEnter={() => setSwatch(x => ({ ...x, [p.slug]: col.image ?? p.image ?? null }))} onClick={e => { e.preventDefault(); setSwatch(x => ({ ...x, [p.slug]: col.image ?? p.image ?? null })); }} style={{ background: col.hex }} title={bn ? col.bn : col.name} />)}</span>}
+              {p.colors && p.colors.length > 0 && <span className="v2-swatches" aria-label={t(`${p.colors.length} colours`, `${p.colors.length}টি রং`)}>{p.colors.slice(0, 5).map(col => <button type="button" key={col.id} aria-label={bn ? col.bn : col.name} aria-pressed={swatch[p.slug] !== undefined && swatch[p.slug] === (col.image ?? p.image ?? null)} className={swatch[p.slug] !== undefined && swatch[p.slug] === (col.image ?? p.image ?? null) ? "is-picked" : undefined} onMouseEnter={() => setSwatch(x => ({ ...x, [p.slug]: col.image ?? p.image ?? null }))} onClick={e => { e.preventDefault(); setSwatch(x => ({ ...x, [p.slug]: col.image ?? p.image ?? null })); }} style={{ background: col.hex }} title={bn ? col.bn : col.name} />)}</span>}
               <div className="v2-card-foot"><PriceTag price={p.price} compareAt={p.compareAt} locale={locale} /><small className={out ? "is-out" : "is-in"}>{out ? t("Out of stock", "স্টক শেষ") : t("In stock", "স্টকে আছে")}</small></div>
+              <span className="v2-card-mobile-action">{out ? t("View details", "বিস্তারিত দেখুন") : p.sizes.length > 1 ? t("Choose size", "সাইজ বেছে নিন") : t("View product", "পণ্য দেখুন")} <span aria-hidden="true">→</span></span>
             </div>
           </Link>;
         }) : services.slice(0, 8).map(s => <Link key={s.slug} href={`/services/${s.slug}`} className="v2-card v2-card-service">
@@ -142,14 +143,16 @@ export function StudioTerminal() {
     <div className="v2-chips">{items.map(x => <span key={x}>{x}</span>)}</div><div className="v2-chips" aria-hidden="true">{items.map(x => <span key={x}>{x}</span>)}</div>
   </div></div>;
   return <section id="studio" className="v2-studio" aria-labelledby="studio-title"><div className="container v2-studio-grid">
-    <div>
+    <div className="v2-studio-intro">
       <p className="v2-eyebrow">{studioEyebrow}</p>
       <h2 id="studio-title" className="v2-h2 v2-on-dark v2-mask">{studioHeadline.split("|").map((line, i) => <span key={i}>{i > 0 && <br />}{line}</span>)}</h2>
       <p className="v2-lede">{studioLede}</p>
+    </div>
+    <div className="v2-studio-services">
       <ul className="v2-service-rows">{services.map(s => <li key={s.slug}><Link href={`/services/${s.slug}`}>{bn && s.bn ? s.bn.title : s.title}<span>{t("Get a quote", "কোট নিন")} →</span></Link></li>)}</ul>
       <div className="v2-actions"><Link href="/contact" className="v2-btn v2-btn-light">{t("Get a free quote", "ফ্রি কোট নিন")} <ArrowUpRight size={17} /></Link></div>
     </div>
-    <div>
+    <div className="v2-studio-console">
       <div className="v2-terminal" aria-hidden="true">
         <div className="v2-terminal-bar"><i /><i /><i /><span>studio — your-project</span></div>
         <div className="v2-terminal-body">
@@ -158,10 +161,10 @@ export function StudioTerminal() {
           <div className="t-line t-go" style={{ animationDelay: "4.8s" }}>→ {t("Live on your own domain", "লাইভ: আপনার নিজের ডোমেইনে")} <span className="t-caret">▍</span></div>
         </div>
       </div>
-      {row(stack)}
-      {row(offer, true)}
+      <div className="v2-studio-tracks">{row(stack)}{row(offer, true)}</div>
     </div>
-  </div>{showProcess && <StudioProcess />}{showDevices && <StudioDevices />}</section>;
+    {showProcess && <StudioProcess />}
+  </div>{showDevices && <StudioDevices />}</section>;
 }
 
 const MEANING = {
@@ -196,15 +199,26 @@ export function HeroBrand() {
 
 /** Scroll story for one product: the photo stays in place while three short panels pass by.
  * Uses the first in-stock product with a real photo (or the first product), so everything shown is real catalog data. */
-export function ProductStory() {
+export function ProductStory({ featuredSlug = "" }: { featuredSlug?: string }) {
   const { locale } = useLocale(); const bn = locale === "bn"; const t = (en: string, b: string) => bn ? b : en;
+  const { allowed } = useMotion();
   const products = useProducts();
-  const p = products.find(x => x.image && x.inStock !== false) ?? products.find(x => x.inStock !== false) ?? products[0];
+  const p = products.find(x => x.slug === featuredSlug && x.feature?.eligible) ?? products.find(x => x.feature?.eligible);
+  const media = p ? [...new Set([p.image, ...(p.colors?.map(c => c.image) ?? []), p.feature?.image].filter((x): x is string => Boolean(x)))] : [];
+  const [mediaIndex, setMediaIndex] = useState(0);
+  useEffect(() => {
+    if (!allowed || media.length < 2) return;
+    const timer = window.setInterval(() => setMediaIndex(i => (i + 1) % media.length), 5000);
+    return () => window.clearInterval(timer);
+  }, [allowed, media.length]);
   if (!p) return null;
   const copy = bn && p.bn ? p.bn : p;
   const specs = (bn && p.bn ? p.bn.specs : p.specs)?.slice(0, 3) ?? [];
+  const featureNote = bn ? p.feature?.noteBn || p.feature?.note : p.feature?.note;
   return <section className="v2-story container" aria-labelledby="story-title">
-    <div className="v2-story-media"><div className="v2-story-photo"><ProductPhoto position={p.position} image={p.image} label={copy.name} /></div></div>
+    <div className="v2-story-media"><div className="v2-story-photo"><ProductPhoto key={media[mediaIndex] ?? "main"} position={p.position} image={media[mediaIndex] ?? p.image} label={copy.name} /></div>
+      {media.length > 1 && <div className="v2-story-dots" aria-label={t("Product views", "পণ্যের ছবি")}>{media.map((_, i) => <button key={i} type="button" aria-label={t(`Show image ${i + 1}`, `${i + 1} নম্বর ছবি দেখুন`)} aria-pressed={i === mediaIndex} onClick={() => setMediaIndex(i)} />)}</div>}
+    </div>
     <div className="v2-story-panels">
       <article className="v2-story-panel">
         <p className="v2-eyebrow">{t("In focus", "বিশেষ নজরে")} · {copy.category}</p>
@@ -223,8 +237,25 @@ export function ProductStory() {
         <PriceTag price={p.price} compareAt={p.compareAt} locale={locale} className="v2-story-price" />
         <div className="v2-actions"><Link href={`/products/${p.slug}`} className="v2-btn v2-btn-dark">{t("View the product", "পণ্যটি দেখুন")} <ArrowUpRight size={17} /></Link></div>
       </article>
+      {(featureNote || p.feature?.videoUrl) && <article className="v2-story-panel v2-story-extra">
+        <p className="v2-eyebrow">{t("Closer look", "আরও কাছ থেকে")}</p>
+        {featureNote && <p className="v2-body">{featureNote}</p>}
+        {p.feature?.videoUrl && <FeatureVideo url={p.feature.videoUrl} title={copy.name} />}
+      </article>}
     </div>
   </section>;
+}
+
+function FeatureVideo({ url, title }: { url: string; title: string }) {
+  let embed = "";
+  try {
+    const parsed = new URL(url); const host = parsed.hostname.replace(/^www\./, "");
+    const youtube = host === "youtu.be" ? parsed.pathname.slice(1) : host === "youtube.com" || host === "m.youtube.com" ? parsed.searchParams.get("v") ?? "" : "";
+    if (/^[\w-]{6,20}$/.test(youtube)) embed = `https://www.youtube-nocookie.com/embed/${youtube}`;
+    else if (host === "vimeo.com" && /^\/\d+$/.test(parsed.pathname)) embed = `https://player.vimeo.com/video/${parsed.pathname.slice(1)}`;
+  } catch { return null; }
+  return embed ? <div className="v2-story-video"><iframe src={embed} title={`${title} video`} loading="lazy" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowFullScreen /></div>
+    : <video className="v2-story-video-file" controls playsInline preload="metadata" src={url}>Your browser does not support this video.</video>;
 }
 
 /** "Why OANRO" bento grid. Every number comes from the admin delivery rules; tiles without data are left out. */
@@ -270,12 +301,14 @@ export function WhyBento({ rules, services }: { rules: CheckoutRules; services: 
 /** "How we work": five steps; the line between them draws itself as you scroll. */
 function StudioProcess() {
   const { locale } = useLocale(); const bn = locale === "bn";
+  const [selected, setSelected] = useState(0);
   const steps = bn
     ? [["আলোচনা", "লক্ষ্য, বাজেট ও সময় বুঝে নিই"], ["ডিজাইন", "লেআউট দেখে আপনি অনুমোদন দেন"], ["তৈরি", "ফিচার বানাই, প্রতি সপ্তাহে প্রিভিউ"], ["লঞ্চ", "আপনার নিজের ডোমেইনে লাইভ"], ["সাপোর্ট", "আপডেট, ঠিকঠাক রাখা ও সাহায্য"]]
     : [["Discover", "We learn your goals, budget and timeline"], ["Design", "You see the layout and approve it"], ["Build", "Features built, with a live preview every week"], ["Launch", "Live on your own domain"], ["Support", "Updates, upkeep and help after launch"]];
-  return <div className="container v2-process" aria-label={bn ? "আমরা কীভাবে কাজ করি" : "How we work"}>
-    <p className="v2-eyebrow">{bn ? "আমরা কীভাবে কাজ করি" : "How we work"}</p>
-    <ol className="v2-process-list">{steps.map(([title, text], i) => <li key={title}><span className="v2-process-dot">{bn ? bnDigits(String(i + 1)) : i + 1}</span><strong>{title}</strong><small>{text}</small></li>)}</ol>
+  return <div className="v2-process" aria-label={bn ? "আমরা কীভাবে কাজ করি" : "How we work"}>
+    <h3 className="v2-eyebrow">{bn ? "আমরা কীভাবে কাজ করি" : "How we work"}</h3>
+    <ol className="v2-process-list">{steps.map(([title, text], i) => <li key={title} className={selected === i ? "is-selected" : undefined}><span className="v2-process-dot">{bn ? bnDigits(String(i + 1)) : i + 1}</span><strong>{title}</strong><small>{text}</small><button className="v2-process-select" type="button" aria-label={`${title}: ${text}`} aria-pressed={selected === i} onClick={() => setSelected(i)} /></li>)}</ol>
+    <div className="v2-process-detail" aria-live="polite"><strong>{steps[selected][0]}</strong><p>{steps[selected][1]}</p></div>
   </div>;
 }
 

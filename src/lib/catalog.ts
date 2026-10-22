@@ -14,6 +14,7 @@ export type Product = {
   colors?: StoreColor[];
   /** "color|size" combinations that are sold out (availability only, never counts). */
   soldOut?: string[];
+  feature?: { eligible: boolean; note: string; noteBn: string; image: string | null; videoUrl: string };
 };
 export type StoreColor = { id: string; name: string; bn: string; hex: string; image: string | null };
 export type ServiceCopy = { title: string; text: string; detail: string };

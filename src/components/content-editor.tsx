@@ -34,7 +34,7 @@ const moved = <T,>(list: T[], from: number, to: number) => { const c = [...list]
 const at = <T,>(list: T[], i: number, v: T) => list.map((x, k) => k === i ? v : x);
 
 /** Admin → Website content: texts, section switches, guides, studio packages and service FAQ. */
-export function ContentEditor({ initial }: { initial: SiteContent }) {
+export function ContentEditor({ initial, products = [] }: { initial: SiteContent; products?: { slug: string; name: string; section: string }[] }) {
   const [saved, setSaved] = useState(initial); const [draft, setDraft] = useState(initial);
   const [tabSel, setTab] = useState<Part | "images">("contact"); const tab: Part = tabSel === "images" ? "contact" : tabSel; const [busy, setBusy] = useState(false); const [msg, setMsg] = useState("");
   const dirty = JSON.stringify(draft[tab]) !== JSON.stringify(saved[tab]);
@@ -103,9 +103,20 @@ export function ContentEditor({ initial }: { initial: SiteContent }) {
         return <BiInput key={k} label={f.label + (k === "studio.headline" ? " (use | for a new line)" : "")} long={f.long} value={draft.text[k]} onChange={v => set("text", { ...draft.text, [k]: v })} />; })}
     </fieldset>)}
 
-    {tabSel === "features" && groupBy(featureFields).map(([group, keys]) => <fieldset key={group} className="ce-group"><legend>{group}</legend>
-      {(keys as FeatureKey[]).map(k => <label key={k} className="ce-switch"><input type="checkbox" checked={draft.features[k]} onChange={e => set("features", { ...draft.features, [k]: e.target.checked })} />{featureFields[k].label}</label>)}
-    </fieldset>)}
+    {tabSel === "features" && <>
+      {groupBy(featureFields).map(([group, keys]) => <fieldset key={group} className="ce-group"><legend>{group}</legend>
+        {(keys as FeatureKey[]).map(k => <label key={k} className="ce-switch"><input type="checkbox" checked={draft.features[k]} onChange={e => set("features", { ...draft.features, [k]: e.target.checked })} />{featureFields[k].label}</label>)}
+      </fieldset>)}
+      <fieldset className="ce-group"><legend>Product scroll story</legend>
+        <label className="ce-one">Featured product
+          <select value={draft.features.featuredProductSlug} onChange={e => set("features", { ...draft.features, featuredProductSlug: e.target.value })}>
+            <option value="">Automatic — first available product with a photo</option>
+            {products.map(p => <option key={p.slug} value={p.slug}>{p.name} · {p.section}</option>)}
+          </select>
+          <small>The selected product supplies the photo, category, title, description, specifications, sizes, colours and price. Edit those details inside its product section.</small>
+        </label>
+      </fieldset>
+    </>}
 
     {tabSel === "guides" && <>
       {draft.guides.map((g, i) => <fieldset key={i} className="ce-group"><legend>{g.title.en || "New guide"}</legend>
