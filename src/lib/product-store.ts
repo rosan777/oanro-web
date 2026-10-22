@@ -51,7 +51,7 @@ export async function listStorefrontProducts(db: CatalogDb): Promise<Product[]> 
     // Availability only (never the counts): which colour|size combinations are sold out.
     soldOut: extra.variants.filter(v => v.productId === row.id && v.stock <= 0).map(v => variantKey(v.color, v.size)),
     slug: row.slug, name: row.nameEn, category: row.categoryEn, tagline: row.taglineEn, description: row.descriptionEn,
-    price: row.price, inStock: row.stock === null || row.stock > 0, sizes: row.sizes, specs: row.specsEn, position: row.imagePosition,
+    price: row.price, inStock: row.stock === null || row.stock > 0, left: row.stock !== null && row.stock > 0 && row.stock <= 5 ? row.stock : null, sizes: row.sizes, specs: row.specsEn, position: row.imagePosition,
     image: row.imageData ? `/api/products/${encodeURIComponent(row.slug)}/image?v=${row.updatedAt.getTime()}` : null,
     bn: row.nameBn ? { name: row.nameBn, category: row.categoryBn || row.categoryEn, tagline: row.taglineBn || row.taglineEn, description: row.descriptionBn || row.descriptionEn, specs: row.specsBn.length ? row.specsBn : row.specsEn } : null,
   }));

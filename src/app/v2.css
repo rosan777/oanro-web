@@ -595,7 +595,8 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
 @media (prefers-reduced-motion: no-preference) {
   #main-content { animation: page-in .45s cubic-bezier(.2,.7,.2,1) both; }
 }
-@keyframes page-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+/* Opacity only: animating transform here would make fixed bars inside the page (sticky buy bar) scroll with the page. */
+@keyframes page-in { from { opacity: 0; } to { opacity: 1; } }
 
 /* ---------- 6. Small feedback: bag count pops, "Added ✓" on the button ---------- */
 .bag-count { animation: bag-pop .45s cubic-bezier(.3,1.6,.5,1); }
@@ -666,3 +667,70 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   }
 }
 @media (prefers-reduced-motion: reduce) { .v2-mask, .v2-mock, .bag-count, .added-tick { animation: none; } }
+
+/* ---------- 16/17/19/20. Buy box under "Add to bag" ---------- */
+.buy-box { display: grid; gap: .7rem; margin-top: 1rem; padding: 1rem 1.1rem; border: 1px solid #e3e1da; border-radius: 16px; background: #fff; }
+.buy-left { margin: 0; justify-self: start; padding: .25rem .65rem; border-radius: 999px; background: #fff4e5; color: #9a4a06; font-weight: 600; font-size: .85rem; }
+.buy-total { margin: 0; font-size: .95rem; color: #3f4542; } .buy-total span { color: #6b716e; } .buy-total b { color: var(--brand); font-size: 1.05rem; }
+.buy-ship { display: flex; gap: .7rem; align-items: flex-start; } .buy-ship svg { flex: none; margin-top: .3rem; color: var(--brand); }
+.buy-ship p { margin: .45rem 0 0; font-size: .92rem; } .buy-ship b { color: var(--brand); }
+.buy-areas { display: inline-flex; padding: 3px; border-radius: 999px; background: #f1f0ea; }
+.buy-areas button { min-height: 32px; padding: 0 .8rem; border: 0; border-radius: 999px; background: transparent; font-size: .8rem; color: #4b514e; }
+.buy-areas button[aria-pressed="true"] { background: var(--space); color: #fff; }
+.buy-return { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin: 0; padding-top: .7rem; border-top: 1px solid #efeee8; font-size: .85rem; color: #4b514e; }
+.buy-return svg { color: var(--brand); } .buy-return a { color: var(--brand); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- 18. Sticky buy bar on phones ---------- */
+.sticky-buy { display: none; }
+@media (max-width: 767px) {
+  .sticky-buy { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; align-items: center; gap: .75rem; padding: .6rem 1rem calc(.6rem + env(safe-area-inset-bottom));
+    background: rgb(255 255 255 / .96); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-top: 1px solid #e3e1da; box-shadow: 0 -10px 30px -18px rgb(0 0 0 / .35);
+    transform: translateY(110%); transition: transform .3s ease; }
+  .sticky-buy.is-shown { transform: none; }
+  .sticky-buy-info { flex: 1; min-width: 0; display: grid; } .sticky-buy-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; }
+  .sticky-buy .button { min-height: 40px; white-space: nowrap; }
+  .product-page:has(.sticky-buy.is-shown) ~ .floating-help, body:has(.sticky-buy.is-shown) .floating-help { bottom: 4.6rem; }
+}
+
+/* ---------- 23. Skeleton loaders ---------- */
+.skeleton-page { padding-block: 2.5rem 4rem; }
+.sk { border-radius: 10px; background: linear-gradient(90deg, #ecebe5 25%, #f6f5f0 50%, #ecebe5 75%); background-size: 200% 100%; animation: sk-shimmer 1.3s linear infinite; }
+.sk-title { height: 42px; width: min(420px, 80%); margin-bottom: 1rem; } .sk-line { height: 14px; width: min(560px, 100%); margin-bottom: .6rem; } .sk-short { width: min(240px, 55%); }
+.sk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; margin-top: 2rem; }
+.sk-card { display: grid; gap: .5rem; } .sk-photo { aspect-ratio: 1; border-radius: 18px; }
+.sk-product { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; } .sk-gallery { aspect-ratio: 1; border-radius: 22px; } .sk-button { height: 48px; width: 220px; margin-top: 1.5rem; border-radius: 999px; }
+@media (max-width: 767px) { .sk-product { grid-template-columns: 1fr; } .sk-grid { grid-template-columns: repeat(2, 1fr); } }
+@keyframes sk-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ---------- 24. Designed empty states ---------- */
+.empty-designed { display: grid; justify-items: center; text-align: center; gap: .8rem; padding-block: 4rem; }
+.empty-art { display: flex; align-items: center; gap: .3rem; font-family: var(--font-display), sans-serif; font-weight: 600; font-size: clamp(5rem, 16vw, 9rem); line-height: 1; color: var(--space); }
+.empty-art i { width: .78em; height: .78em; border-radius: 50%; border: .12em solid var(--brand); position: relative; animation: empty-orbit 6s linear infinite; }
+.empty-art i::after { content: ""; position: absolute; top: -.12em; left: 50%; width: .16em; height: .16em; border-radius: 50%; background: var(--glow); box-shadow: 0 0 14px var(--glow); }
+@keyframes empty-orbit { to { transform: rotate(360deg); } }
+.empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem; margin-top: .8rem; }
+.empty-state svg { width: 64px; height: 64px; padding: 16px; border-radius: 50%; background: #eef0ec; color: var(--brand); }
+
+/* ---------- 25. Every button state: hover, pressed, disabled, loading, keyboard focus ---------- */
+:where(a, button, [role="button"], [role="tab"], input, select, textarea, summary):focus-visible { outline: 2px solid var(--glow); outline-offset: 3px; border-radius: 8px; }
+:where(.button, .v2-btn, .pc-btn, .btn):active:not(:disabled) { transform: scale(.97); }
+:where(.button, .v2-btn, .pc-btn, .btn) { transition: background-color .18s, color .18s, border-color .18s, transform .12s, box-shadow .18s; }
+:where(.button, .v2-btn, .pc-btn, .btn):disabled, :where(.button, .v2-btn, .btn)[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+:where(.button, .v2-btn, .pc-btn, .btn)[aria-busy="true"] { position: relative; color: transparent !important; pointer-events: none; }
+:where(.button, .v2-btn, .pc-btn, .btn)[aria-busy="true"]::after { content: ""; position: absolute; inset: 0; margin: auto; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgb(255 255 255 / .4); border-top-color: #fff; animation: btn-spin .7s linear infinite; }
+@keyframes btn-spin { to { transform: rotate(360deg); } }
+
+/* ---------- 26. Menus grow from their button ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .mega-menu:not([hidden]) { transform-origin: top center; animation: grow-down .22s cubic-bezier(.2,.8,.2,1); }
+  .lang-list { transform-origin: top right; animation: grow-down .18s cubic-bezier(.2,.8,.2,1); }
+  .region-panel { transform-origin: bottom left; animation: grow-up .18s cubic-bezier(.2,.8,.2,1); }
+}
+@keyframes grow-down { from { opacity: 0; transform: translateY(-6px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes grow-up { from { opacity: 0; transform: translateY(6px) scale(.97); } to { opacity: 1; transform: none; } }
+
+/* ---------- 27. Product photo zoom (mouse) ---------- */
+.gallery-stage .product-photo { transition: transform .25s ease; }
+.gallery-stage.is-zooming .product-photo { transform: scale(1.9); transform-origin: var(--zx, 50%) var(--zy, 50%); cursor: zoom-in; }
+.gallery-stage { overflow: hidden; touch-action: pan-y; }
+@media (prefers-reduced-motion: reduce) { .sk, .empty-art i, :where(.button, .v2-btn, .pc-btn, .btn)[aria-busy="true"]::after { animation: none; } }
