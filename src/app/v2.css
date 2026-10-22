@@ -1053,3 +1053,19 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   .v2-value-panel p { font-size: 0.92rem; line-height: 1.5; }
   .v2-value-panel .v2-value-you { margin-top: 0.4rem; font-size: 0.82rem; }
 }
+
+/* Phones: smaller newsletter form, no "Back to top" link (the floating ↑ button does the same), tighter footer bottom row.
+   The email box keeps 16px text so iPhone Safari does not zoom in when it is tapped. */
+@media (max-width: 767px) {
+  .footer-extra { padding-block: 1rem; gap: 0.75rem; }
+  .footer-top { display: none; }
+  .news-form { gap: 0.4rem; margin-top: 0; max-width: none; }
+  .news-form > label:first-child { font-size: 0.92rem; }
+  .news-row { gap: 0.4rem; }
+  .news-row input { min-height: 40px; padding: 0 0.65rem; border-radius: 9px; }
+  .news-row button { min-height: 40px; padding: 0 0.9rem; font-size: 0.85rem; border-radius: 9px; }
+  .news-consent { font-size: 0.74rem; line-height: 1.4; gap: 0.4rem; align-items: center; }
+  .news-consent input { width: 16px; height: 16px; flex: none; margin: 0; }
+  .site-footer .footer-bottom { gap: 0.4rem 1rem; padding-block: 0.8rem 1rem; font-size: 0.72rem; }
+  .footer-tools { gap: 0.25rem 1rem; }
+}
