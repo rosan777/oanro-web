@@ -43,13 +43,12 @@ export function ProductDashboard({ initial, collectionId, costs: initialCosts = 
   const costApi = useAdminCall<{ costs: Record<string, number | null> }>("/api/admin/costs", { costPrice: "Cost price" }, data => setCosts(data.costs));
   const [all, setAll] = useState(initial.products);
   const [sections, setSections] = useState(initial.collections);
-  const [managed, setManaged] = useState(initial.managed);
   const [editing, setEditing] = useState<{ id: string | null; draft: Draft; hasImage: boolean } | null>(null);
   const [photo, setPhoto] = useState<string | null | undefined>(undefined);
   const [opts, setOpts] = useState<Options>(optionsOf(null));
   const latest = useRef<Item[]>(initial.products);
   const [slugTouched, setSlugTouched] = useState(false);
-  const { busy, notice, setNotice, call } = useAdminCall<{ products: Item[]; collections: Section[] }>("/api/admin/products", fieldLabel, data => { latest.current = data.products; setAll(data.products); setSections(data.collections); setManaged(true); });
+  const { busy, notice, setNotice, call } = useAdminCall<{ products: Item[]; collections: Section[] }>("/api/admin/products", fieldLabel, data => { latest.current = data.products; setAll(data.products); setSections(data.collections); });
   const section = sections.find(s => s.id === collectionId);
   const items = all.filter(p => p.collectionId === collectionId);
   const options = productCategories[section?.preset ?? "general"];
@@ -104,7 +103,6 @@ export function ProductDashboard({ initial, collectionId, costs: initialCosts = 
   if (!initial.ready) return <p className="admin-callout">Product management needs the latest database migration. Run <code>npm run db:migrate</code>, then reload this page.</p>;
   return <section className="admin-sections admin-products" aria-labelledby="products-heading">
     <h2 id="products-heading">Products in this section</h2>
-    {!managed && rights.manage && collectionId === "seasonal" && <div className="admin-callout"><p>The storefront is showing built-in demo products. Import them to edit them here, or add your own. Once any product exists, only products you publish are shown.</p><button type="button" className="button" disabled={busy} onClick={() => call("POST", { action: "import-demo" }, "Demo products imported. You can now edit, hide or archive them.")}>Import the 4 demo products</button></div>}
     {!rights.manage && <p className="admin-callout">Your role: {[rights.draft && "write drafts", rights.publish && "publish", rights.hide && "hide"].filter(Boolean).join(", ") || "view only"}. {rights.draft ? "You can edit products only while they are drafts." : ""}</p>}
     {!editing && rights.draft && <button type="button" className="button brand-button" disabled={busy} onClick={() => open(null)}>Add product</button>}
     {editing && <form className="pulse-form product-form" onSubmit={save}>

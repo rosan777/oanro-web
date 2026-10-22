@@ -908,3 +908,4 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
 /* Menu picture placeholder (until the owner uploads one in Admin → Website content → Images) */
 .mega-feature.is-placeholder { display: grid; place-items: center; background: radial-gradient(120% 90% at 30% 20%, color-mix(in srgb, var(--glow, #3ddc97) 22%, transparent), transparent 60%), #0d1110; border: 1px solid #1f2624; }
 .mega-feature .mega-mark { opacity: .9; }
+.mega-empty { margin: 0; padding: 1rem 0; color: var(--muted); }
