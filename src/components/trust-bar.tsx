@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "@/components/locale-link";
+import { AnnounceToast } from "@/components/announce-toast";
 import { formatPrice } from "@/lib/catalog";
 import type { Locale } from "@/lib/locale-path";
 import type { CheckoutRules } from "@/lib/order-store";
@@ -18,10 +19,12 @@ export function TrustBar({ rules, locale, live, services, custom = [] }: { rules
     ...(live ? [] : [bn ? "ডিজাইন প্রিভিউ: অর্ডার শিগগিরই চালু হবে" : "Design preview: ordering opens soon"]),
   ];
   const messages: ReactNode[] = custom.length ? custom.map(c => c.link ? <Link key={c.text} href={c.link}>{c.text}</Link> : c.text) : auto;
-  return <div className="trust-bar" role="region" aria-label={bn ? "ঘোষণা" : "Announcements"}><div className="container trust-bar-row">
-    <div className="announce" style={{ ["--n" as string]: messages.length }}>
-      <ul className="announce-track">{[...messages, messages[0]].map((m, i) => <li key={i} aria-hidden={i === messages.length ? true : undefined}>{m}</li>)}</ul>
-    </div>
+  const track = (key: string) => <div className="announce" style={{ ["--n" as string]: messages.length }}>
+    <ul className="announce-track">{[...messages, messages[0]].map((m, i) => <li key={`${key}${i}`} aria-hidden={i === messages.length ? true : undefined}>{m}</li>)}</ul>
+  </div>;
+  return <><div className="trust-bar" role="region" aria-label={bn ? "ঘোষণা" : "Announcements"}><div className="container trust-bar-row">
+    {track("d")}
     <Link href={services ? "/#studio" : "/delivery-returns"} className="announce-link">{services ? (bn ? "স্টুডিও" : "Studio") : (bn ? "ডেলিভারি ও রিটার্ন" : "Delivery & returns")}</Link>
-  </div></div>;
+  </div></div>
+  <AnnounceToast closeLabel={bn ? "ঘোষণা বন্ধ করুন" : "Close announcement"}>{track("m")}</AnnounceToast></>;
 }

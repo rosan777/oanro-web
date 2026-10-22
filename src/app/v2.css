@@ -975,3 +975,20 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   body:has(.bottom-bar) .sticky-buy { bottom: calc(52px + env(safe-area-inset-bottom)); }
   body:has(.bottom-bar):has(.sticky-buy.is-shown) .floating-help { bottom: calc(128px + env(safe-area-inset-bottom)); }
 }
+
+/* Announcements on phones and tablets: no bar above the header; a small floating card above the bottom tab bar instead (components/announce-toast.tsx). */
+.announce-toast { display: none; }
+@media (max-width: 1024px), (hover: none), (pointer: coarse) {
+  .trust-bar { display: none; }
+  .announce-toast { position: fixed; z-index: 57; left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom));
+    display: flex; align-items: center; gap: 4px; max-width: 520px; margin-inline: auto; padding: 0 4px 0 14px; border-radius: 14px; background: var(--brand); color: #eaf4ee;
+    box-shadow: 0 12px 30px rgb(7 9 10 / 0.3); opacity: 0; transform: translateY(16px); pointer-events: none; transition: opacity 0.35s ease, transform 0.35s ease; }
+  .announce-toast.is-open { opacity: 1; transform: none; pointer-events: auto; }
+  .announce-toast-body { flex: 1; min-width: 0; }
+  .announce-toast .announce { height: 40px; }
+  .announce-toast .announce-track li { height: 40px; line-height: 40px; font-size: 0.8rem; }
+  .announce-toast a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+  .announce-toast-close { flex: none; width: 40px; height: 40px; border: 0; border-radius: 10px; background: none; color: inherit; font-size: 1.4rem; line-height: 1; }
+  body:has(.bottom-bar) .announce-toast { bottom: calc(62px + env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) { .announce-toast { transition: none; } }
