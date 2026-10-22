@@ -29,19 +29,23 @@ export async function setPaymentNumbers(db: CatalogDb, actorId: string, numbers:
 }
 /**
  * Owner-controlled store rules, shown at checkout and on the Delivery & returns page.
- * deliveryCharge: every order, non-refundable · codLimit: largest product total allowed for cash on delivery (0 = COD off)
+ * deliveryCharge: inside Dhaka · outsideCharge: outside Dhaka (both non-refundable) · codLimit: largest product total allowed for cash on delivery (0 = COD off)
  * dhakaDays / outsideDays: delivery time as "1-3" style ranges · returnDays: days to report a problem after delivery (0 = no returns).
  */
-export type CheckoutRules = { deliveryCharge: number; codLimit: number; dhakaDays: string; outsideDays: string; returnDays: number };
-const ruleKey = { deliveryCharge: "delivery.charge", codLimit: "cod.limit", dhakaDays: "delivery.dhaka_days", outsideDays: "delivery.outside_days", returnDays: "returns.days" } as const;
-export const DEFAULT_RULES: CheckoutRules = { deliveryCharge: 120, codLimit: 5000, dhakaDays: "1-3", outsideDays: "3-5", returnDays: 3 };
+export type CheckoutRules = { deliveryCharge: number; outsideCharge: number; codLimit: number; dhakaDays: string; outsideDays: string; returnDays: number };
+const ruleKey = { deliveryCharge: "delivery.charge", outsideCharge: "delivery.charge_outside", codLimit: "cod.limit", dhakaDays: "delivery.dhaka_days", outsideDays: "delivery.outside_days", returnDays: "returns.days" } as const;
+export const DEFAULT_RULES: CheckoutRules = { deliveryCharge: 120, outsideCharge: 120, codLimit: 5000, dhakaDays: "1-3", outsideDays: "3-5", returnDays: 3 };
+export { chargeFor } from "./delivery-fee";
+import { chargeFor } from "./delivery-fee";
 export const dayRange = /^\d{1,2}(-\d{1,2})?$/;
 export async function getCheckoutRules(db: CatalogDb): Promise<CheckoutRules> {
   const rows = await db.select().from(storeSetting).where(inArray(storeSetting.key, Object.values(ruleKey)));
   const raw = (key: string) => rows.find(r => r.key === key)?.value;
   const num = (key: string, fallback: number) => { const v = Number(raw(key)); return raw(key) !== undefined && Number.isInteger(v) && v >= 0 ? v : fallback; };
   const days = (key: string, fallback: string) => { const v = raw(key); return v && dayRange.test(v) ? v : fallback; };
-  return { deliveryCharge: num(ruleKey.deliveryCharge, DEFAULT_RULES.deliveryCharge), codLimit: num(ruleKey.codLimit, DEFAULT_RULES.codLimit),
+  const inside = num(ruleKey.deliveryCharge, DEFAULT_RULES.deliveryCharge);
+  // Until the owner sets an outside-Dhaka charge, it is the same as inside Dhaka.
+  return { deliveryCharge: inside, outsideCharge: num(ruleKey.outsideCharge, inside), codLimit: num(ruleKey.codLimit, DEFAULT_RULES.codLimit),
     dhakaDays: days(ruleKey.dhakaDays, DEFAULT_RULES.dhakaDays), outsideDays: days(ruleKey.outsideDays, DEFAULT_RULES.outsideDays), returnDays: num(ruleKey.returnDays, DEFAULT_RULES.returnDays) };
 }
 export async function setCheckoutRules(db: CatalogDb, actorId: string, rules: CheckoutRules) {
@@ -51,7 +55,7 @@ export async function setCheckoutRules(db: CatalogDb, actorId: string, rules: Ch
         .onConflictDoUpdate({ target: storeSetting.key, set: { value: String(rules[k]), updatedBy: actorId, updatedAt: new Date() } });
     }
     await tx.insert(auditEvent).values({ id: randomUUID(), actorId, action: "checkout.rules", targetId: "store_setting",
-      reason: `delivery=৳${rules.deliveryCharge} codLimit=৳${rules.codLimit} dhaka=${rules.dhakaDays}d outside=${rules.outsideDays}d returns=${rules.returnDays}d` });
+      reason: `delivery dhaka=৳${rules.deliveryCharge} outside=৳${rules.outsideCharge} codLimit=৳${rules.codLimit} dhaka=${rules.dhakaDays}d outside=${rules.outsideDays}d returns=${rules.returnDays}d` });
   });
 }
 const orderCode = () => `OA-${Date.now().toString(36).toUpperCase().slice(-6)}${randomBytes(2).toString("hex").toUpperCase()}`;
@@ -72,7 +76,7 @@ export async function createOrder(db: CatalogDb, customer: { id: string }, input
       // Checked first so the customer gets the clearest message; the unique index is the real guarantee.
       const [used] = await tx.select({ id: shopOrder.id }).from(shopOrder).where(and(eq(shopOrder.method, input.method), eq(shopOrder.trxId, input.trxId))).limit(1);
       if (used) throw new ProductStoreError("TRX_USED");
-      const rows = await tx.select({ id: product.id, slug: product.slug, name: product.nameEn, price: product.price, cost: product.costPrice, sizes: product.sizes, colors: product.colors, stock: product.stock })
+      const rows = await tx.select({ id: product.id, slug: product.slug, name: product.nameEn, price: product.price, cost: product.costPrice, sizes: product.sizes, colors: product.colors, stock: product.stock, collectionId: product.collectionId })
         .from(product).innerJoin(productCollection, eq(productCollection.id, product.collectionId))
         .where(and(inArray(product.slug, input.items.map(i => i.slug)), eq(product.status, "published"), isNull(product.archivedAt), eq(productCollection.status, "published"), isNull(productCollection.archivedAt)));
       const lines = input.items.map(item => {
@@ -91,9 +95,10 @@ export async function createOrder(db: CatalogDb, customer: { id: string }, input
       if (cod && subtotal > rules.codLimit) throw new ProductStoreError("COD_LIMIT");
       // "total" is the money received now by bKash/Nagad: everything for prepaid, only the delivery charge for COD.
       // A discount code takes taka off the products (never the delivery charge); its use is counted inside this transaction.
-      const discount = input.discountCode ? await redeemDiscount(tx, input.discountCode, subtotal) : 0;
+      const discount = input.discountCode ? await redeemDiscount(tx, input.discountCode, lines.map(l => ({ slug: l.slug, collectionId: l.product.collectionId, total: l.product.price * l.quantity }))) : 0;
       const payable = subtotal - discount;
-      const total = cod ? rules.deliveryCharge : payable + rules.deliveryCharge;
+      const charge = chargeFor(rules, input.deliveryArea);
+      const total = cod ? charge : payable + charge;
       const reserved: boolean[] = [];
       // Per-variant shortage names the colour and size (the count is for that option only).
       const oos = (line: typeof lines[number], left: number | null) => new ProductStoreError(`OUT_OF_STOCK:${line.slug}:${left ?? 0}:${line.color}:${encodeURIComponent(line.size)}`);
@@ -117,11 +122,11 @@ export async function createOrder(db: CatalogDb, customer: { id: string }, input
         reserved.push(true);
       }
       await tx.insert(shopOrder).values({ id, code, userId: customer.id, method: input.method, payTo, payerNumber: input.payerNumber, trxId: input.trxId,
-        imageData: screenshot, total, paymentType: input.paymentType, deliveryCharge: rules.deliveryCharge, codDue: cod ? payable : 0, customerName: input.name, phone: input.phone, address: input.address, note: input.note });
+        imageData: screenshot, total, paymentType: input.paymentType, deliveryCharge: charge, deliveryArea: input.deliveryArea, codDue: cod ? payable : 0, customerName: input.name, phone: input.phone, address: input.address, note: input.note });
       await tx.insert(orderItem).values(lines.map((l, i) => ({ orderId: id, productId: l.product.id, slug: l.slug, name: l.label, size: l.size, color: l.color, quantity: l.quantity, unitPrice: l.product.price, unitCost: l.product.cost, stockReserved: reserved[i] })));
       if (discount > 0) await tx.insert(orderDiscount).values({ orderId: id, code: input.discountCode, amount: discount });
       await tx.insert(orderEvent).values({ id: randomUUID(), orderId: id, stage: "placed", actorId: customer.id });
-      await tx.insert(auditEvent).values({ id: randomUUID(), actorId: customer.id, action: "order.create", targetId: id, reason: `${code} ${cod ? "COD " : ""}${input.method} ${input.trxId} ৳${total}${cod ? ` + ৳${payable} cash` : ""}${discount ? ` (code ${input.discountCode} −৳${discount})` : ""}` });
+      await tx.insert(auditEvent).values({ id: randomUUID(), actorId: customer.id, action: "order.create", targetId: id, reason: `${code} ${input.deliveryArea === "outside" ? "outside-Dhaka " : ""}${cod ? "COD " : ""}${input.method} ${input.trxId} ৳${total}${cod ? ` + ৳${payable} cash` : ""}${discount ? ` (code ${input.discountCode} −৳${discount})` : ""}` });
     });
   } catch (error) {
     if (uniqueViolation(error)) throw new ProductStoreError("TRX_USED");

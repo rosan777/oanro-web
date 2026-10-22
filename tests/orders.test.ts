@@ -17,6 +17,8 @@ const order = (patch: Record<string, unknown> = {}) => parseOrderInput({ items: 
 test("checkout input is validated and normalized", () => {
   const o = order();
   assert.equal(o.trxId, "8F7A3K9D2X"); assert.equal(o.phone, "01712345678");
+  assert.equal(o.deliveryArea, "dhaka"); assert.equal(order({ deliveryArea: "outside" }).deliveryArea, "outside");
+  assert.throws(() => order({ deliveryArea: "chittagong" }), ProductInputError);
   assert.equal(normalizePhone("017-1234 5678", "phone"), "01712345678");
   const bad = (patch: Record<string, unknown>, field: string) => assert.throws(() => order(patch), (e: unknown) => e instanceof ProductInputError && e.field === field, field);
   bad({ trxId: "" }, "trxId"); bad({ trxId: "abc" }, "trxId"); bad({ method: "card" }, "method");
@@ -133,7 +135,7 @@ test("customer profile is validated, saved per user and prefills checkout", asyn
 });
 
 test("cash on delivery: only the delivery charge is prepaid, limit applies, hidden without cod.manage, revenue counts after cash is received", async () => {
-  const { getCheckoutRules, markCodCollected, updateDelivery } = await import("../src/lib/order-store");
+  const { getCheckoutRules, setCheckoutRules, markCodCollected, updateDelivery } = await import("../src/lib/order-store");
   const { profitReport, salesReport } = await import("../src/lib/report-store");
   const pg = new PGlite();
   const db = drizzle(pg, { schema }) as unknown as CatalogDb;
@@ -142,7 +144,7 @@ test("cash on delivery: only the delivery charge is prepaid, limit applies, hidd
     await db.insert(schema.user).values([{ id: "owner-1", name: "Owner", email: "o@example.com", emailVerified: true }, { id: "cust-1", name: "Rahim", email: "r@example.com", emailVerified: true }]);
     await createProduct(db, "owner-1", parseProductInput({ slug: "river-cap", nameEn: "River Cap", price: "1000", stock: "10", sizes: "M", status: "published" }), null);
     await setPaymentNumbers(db, "owner-1", { bkash: "01811111111", nagad: "" });
-    assert.deepEqual(await getCheckoutRules(db), { deliveryCharge: 120, codLimit: 5000, dhakaDays: "1-3", outsideDays: "3-5", returnDays: 3 }, "migration seeds ৳120 delivery and ৳5,000 COD limit; other rules use defaults");
+    assert.deepEqual(await getCheckoutRules(db), { deliveryCharge: 120, outsideCharge: 120, codLimit: 5000, dhakaDays: "1-3", outsideDays: "3-5", returnDays: 3 }, "migration seeds ৳120 delivery and ৳5,000 COD limit; other rules use defaults");
     const cod = (patch: Record<string, unknown> = {}) => order({ paymentType: "cod", items: [{ slug: "river-cap", size: "M", quantity: 2 }], ...patch });
 
     await assert.rejects(createOrder(db, { id: "cust-1" }, cod({ items: [{ slug: "river-cap", size: "M", quantity: 6 }], expectedTotal: 6000 }), null), (e: unknown) => code(e, "COD_LIMIT"), "above ৳5,000");
@@ -172,6 +174,12 @@ test("cash on delivery: only the delivery charge is prepaid, limit applies, hidd
     assert.equal(sales.methods.find(m => m.method === "bkash")?.amount, 120, "bKash received only the delivery charge");
     const profit = await profitReport(db, "30d");
     assert.equal(profit.totals.delivery, 120); assert.equal(profit.totals.net, 2000, "no cost price; courier bill not entered, so it is assumed equal to the ৳120 delivery charge");
+
+    // Outside Dhaka has its own charge once the owner sets it.
+    await setCheckoutRules(db, "owner-1", { ...(await getCheckoutRules(db)), outsideCharge: 150 });
+    const far = await createOrder(db, { id: "cust-1" }, cod({ trxId: "FARAWAY123", deliveryArea: "outside" }), null);
+    const [farRow] = await db.select().from(schema.shopOrder).where(eq(schema.shopOrder.id, far.id));
+    assert.equal(farRow.total, 150); assert.equal(farRow.deliveryCharge, 150); assert.equal(farRow.deliveryArea, "outside");
   } finally { await pg.close(); }
 });
 

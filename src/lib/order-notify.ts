@@ -16,7 +16,7 @@ const tk = (n: number) => formatPrice(n);
 
 async function loadOrder(db: CatalogDb, id: string) {
   const [o] = await db.select({ id: shopOrder.id, code: shopOrder.code, status: shopOrder.status, delivery: shopOrder.deliveryStatus, paymentType: shopOrder.paymentType,
-    method: shopOrder.method, total: shopOrder.total, deliveryCharge: shopOrder.deliveryCharge, codDue: shopOrder.codDue, courier: shopOrder.courier, trackingCode: shopOrder.trackingCode,
+    method: shopOrder.method, total: shopOrder.total, deliveryCharge: shopOrder.deliveryCharge, deliveryArea: shopOrder.deliveryArea, codDue: shopOrder.codDue, courier: shopOrder.courier, trackingCode: shopOrder.trackingCode,
     rejectReason: shopOrder.rejectReason, customerName: shopOrder.customerName, phone: shopOrder.phone, address: shopOrder.address, email: user.email })
     .from(shopOrder).innerJoin(user, eq(user.id, shopOrder.userId)).where(eq(shopOrder.id, id)).limit(1);
   if (!o) return null;
@@ -52,7 +52,7 @@ export async function notifyNewOrder(db: CatalogDb, orderId: string) {
   const cod = o.paymentType === "cod";
   const subject = `New ${cod ? "cash-on-delivery " : ""}order ${o.code} · ${tk(o.total)} by ${method(o)} — check payment`;
   const text = [
-    `${o.customerName} placed order ${o.code}.`,
+    `${o.customerName} placed order ${o.code}. Delivery: ${o.deliveryArea === "outside" ? "Outside Dhaka" : "Inside Dhaka"}.`,
     `${cod ? `Advance (delivery charge) sent by ${method(o)}: ${tk(o.total)}\nCash to collect on delivery: ${tk(o.codDue)}` : `Paid by ${method(o)}: ${tk(o.total)} (includes ${tk(o.deliveryCharge)} delivery)`}`,
     itemLines(o),
     `Check the Transaction ID in your ${method(o)} app, then approve or reject it in the admin.`,

@@ -16,10 +16,10 @@ export function BannerManager({ initial }: { initial: Row[] }) {
     setRows(data.banners.map(b => ({ ...b, startsAt: b.startsAt, endsAt: b.endsAt }))); return true;
   };
   async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault(); const f = new FormData(e.currentTarget);
+    e.preventDefault(); const form = e.currentTarget; const f = new FormData(form);
     const ok = await call("POST", { id: editing?.id, textEn: f.get("textEn"), textBn: f.get("textBn"), link: f.get("link"), displayOrder: f.get("displayOrder"),
       startsAt: f.get("startsAt") ? `${f.get("startsAt")}T00:00:00+06:00` : null, endsAt: f.get("endsAt") ? `${f.get("endsAt")}T23:59:59+06:00` : null, enabled: f.get("enabled") === "on" });
-    if (ok) { setEditing(null); e.currentTarget.reset(); setMsg("Saved."); }
+    if (ok) { setEditing(null); form.reset(); setMsg("Saved."); }
   }
   const e = editing;
   return <section className="disc-wrap">

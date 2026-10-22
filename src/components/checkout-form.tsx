@@ -1,4 +1,5 @@
 "use client";
+import { areaLabel, chargeFor, type DeliveryArea } from "@/lib/delivery-fee";
 import { useMemo, useState, type FormEvent } from "react";
 import Link from "@/components/locale-link";
 import { useRouter } from "next/navigation";
@@ -16,6 +17,7 @@ const errorText = (bn: boolean): Record<string, string> => ({
   DISCOUNT_INVALID: bn ? "এই ডিসকাউন্ট কোডটি সঠিক নয়।" : "This discount code isn't valid.",
   DISCOUNT_EXPIRED: bn ? "এই কোডের মেয়াদ শেষ।" : "This code has expired.",
   DISCOUNT_NOT_STARTED: bn ? "এই কোড এখনো চালু হয়নি।" : "This code isn't active yet.",
+  DISCOUNT_NOT_ELIGIBLE: bn ? "এই কোড আপনার ব্যাগের পণ্যগুলোর জন্য প্রযোজ্য নয়।" : "This code doesn't apply to the items in your bag.",
   DISCOUNT_USED_UP: bn ? "এই কোডের সব ব্যবহার শেষ।" : "This code has been fully used.",
   DISCOUNT_MIN_SUBTOTAL: bn ? "এই কোডের জন্য আরও কিছু পণ্য যোগ করুন।" : "Add a little more to use this code.",
   TRX_USED: bn ? "এই Transaction ID আগেই ব্যবহার হয়েছে। সঠিক ID দিন।" : "This transaction ID has already been used. Check and enter the correct one.",
@@ -38,7 +40,7 @@ const fieldText = (bn: boolean): Record<string, string> => ({
   items: bn ? "ব্যাগে সমস্যা আছে। রিফ্রেশ করুন।" : "Something is wrong with your bag. Refresh and try again.",
 });
 
-export function CheckoutForm({ numbers, rules, name, phone, address, verified }: { numbers: Record<Method, string>; rules: { deliveryCharge: number; codLimit: number; dhakaDays: string; outsideDays: string; returnDays: number }; name: string; phone: string; address: string; verified: boolean }) {
+export function CheckoutForm({ numbers, rules, name, phone, address, verified }: { numbers: Record<Method, string>; rules: { deliveryCharge: number; outsideCharge: number; codLimit: number; dhakaDays: string; outsideDays: string; returnDays: number }; name: string; phone: string; address: string; verified: boolean }) {
   const { locale } = useLocale(); const bn = locale === "bn";
   const router = useRouter();
   const cart = useCart(); const products = useProducts();
@@ -55,14 +57,17 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
   const [discount, setDiscount] = useState<{ code: string; amount: number; base: number } | null>(null);
   const [codeMsg, setCodeMsg] = useState("");
   const off = discount && discount.base === subtotal ? discount.amount : 0;
-  const payNow = cod ? rules.deliveryCharge : subtotal - off + rules.deliveryCharge, payLater = cod ? subtotal - off : 0;
+  // Delivery area decides the charge (owner sets both in admin). Must be chosen before ordering.
+  const [area, setArea] = useState<DeliveryArea | null>(null);
+  const fee = area ? chargeFor(rules, area) : 0;
+  const payNow = cod ? fee : subtotal - off + fee, payLater = cod ? subtotal - off : 0;
   async function applyCode() {
     setCodeMsg("");
-    const res = await fetch("/api/discounts/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: codeInput, subtotal }) }).catch(() => null);
+    const res = await fetch("/api/discounts/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: codeInput, items: lines.map(({ item }) => ({ slug: item.slug, quantity: item.quantity })) }) }).catch(() => null);
     const r = await res?.json().catch(() => ({})) as { amount?: number; code?: string; error?: string; min?: number } | undefined;
     if (r?.amount && r.code) { setDiscount({ code: r.code, amount: r.amount, base: subtotal }); setCodeMsg(bn ? `কোড ${r.code}: ${formatPrice(r.amount, locale)} ছাড়।` : `Code ${r.code}: ${formatPrice(r.amount, locale)} off.`); return; }
     setDiscount(null);
-    setCodeMsg(r?.error === "MIN_SUBTOTAL" && r.min ? (bn ? `এই কোডের জন্য কমপক্ষে ${formatPrice(r.min, locale)}-এর পণ্য লাগবে।` : `This code needs at least ${formatPrice(r.min, locale)} of products.`) : errorText(bn)[`DISCOUNT_${r?.error ?? "INVALID"}`] ?? errorText(bn).DISCOUNT_INVALID);
+    setCodeMsg(r?.error === "MIN_SUBTOTAL" && r.min ? (bn ? `এই কোডের জন্য কমপক্ষে ${formatPrice(r.min, locale)}-এর পণ্য লাগবে।` : `This code needs at least ${formatPrice(r.min, locale)} of eligible products.`) : errorText(bn)[`DISCOUNT_${r?.error ?? "INVALID"}`] ?? errorText(bn).DISCOUNT_INVALID);
   }
   const [shot, setShot] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -81,12 +86,13 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!area) { setError(bn ? "ডেলিভারির এলাকা বেছে নিন: ঢাকার ভেতরে না বাইরে।" : "Choose your delivery area: inside or outside Dhaka."); return; }
     if (!payType || !method) { setError(bn ? "পেমেন্ট পদ্ধতি বেছে নিন।" : "Choose how to pay."); return; }
     const form = new FormData(event.currentTarget);
     setBusy(true); setError(""); setShortage(null);
     try {
       const response = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
-        items: lines.map(({ item }) => ({ slug: item.slug, size: item.size, color: item.color, quantity: item.quantity })), method, paymentType: payType, expectedTotal: subtotal, discountCode: off ? discount!.code : "",
+        items: lines.map(({ item }) => ({ slug: item.slug, size: item.size, color: item.color, quantity: item.quantity })), method, paymentType: payType, expectedTotal: subtotal, deliveryArea: area, discountCode: off ? discount!.code : "",
         trxId: form.get("trxId"), payerNumber: form.get("payerNumber"), name: form.get("name"), phone: form.get("phone"), address: form.get("address"), note: form.get("note") ?? "", screenshot: shot }) });
       const result = await response.json().catch(() => ({})) as { code?: string; error?: string; field?: string; slug?: string; available?: number; color?: string; size?: string };
       if (result.error === "OUT_OF_STOCK" && result.slug && typeof result.available === "number") {
@@ -109,14 +115,19 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
       <h1 id="summary-title">{bn ? "চেকআউট" : "Checkout"}</h1>
       <ul>{lines.map(({ item, p }) => <li key={`${item.slug}-${item.size}-${item.color}`}><span>{bn && p.bn ? p.bn.name : p.name} <small>{optionLabel(p, item.size, item.color, bn)} × {item.quantity}</small></span><strong>{formatPrice(p.price * item.quantity, locale)}</strong></li>)}</ul>
       <p className="checkout-line"><span>{bn ? "পণ্যের দাম" : "Subtotal"}</span><span>{formatPrice(subtotal, locale)}</span></p>
-      <p className="checkout-line"><span>{bn ? "ডেলিভারি চার্জ" : "Delivery charge"}</span><span>{formatPrice(rules.deliveryCharge, locale)}</span></p>
+      <div className="checkout-area" role="radiogroup" aria-label={bn ? "ডেলিভারির এলাকা" : "Delivery area"}>
+        <span>{bn ? "ডেলিভারির এলাকা *" : "Delivery area *"}</span>
+        {(["dhaka", "outside"] as DeliveryArea[]).map(a => <button key={a} type="button" role="radio" aria-checked={area === a} onClick={() => { setArea(a); setError(""); }}>
+          {areaLabel(a, locale)} <small>{formatPrice(chargeFor(rules, a), locale)}</small></button>)}
+      </div>
+      <p className="checkout-line"><span>{bn ? "ডেলিভারি চার্জ" : "Delivery charge"}</span><span>{area ? formatPrice(fee, locale) : (bn ? "এলাকা বেছে নিন" : "Choose area")}</span></p>
       <div className="checkout-code">
         <input value={codeInput} onChange={e => setCodeInput(e.target.value.toUpperCase())} placeholder={bn ? "ডিসকাউন্ট কোড" : "Discount code"} aria-label={bn ? "ডিসকাউন্ট কোড" : "Discount code"} maxLength={20} autoComplete="off" />
         <button type="button" className="button light-button" disabled={codeInput.trim().length < 3} onClick={applyCode}>{bn ? "প্রয়োগ" : "Apply"}</button>
         {codeMsg && <p className="checkout-code-msg" role="status">{codeMsg}</p>}
       </div>
       {off > 0 && <p className="checkout-line is-discount"><span>{bn ? `ছাড় (${discount!.code})` : `Discount (${discount!.code})`}</span><span>−{formatPrice(off, locale)}</span></p>}
-      <p className="checkout-total"><span>{bn ? "মোট" : "Total"}</span><strong>{formatPrice(subtotal - off + rules.deliveryCharge, locale)}</strong></p>
+      <p className="checkout-total"><span>{bn ? "মোট" : "Total"}</span><strong>{formatPrice(subtotal - off + fee, locale)}</strong></p>
       {cod && <div className="checkout-split" role="status">
         <p><span>{bn ? "এখন দিচ্ছেন (bKash/Nagad)" : "Pay now (bKash/Nagad)"}</span><strong>{formatPrice(payNow, locale)}</strong></p>
         <p><span>{bn ? "ডেলিভারির সময় নগদ" : "Cash on delivery"}</span><strong>{formatPrice(payLater, locale)}</strong></p>
@@ -133,7 +144,7 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
       {!codAllowed && <small className="pay-hint">{bn ? `ক্যাশ অন ডেলিভারি সর্বোচ্চ ${formatPrice(rules.codLimit, locale)} পর্যন্ত।` : `Cash on delivery is available up to ${formatPrice(rules.codLimit, locale)}.`}</small>}
       {cod && <div className="cod-box">
         <p className="pay-notice cod-notice" role="note"><ShieldAlert size={18} />{bn ? "আগে ডেলিভারি চার্জ দিতে হবে, তারপর আমাদের অ্যাডমিন অর্ডারটি অনুমোদন করবে।" : "You must pay the delivery charge first, and your order needs approval from our admin."}</p>
-        <h3>{bn ? `ডেলিভারি চার্জ ${formatPrice(rules.deliveryCharge, locale)} পাঠান` : `Pay the delivery charge (${formatPrice(rules.deliveryCharge, locale)})`}</h3>
+        <h3>{bn ? `ডেলিভারি চার্জ ${formatPrice(fee, locale)} পাঠান` : `Pay the delivery charge (${formatPrice(fee, locale)})`}</h3>
         <div className="pay-methods" role="radiogroup" aria-label={bn ? "ডেলিভারি চার্জ কীভাবে দেবেন" : "Pay the delivery charge with"}>{methods.map(m => <button type="button" role="radio" aria-checked={method === m} key={m} className={`pay-method pay-${m}`} onClick={() => { setMethod(m); setError(""); }}>{methodName[m]}</button>)}</div>
       </div>}
       {payType && method && <div className="pay-instructions">

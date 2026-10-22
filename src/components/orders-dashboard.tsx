@@ -1,4 +1,5 @@
 "use client";
+import { areaLabel } from "@/lib/delivery-fee";
 import { OrderExtras } from "./team-extras";
 import Link from "next/link";
 import { useState } from "react";
@@ -69,18 +70,19 @@ function Refund({ order, busy, act }: { order: AdminOrder; busy: boolean; act: (
     <small>Up to {formatPrice(received)} (what was received). {order.deliveryStatus === "returned" ? "This order was returned: its product money is already left out of revenue, so don't record that again." : "It is subtracted from net profit. Enter 0 to clear."}</small>
   </form>;
 }
-type Rules = { deliveryCharge: number; codLimit: number; dhakaDays: string; outsideDays: string; returnDays: number };
+type Rules = { deliveryCharge: number; outsideCharge: number; codLimit: number; dhakaDays: string; outsideDays: string; returnDays: number };
 const days = (r: string) => r.replace("-", "–");
 /** Owner card: delivery charge, COD limit, delivery times, return window. Checkout and the Delivery & returns page read these. */
 function RulesCard({ rules, busy, save }: { rules: Rules; busy: boolean; save: (body: Record<string, unknown>) => void }) {
-  const [d, setD] = useState({ deliveryCharge: String(rules.deliveryCharge), codLimit: String(rules.codLimit), dhakaDays: rules.dhakaDays, outsideDays: rules.outsideDays, returnDays: String(rules.returnDays) });
+  const [d, setD] = useState({ deliveryCharge: String(rules.deliveryCharge), outsideCharge: String(rules.outsideCharge), codLimit: String(rules.codLimit), dhakaDays: rules.dhakaDays, outsideDays: rules.outsideDays, returnDays: String(rules.returnDays) });
   const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement>) => setD(x => ({ ...x, [k]: e.target.value }));
-  const charge = Number(d.deliveryCharge) || 0, limit = Number(d.codLimit) || 0, ret = Number(d.returnDays) || 0;
+  const charge = Number(d.deliveryCharge) || 0, outCharge = Number(d.outsideCharge) || 0, limit = Number(d.codLimit) || 0, ret = Number(d.returnDays) || 0;
   return <form className="pulse-form product-form rules-card" onSubmit={e => { e.preventDefault(); save({ action: "rules", ...d }); }}>
     <h2>Delivery &amp; payment rules</h2>
     <small>These numbers appear at checkout and on the public <a href="/delivery-returns" target="_blank" rel="noreferrer">Delivery &amp; returns</a> page, which updates automatically when you save. Only you (the owner) can change them.</small>
     <fieldset><legend>Charges</legend><div className="product-form-row">
-      <label>Delivery charge (৳, every order)<input type="number" min={0} max={100000} step={1} inputMode="numeric" value={d.deliveryCharge} onChange={set("deliveryCharge")} required disabled={busy} /><small>Non-refundable. For cash on delivery this is the only amount paid in advance.</small></label>
+      <label>Delivery charge inside Dhaka (৳)<input type="number" min={0} max={100000} step={1} inputMode="numeric" value={d.deliveryCharge} onChange={set("deliveryCharge")} required disabled={busy} /><small>Non-refundable. For cash on delivery this is the only amount paid in advance.</small></label>
+      <label>Delivery charge outside Dhaka (৳)<input type="number" min={0} max={100000} step={1} inputMode="numeric" value={d.outsideCharge} onChange={set("outsideCharge")} required disabled={busy} /><small>The customer picks the area at checkout and pays this charge for outside Dhaka.</small></label>
       <label>Cash on delivery limit (৳)<input type="number" min={0} max={10000000} step={1} inputMode="numeric" value={d.codLimit} onChange={set("codLimit")} required disabled={busy} /><small>Orders with a product total above this must pay in full. 0 turns cash on delivery off.</small></label>
     </div></fieldset>
     <fieldset><legend>Delivery time and returns</legend><div className="product-form-row three">
@@ -89,8 +91,8 @@ function RulesCard({ rules, busy, save }: { rules: Rules; busy: boolean; save: (
       <label>Report a problem within (days)<input type="number" min={0} max={30} step={1} inputMode="numeric" value={d.returnDays} onChange={set("returnDays")} required disabled={busy} /><small>0 = no returns.</small></label>
     </div></fieldset>
     <div className="rules-preview" aria-live="polite"><strong>Customers will see:</strong>
-      <ul><li>Delivery charge {formatPrice(charge)} on every order (not refundable).</li>
-        <li>{limit > 0 ? `Cash on delivery for orders up to ${formatPrice(limit)}; pay ${formatPrice(charge)} first.` : "Cash on delivery is turned off."}</li>
+      <ul><li>Delivery charge {charge === outCharge ? formatPrice(charge) : `${formatPrice(charge)} inside Dhaka, ${formatPrice(outCharge)} outside Dhaka`} (not refundable).</li>
+        <li>{limit > 0 ? `Cash on delivery for orders up to ${formatPrice(limit)}; pay the delivery charge first.` : "Cash on delivery is turned off."}</li>
         <li>Delivery in {days(d.dhakaDays) || "?"} days inside Dhaka, {days(d.outsideDays) || "?"} days outside Dhaka.</li>
         <li>{ret > 0 ? `Report a wrong, damaged or missing item within ${ret} day${ret === 1 ? "" : "s"} of delivery.` : "Returns are not accepted."}</li></ul></div>
     <div className="product-form-actions"><button className="btn btn-primary" disabled={busy}><ActionIcon name="save" />Save rules</button><a className="btn btn-neutral" href="/delivery-returns" target="_blank" rel="noreferrer"><ActionIcon name="route" />View public page</a></div>
@@ -147,7 +149,7 @@ export function OrdersDashboard({ initial, numbers: initialNumbers, rules: initi
         <div><dt>Transaction ID</dt><dd><code>{o.trxId}</code></dd></div>
         <div><dt>Placed</dt><dd>{formatDhaka(o.createdAt, "en", { year: true })}</dd></div>
         <div className="wide"><dt>Items</dt><dd>{o.items.map(i => `${i.name} (${i.size}) × ${i.quantity} @ ${formatPrice(i.unitPrice)}`).join(", ")}</dd></div>
-        <div className="wide"><dt>Deliver to</dt><dd>{o.address}{o.note && <><br /><small>Note: {o.note}</small></>}</dd></div>
+        <div className="wide"><dt>Deliver to</dt><dd><strong>{areaLabel(o.deliveryArea)}</strong> · {o.address}{o.note && <><br /><small>Note: {o.note}</small></>}</dd></div>
         {o.rejectReason && <div className="wide"><dt>Reject reason</dt><dd>{o.rejectReason}</dd></div>}
         {o.courier && <div><dt>Courier</dt><dd>{o.courier}{o.trackingCode && <> · <code>{o.trackingCode}</code></>}</dd></div>}
         <div className="wide"><dt>Timeline</dt><dd><ol className="order-timeline compact">{o.events.map((e, i) => <li key={i}><strong>{stageText[e.stage]?.[0] ?? e.stage}</strong> <small>{formatDhaka(e.at, "en", { year: true })}{e.note && ` · ${e.note}`}</small></li>)}</ol></dd></div>

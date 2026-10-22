@@ -1,6 +1,7 @@
 import Link from "@/components/locale-link";
 import { Reveal } from "@/components/experience";
 import { formatPrice } from "@/lib/catalog";
+import { feeText } from "@/lib/delivery-fee";
 import type { Locale } from "@/lib/locale-path";
 import type { CheckoutRules } from "@/lib/order-store";
 import { bnDigits, dayText } from "@/lib/text-format";
@@ -8,7 +9,7 @@ import { bnDigits, dayText } from "@/lib/text-format";
 // Home page trust strip, "How we work" steps and FAQ. Every number comes from the owner's admin rules.
 export function TrustStrip({ rules, locale }: { rules: CheckoutRules; locale: Locale }) {
   const bn = locale === "bn"; const n = (s: string) => bn ? bnDigits(s) : s;
-  const fee = formatPrice(rules.deliveryCharge, locale), limit = formatPrice(rules.codLimit, locale);
+  const fee = feeText(rules, locale), limit = formatPrice(rules.codLimit, locale);
   const dhaka = n(dayText(rules.dhakaDays)), outside = n(dayText(rules.outsideDays)), ret = rules.returnDays;
   const items = [
     { icon: "→", title: bn ? "সারা বাংলাদেশে ডেলিভারি" : "Delivery across Bangladesh", text: bn ? `ঢাকায় ${dhaka} দিন, বাইরে ${outside} দিন · চার্জ ${fee}` : `${dhaka} days in Dhaka, ${outside} outside · ${fee} delivery` },
@@ -33,7 +34,7 @@ export function HowWeWork({ locale }: { locale: Locale }) {
 
 export function HomeFaq({ rules, locale, services }: { rules: CheckoutRules; locale: Locale; services: boolean }) {
   const bn = locale === "bn"; const n = (s: string) => bn ? bnDigits(s) : s;
-  const fee = formatPrice(rules.deliveryCharge, locale), limit = formatPrice(rules.codLimit, locale);
+  const fee = feeText(rules, locale), limit = formatPrice(rules.codLimit, locale);
   const dhaka = n(dayText(rules.dhakaDays)), outside = n(dayText(rules.outsideDays)), ret = rules.returnDays;
   const faqs: [string, string][] = [
     bn ? ["ডেলিভারিতে কত দিন লাগে?", `পেমেন্ট নিশ্চিত হওয়ার পর ঢাকায় ${dhaka} দিন এবং ঢাকার বাইরে ${outside} দিন। ডেলিভারি চার্জ ${fee}।`] : ["How long does delivery take?", `After we confirm your payment: ${dhaka} days inside Dhaka and ${outside} days outside Dhaka. The delivery charge is ${fee}.`],

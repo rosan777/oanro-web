@@ -6,7 +6,7 @@ import type { PaymentMethod, PaymentType } from "./db/schema";
 export type CartLine = { slug: string; size: string; color: string; quantity: number };
 export type OrderInput = {
   items: CartLine[]; paymentType: PaymentType; method: PaymentMethod; payerNumber: string; trxId: string;
-  name: string; phone: string; address: string; note: string; expectedTotal: number;
+  name: string; phone: string; address: string; note: string; expectedTotal: number; deliveryArea: "dhaka" | "outside";
   /** Optional discount code typed at checkout (upper-case, letters/numbers/dash). */
   discountCode: string;
 };
@@ -43,12 +43,14 @@ export function parseOrderInput(data: Record<string, unknown>): OrderInput {
   if (data.method !== "bkash" && data.method !== "nagad") throw new ProductInputError("method");
   const trxId = typeof data.trxId === "string" ? data.trxId.replace(/\s/g, "").toUpperCase() : "";
   if (!/^[A-Z0-9]{6,20}$/.test(trxId)) throw new ProductInputError("trxId");
+  // Older pages that do not send an area count as inside Dhaka.
+  if (data.deliveryArea !== undefined && data.deliveryArea !== "dhaka" && data.deliveryArea !== "outside") throw new ProductInputError("deliveryArea");
   if (!Number.isInteger(data.expectedTotal) || (data.expectedTotal as number) < 0) throw new ProductInputError("expectedTotal");
   return {
     items: [...merged.values()], method: data.method, trxId, paymentType: data.paymentType === "cod" ? "cod" : "prepaid",
     payerNumber: normalizePhone(data.payerNumber, "payerNumber"), phone: normalizePhone(data.phone, "phone"),
     name: text(data.name, "name", 2, 80), address: text(data.address, "address", 10, 300), note: text(data.note, "note", 0, 300),
-    expectedTotal: data.expectedTotal as number, discountCode: parseDiscountCode(data.discountCode),
+    expectedTotal: data.expectedTotal as number, deliveryArea: data.deliveryArea === "outside" ? "outside" : "dhaka", discountCode: parseDiscountCode(data.discountCode),
   };
 }
 /** Common couriers in Bangladesh, offered as quick picks (any name can be typed). */

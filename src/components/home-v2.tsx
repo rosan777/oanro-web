@@ -7,6 +7,7 @@ import { ArrowUpRight } from "lucide-react";
 import Link from "@/components/locale-link";
 import { formatPrice } from "@/lib/catalog";
 import type { CheckoutRules } from "@/lib/order-store";
+import { chargeFor } from "@/lib/delivery-fee";
 import { bnDigits, dayText } from "@/lib/text-format";
 import { useProductLines, useProducts, useServices } from "./products-context";
 import { PriceTag, ProductPhoto } from "./shell";
@@ -97,7 +98,7 @@ export function DeliveryChecker({ rules }: { rules: CheckoutRules }) {
   return <div className="v2-panel">
     <h2 className="v2-h3">{bn ? "কবে পৌঁছাবে?" : "When will it arrive?"}</h2>
     <div className="v2-pills" role="group" aria-label={bn ? "আপনার এলাকা" : "Your area"}>{areas.map(x => <button key={x.id} type="button" aria-pressed={x.id === area} onClick={() => setArea(x.id)}>{x.label}</button>)}</div>
-    <p className="v2-result" key={area}>{bn ? <>পৌঁছাবে <strong>{n(dayText(a.days))} দিনে</strong> · ডেলিভারি চার্জ {formatPrice(rules.deliveryCharge, locale)}{cod ? " · ক্যাশ অন ডেলিভারি আছে" : ""}</> : <>Arrives in <strong>{dayText(a.days)} days</strong> · Delivery {formatPrice(rules.deliveryCharge, locale)}{cod ? " · Cash on delivery available" : ""}</>}</p>
+    <p className="v2-result" key={area}>{bn ? <>পৌঁছাবে <strong>{n(dayText(a.days))} দিনে</strong> · ডেলিভারি চার্জ {formatPrice(chargeFor(rules, a.id === "outside" ? "outside" : "dhaka"), locale)}{cod ? " · ক্যাশ অন ডেলিভারি আছে" : ""}</> : <>Arrives in <strong>{dayText(a.days)} days</strong> · Delivery {formatPrice(chargeFor(rules, a.id === "outside" ? "outside" : "dhaka"), locale)}{cod ? " · Cash on delivery available" : ""}</>}</p>
   </div>;
 }
 

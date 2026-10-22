@@ -24,11 +24,11 @@ export async function GET(request: Request) {
   if (type === "orders") {
     const cod = who.access.permissions.has("cod.manage"), prepaid = who.access.permissions.has("orders.read");
     const list = await db.select({ code: shopOrder.code, createdAt: shopOrder.createdAt, status: shopOrder.status, delivery: shopOrder.deliveryStatus, paymentType: shopOrder.paymentType, method: shopOrder.method,
-      total: shopOrder.total, codDue: shopOrder.codDue, deliveryCharge: shopOrder.deliveryCharge, discountCode: orderDiscount.code, discount: orderDiscount.amount, name: shopOrder.customerName, phone: shopOrder.phone,
+      total: shopOrder.total, codDue: shopOrder.codDue, deliveryCharge: shopOrder.deliveryCharge, area: shopOrder.deliveryArea, discountCode: orderDiscount.code, discount: orderDiscount.amount, name: shopOrder.customerName, phone: shopOrder.phone,
       address: shopOrder.address, courier: shopOrder.courier, trackingCode: shopOrder.trackingCode, refund: shopOrder.refundAmount })
       .from(shopOrder).leftJoin(orderDiscount, eq(orderDiscount.orderId, shopOrder.id)).orderBy(desc(shopOrder.createdAt)).limit(5000);
-    rows = [["Order", "Placed", "Payment status", "Delivery", "Type", "Method", "Paid online (৳)", "Cash on delivery (৳)", "Delivery charge (৳)", "Discount code", "Discount (৳)", "Customer", "Phone", "Address", "Courier", "Tracking", "Refund (৳)"],
-      ...list.filter(o => o.paymentType === "cod" ? cod : prepaid).map(o => [o.code, o.createdAt, o.status, o.delivery ?? "", o.paymentType, o.method, o.total, o.codDue, o.deliveryCharge, o.discountCode ?? "", o.discount ?? 0, o.name, o.phone, o.address, o.courier ?? "", o.trackingCode ?? "", o.refund])];
+    rows = [["Order", "Placed", "Payment status", "Delivery", "Type", "Method", "Paid online (৳)", "Cash on delivery (৳)", "Delivery area", "Delivery charge (৳)", "Discount code", "Discount (৳)", "Customer", "Phone", "Address", "Courier", "Tracking", "Refund (৳)"],
+      ...list.filter(o => o.paymentType === "cod" ? cod : prepaid).map(o => [o.code, o.createdAt, o.status, o.delivery ?? "", o.paymentType, o.method, o.total, o.codDue, o.area === "outside" ? "Outside Dhaka" : "Inside Dhaka", o.deliveryCharge, o.discountCode ?? "", o.discount ?? 0, o.name, o.phone, o.address, o.courier ?? "", o.trackingCode ?? "", o.refund])];
   } else if (type === "customers") {
     const { rows: list } = await listCustomers(db, { limit: 5000 });
     rows = [["Name", "Email", "Verified", "Phone", "Joined", "Orders", "Total spent (৳)", "Last order"], ...list.map(c => [c.name, c.email, c.verified ? "yes" : "no", c.phone, c.joined, c.orders, c.spent, c.lastOrder ?? ""])];

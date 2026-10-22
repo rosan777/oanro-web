@@ -250,6 +250,7 @@ export const shopOrder = pgTable("shop_order", {
   paymentType: text("payment_type").$type<PaymentType>().notNull().default("prepaid"),
   /** Delivery charge the customer paid (non-refundable). Included in "total" (money received by bKash/Nagad). */
   deliveryCharge: integer("delivery_charge").notNull().default(0),
+  deliveryArea: text("delivery_area").notNull().default("dhaka"),
   /** Cash on delivery: product amount the courier collects; counts as revenue only once codCollectedAt is set. */
   codDue: integer("cod_due").notNull().default(0),
   codCollectedAt: time("cod_collected_at"), codCollectedBy: text("cod_collected_by").references(() => user.id),
@@ -312,6 +313,8 @@ export const discountCode = pgTable("discount_code", {
   minSubtotal: integer("min_subtotal").notNull().default(0), maxUses: integer("max_uses"), used: integer("used").notNull().default(0),
   startsAt: time("starts_at"), endsAt: time("ends_at"), active: boolean("active").notNull().default(true),
   note: text("note").notNull().default(""), createdBy: text("created_by").references(() => user.id), createdAt: time("created_at").notNull().defaultNow(),
+  // Where the code works. Both empty = every product. Otherwise only products in these sections or with these slugs.
+  collections: text("collections").array().notNull().default(sql`'{}'::text[]`), products: text("products").array().notNull().default(sql`'{}'::text[]`),
 }, t => [
   check("discount_kind_check", sql`${t.kind} in ('percent', 'amount')`),
   check("discount_value_check", sql`${t.value} > 0 and (${t.kind} <> 'percent' or ${t.value} <= 90)`),
