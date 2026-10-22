@@ -6,6 +6,7 @@ import { storefrontCached } from "./storefront-cache";
 import { catalogDb } from "./store-products";
 import { cleanContact, cleanFaq, cleanFeatures, cleanGuides, cleanPackages, cleanText, defaultContent, mergeContent, type SiteContent } from "./site-content-data";
 import { ProductInputError } from "./product-input";
+import { mediaVersions } from "./site-media";
 import type { CatalogDb } from "./product-store";
 
 // Everything the owner edits in Admin → Website content is one JSON value in store_setting (no extra table).
@@ -18,7 +19,8 @@ async function readSaved(db: CatalogDb) {
 export async function getSiteContent(): Promise<SiteContent> {
   if (!process.env.DATABASE_URL) return withEnvFallback(defaultContent());
   const saved = await storefrontCached("site-content", () => readSaved(catalogDb()))().catch(() => null);
-  return withEnvFallback(mergeContent(saved));
+  const media = await storefrontCached("site-media", () => mediaVersions(catalogDb()))().catch(() => ({}));
+  return { ...withEnvFallback(mergeContent(saved)), media };
 }
 /** Until the owner fills Admin → Website content → Contact & social, the older environment settings still work. */
 function withEnvFallback(c: SiteContent): SiteContent {
@@ -31,7 +33,7 @@ export function contactLinks(c: SiteContent) {
   const wa = c.contact.whatsapp ? `https://wa.me/${c.contact.whatsapp}` : "";
   return { email: c.contact.email, phone: c.contact.phone, messenger: c.contact.messenger, whatsapp: wa, whatsappButton: c.features.whatsappButton ? wa : "" };
 }
-export const getSiteContentFresh = async (db: CatalogDb) => mergeContent(await readSaved(db));
+export const getSiteContentFresh = async (db: CatalogDb) => ({ ...mergeContent(await readSaved(db)), media: await mediaVersions(db) });
 
 const cleaners = { text: cleanText, features: cleanFeatures, guides: cleanGuides, packages: cleanPackages, faq: cleanFaq, contact: cleanContact } as const;
 export type ContentPart = keyof typeof cleaners;
@@ -46,5 +48,5 @@ export async function saveSiteContent(db: CatalogDb, actorId: string, part: Cont
     await tx.insert(storeSetting).values({ key: KEY, value: json, updatedBy: actorId }).onConflictDoUpdate({ target: storeSetting.key, set: { value: json, updatedBy: actorId, updatedAt: new Date() } });
     await tx.insert(auditEvent).values({ id: randomUUID(), actorId, action: "content.save", targetId: part, reason: reset ? "reset to default" : "updated" });
   });
-  return mergeContent(saved);
+  return { ...mergeContent(saved), media: await mediaVersions(db) };
 }

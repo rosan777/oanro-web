@@ -23,6 +23,9 @@ export const textFields = {
   "aboutPage.lede": { group: "About page", label: "Intro paragraph", long: true, en: "OANRO is two things under one name: a store of thoughtfully chosen products, and a studio that builds software, websites and apps. Both run on the same promise — when our name is on it, it has to be right.", bn: "OANRO এক নামে দুটি কাজ: যত্নে বাছাই করা পণ্যের একটি স্টোর, আর সফটওয়্যার, ওয়েবসাইট ও অ্যাপ বানানোর একটি স্টুডিও। দুটোই একই প্রতিশ্রুতিতে চলে — যেখানে আমাদের নাম থাকে, সেখানে কাজটা ঠিক হতেই হবে।" },
   "aboutPage.store": { group: "About page", label: "The store", long: true, en: "Winter clothing, caps, tech and jewelry — picked one by one, described honestly, delivered across Bangladesh with cash on delivery, bKash or Nagad. If something arrives wrong or damaged, we fix it.", bn: "শীতের পোশাক, ক্যাপ, টেক আর জুয়েলারি — একটি একটি করে বাছাই, সৎভাবে বর্ণনা, সারা বাংলাদেশে ক্যাশ অন ডেলিভারি, বিকাশ বা নগদে ডেলিভারি। ভুল বা ক্ষতিগ্রস্ত পণ্য এলে আমরা ঠিক করে দিই।" },
   "aboutPage.studio": { group: "About page", label: "The studio", long: true, en: "Software, websites, apps and IT solutions for businesses anywhere — fixed quotes, a live preview while we build, and support after launch.", bn: "যেকোনো জায়গার ব্যবসার জন্য সফটওয়্যার, ওয়েবসাইট, অ্যাপ ও আইটি সলিউশন — নির্দিষ্ট দাম, বানানোর সময় লাইভ প্রিভিউ, আর লঞ্চের পর সাপোর্ট।" },
+  "menu.products": { group: "Menu pictures", label: "Label on the Products menu picture", en: "New season", bn: "নতুন সিজন" },
+  "menu.services": { group: "Menu pictures", label: "Label on the Services menu picture", en: "OANRO Studio", bn: "OANRO স্টুডিও" },
+  "menu.about": { group: "Menu pictures", label: "Label on the About menu picture", en: "Our story", bn: "আমাদের গল্প" },
   "guides.title": { group: "Guides page", label: "Headline", en: "Shop smarter. Build smarter.", bn: "জেনে-বুঝে কিনুন, জেনে-বুঝে বানান।" },
 } satisfies Record<string, { group: string; label: string; en: string; bn: string; long?: boolean }>;
 
@@ -65,14 +68,17 @@ export type SocialPlatform = typeof socialPlatforms[number];
 /** icon: empty = the built-in icon for the platform, or a small uploaded image (data URL). */
 export type Social = { platform: SocialPlatform; url: string; label: string; icon: string };
 export type Contact = { email: string; phone: string; whatsapp: string; messenger: string; address: Bi; socials: Social[]; pixelId: string; pulseWhere: "everywhere" | "services" };
-export type SiteContent = { text: Record<TextKey, Bi>; features: Record<FeatureKey, boolean>; guides: Guide[]; packages: Package[]; faq: Faq[]; contact: Contact };
+/** Owner-uploaded images (Admin → Website content → Images). Only version stamps travel to pages; the image itself is at /api/site-media/<key>?v=<stamp>. */
+export type MediaSlot = "menu-products" | "menu-services" | "menu-about" | "share";
+export const mediaUrl = (c: Pick<SiteContent, "media">, key: MediaSlot) => c.media[key] ? `/api/site-media/${key}?v=${c.media[key]}` : "";
+export type SiteContent = { text: Record<TextKey, Bi>; features: Record<FeatureKey, boolean>; guides: Guide[]; packages: Package[]; faq: Faq[]; contact: Contact; media: Partial<Record<MediaSlot, string>> };
 export const emptyContact = (): Contact => ({ email: "", phone: "", whatsapp: "", messenger: "", address: { en: "", bn: "" }, socials: [], pixelId: "", pulseWhere: "everywhere" });
 
 export function defaultContent(): SiteContent {
   return {
     text: Object.fromEntries(Object.entries(textFields).map(([k, f]) => [k, { en: f.en, bn: f.bn }])) as Record<TextKey, Bi>,
     features: Object.fromEntries(Object.keys(featureFields).map(k => [k, true])) as Record<FeatureKey, boolean>,
-    guides: defaultGuides, packages: defaultPackages, faq: defaultFaq, contact: emptyContact(),
+    guides: defaultGuides, packages: defaultPackages, faq: defaultFaq, contact: emptyContact(), media: {},
   };
 }
 
@@ -114,6 +120,6 @@ export function mergeContent(saved: Partial<Record<keyof SiteContent, unknown>> 
   const guides = cleanGuides(saved.guides), packages = cleanPackages(saved.packages), faq = cleanFaq(saved.faq);
   return { text: { ...d.text, ...cleanText(saved.text) }, features: { ...d.features, ...cleanFeatures(saved.features) },
     guides: saved.guides !== undefined ? guides : d.guides, packages: saved.packages !== undefined ? packages : d.packages, faq: saved.faq !== undefined ? faq : d.faq,
-    contact: saved.contact !== undefined ? cleanContact(saved.contact) : d.contact };
+    contact: saved.contact !== undefined ? cleanContact(saved.contact) : d.contact, media: {} };
 }
 export const pick = (c: SiteContent, key: TextKey, locale: "en" | "bn") => c.text[key][locale] || c.text[key].en;

@@ -14,6 +14,7 @@ import { PrivacyCenter } from "@/components/privacy-center";
 import { storefrontCached } from "@/lib/storefront-cache";
 import { activeBanners, listBanners } from "@/lib/banner-store";
 import { contactLinks, getSiteContent } from "@/lib/site-content";
+import { mediaUrl } from "@/lib/site-content-data";
 import { SiteContentProvider } from "@/components/site-content-context";
 import { storeLive } from "@/lib/seo";
 import { getApprovedPulseStories, getSectionState } from "@/lib/website-sections";
@@ -40,13 +41,15 @@ const script = Parisienne({ variable: "--font-script", subsets: ["latin"], weigh
 const accent = Instrument_Serif({ variable: "--font-accent", subsets: ["latin"], weight: "400", style: ["normal", "italic"], display: "swap", preload: false });
 export async function generateMetadata(): Promise<Metadata> {
   const { locale, path } = await requestLocale();
+  // Default link-share picture: the owner's upload (Admin → Website content → Images), else the built-in one.
+  const shared = mediaUrl(await getSiteContent(), "share"); const ogImage = shared ? { url: shared, width: 1200, height: 630, alt: SITE_NAME } : DEFAULT_OG_IMAGE;
   const bn = locale === "bn";
   const title = bn ? DEFAULT_TITLE_BN : DEFAULT_TITLE, description = bn ? DEFAULT_DESCRIPTION_BN : DEFAULT_DESCRIPTION;
   return { metadataBase: new URL(siteUrl()), title: { default: title, template: "%s | OANRO" }, description, applicationName: SITE_NAME, icons: { icon: "/logo.svg" },
     // Every page gets its canonical URL and EN/BN hreflang links here unless it sets its own.
     alternates: alternatesFor(path, locale),
-    openGraph: { type: "website", siteName: SITE_NAME, locale: bn ? "bn_BD" : "en_BD", alternateLocale: [bn ? "en_BD" : "bn_BD"], title, description, images: [DEFAULT_OG_IMAGE] },
-    twitter: { card: "summary_large_image", title, description, images: [DEFAULT_OG_IMAGE.url] } };
+    openGraph: { type: "website", siteName: SITE_NAME, locale: bn ? "bn_BD" : "en_BD", alternateLocale: [bn ? "en_BD" : "bn_BD"], title, description, images: [ogImage] },
+    twitter: { card: "summary_large_image", title, description, images: [ogImage.url] } };
 }
 export const dynamic = "force-dynamic";
 export default async function RootLayout({ children }: { children: ReactNode }) {

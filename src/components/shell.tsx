@@ -14,6 +14,7 @@ import { PrivacySettingsLink } from "./privacy-center";
 import { NewsletterSignup } from "./site-extras";
 import { useFeature, useSiteContent, useText } from "./site-content-context";
 import { SocialLinks } from "./social-icon";
+import { mediaUrl } from "@/lib/site-content-data";
 import { LanguageSwitch, Localized, RegionPicker, useLocale } from "./locale";
 
 export function ProductPhoto({ position, label, className = "", image }: { position: string; label: string; className?: string; image?: string | null }) {
@@ -82,7 +83,7 @@ export function Header({ config }: { config: SiteConfig }) {
             {group === "Services" && services.map(s => <Link key={s.slug} href={`/services/${s.slug}`} onClick={closeMenu}>{bn && s.bn ? s.bn.title : s.title}<ArrowUpRight size={16} /></Link>)}
             {group === "About" && <><Link href="/#about" onClick={closeMenu}>{t("Our approach", "আমাদের পদ্ধতি")}<ArrowUpRight size={16} /></Link><Link href="/#contact" onClick={closeMenu}>{t("Contact OANRO", "OANRO-তে যোগাযোগ")}<ArrowUpRight size={16} /></Link></>}
           </div>
-          <div className="mega-feature">{group === "Products" ? <ProductPhoto position="0% 0%" label="Sample green cable-knit sweater" /> : <Image src="/images/campaign.png" alt="OANRO sample winter campaign" fill sizes="300px" />}<span>{t("THE FIRST CHAPTER", "প্রথম অধ্যায়")}</span></div>
+          <MegaPicture group={group} />
         </div>
       </div>)}
     </header>
@@ -132,4 +133,16 @@ export function Footer({ config }: { config: SiteConfig }) {
       
       <span className="footer-tools"><RegionPicker /><PrivacySettingsLink /><MotionToggle /></span></div>
   </div></footer>;
+}
+
+/** Picture beside a drop-down menu: the owner's upload from Admin → Website content → Images, or a calm OANRO placeholder. */
+function MegaPicture({ group }: { group: string }) {
+  const content = useSiteContent();
+  const slot = group === "Products" ? "menu-products" : group === "Services" ? "menu-services" : "menu-about";
+  const label = useText(group === "Products" ? "menu.products" : group === "Services" ? "menu.services" : "menu.about");
+  const src = mediaUrl(content, slot);
+  return <div className={`mega-feature${src ? "" : " is-placeholder"}`}>
+    {src ? <Image src={src} alt="" fill sizes="300px" unoptimized /> : <Image src="/logo.svg" alt="" width={72} height={72} className="mega-mark" />}
+    {label && <span>{label}</span>}
+  </div>;
 }

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { featureFields, socialPlatforms, textFields, type FeatureKey, type SiteContent, type SocialPlatform, type TextKey } from "@/lib/site-content-data";
+import { featureFields, mediaUrl, socialPlatforms, type MediaSlot, textFields, type FeatureKey, type SiteContent, type SocialPlatform, type TextKey } from "@/lib/site-content-data";
 import { platformName, SocialIcon } from "./social-icon";
 import type { Bi } from "@/lib/content";
 
 type Part = "contact" | "text" | "features" | "guides" | "packages" | "faq";
-const tabs: [Part, string][] = [["contact", "Contact & social"], ["text", "Texts"], ["features", "Sections on/off"], ["guides", "Guides"], ["packages", "Studio packages"], ["faq", "Service FAQ"]];
+const tabs: [Part | "images", string][] = [["contact", "Contact & social"], ["images", "Images"], ["text", "Texts"], ["features", "Sections on/off"], ["guides", "Guides"], ["packages", "Studio packages"], ["faq", "Service FAQ"]];
 const groupBy = <K extends string>(fields: Record<K, { group: string }>) => {
   const out = new Map<string, K[]>();
   (Object.keys(fields) as K[]).forEach(k => out.set(fields[k].group, [...(out.get(fields[k].group) ?? []), k]));
@@ -36,7 +36,7 @@ const at = <T,>(list: T[], i: number, v: T) => list.map((x, k) => k === i ? v : 
 /** Admin → Website content: texts, section switches, guides, studio packages and service FAQ. */
 export function ContentEditor({ initial }: { initial: SiteContent }) {
   const [saved, setSaved] = useState(initial); const [draft, setDraft] = useState(initial);
-  const [tab, setTab] = useState<Part>("contact"); const [busy, setBusy] = useState(false); const [msg, setMsg] = useState("");
+  const [tabSel, setTab] = useState<Part | "images">("contact"); const tab: Part = tabSel === "images" ? "contact" : tabSel; const [busy, setBusy] = useState(false); const [msg, setMsg] = useState("");
   const dirty = JSON.stringify(draft[tab]) !== JSON.stringify(saved[tab]);
   const set = <P extends Part>(part: P, value: SiteContent[P]) => { setDraft(d => ({ ...d, [part]: value })); setMsg(""); };
 
@@ -53,9 +53,11 @@ export function ContentEditor({ initial }: { initial: SiteContent }) {
   }
 
   return <section className="content-editor">
-    <div className="ce-tabs" role="tablist">{tabs.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => { setTab(id); setMsg(""); }}>{label}</button>)}</div>
+    <div className="ce-tabs" role="tablist">{tabs.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tabSel === id} onClick={() => { setTab(id); setMsg(""); }}>{label}</button>)}</div>
 
-    {tab === "contact" && (() => { const c = draft.contact; const setC = (patch: Partial<SiteContent["contact"]>) => set("contact", { ...c, ...patch });
+    {tabSel === "images" && <MediaManager initial={initial.media} />}
+
+    {tabSel === "contact" && (() => { const c = draft.contact; const setC = (patch: Partial<SiteContent["contact"]>) => set("contact", { ...c, ...patch });
       const setSocial = (i: number, patch: Partial<SiteContent["contact"]["socials"][number]>) => setC({ socials: at(c.socials, i, { ...c.socials[i], ...patch }) });
       const upload = (i: number, file: File | undefined) => { if (!file) return;
         if (!/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type) || file.size > 11_000) { setMsg("Icon must be a PNG, JPG, WebP or SVG under 11 KB (a small square image, e.g. 64×64)."); return; }
@@ -96,16 +98,16 @@ export function ContentEditor({ initial }: { initial: SiteContent }) {
       </fieldset>
     </>; })()}
 
-    {tab === "text" && groupBy(textFields).map(([group, keys]) => <fieldset key={group} className="ce-group"><legend>{group}</legend>
+    {tabSel === "text" && groupBy(textFields).map(([group, keys]) => <fieldset key={group} className="ce-group"><legend>{group}</legend>
       {(keys as TextKey[]).map(k => { const f = textFields[k] as { label: string; long?: boolean; hint?: string };
         return <BiInput key={k} label={f.label + (k === "studio.headline" ? " (use | for a new line)" : "")} long={f.long} value={draft.text[k]} onChange={v => set("text", { ...draft.text, [k]: v })} />; })}
     </fieldset>)}
 
-    {tab === "features" && groupBy(featureFields).map(([group, keys]) => <fieldset key={group} className="ce-group"><legend>{group}</legend>
+    {tabSel === "features" && groupBy(featureFields).map(([group, keys]) => <fieldset key={group} className="ce-group"><legend>{group}</legend>
       {(keys as FeatureKey[]).map(k => <label key={k} className="ce-switch"><input type="checkbox" checked={draft.features[k]} onChange={e => set("features", { ...draft.features, [k]: e.target.checked })} />{featureFields[k].label}</label>)}
     </fieldset>)}
 
-    {tab === "guides" && <>
+    {tabSel === "guides" && <>
       {draft.guides.map((g, i) => <fieldset key={i} className="ce-group"><legend>{g.title.en || "New guide"}</legend>
         <ItemTools i={i} n={draft.guides.length} move={(a, b) => set("guides", moved(draft.guides, a, b))} remove={() => set("guides", draft.guides.filter((_, k) => k !== i))} />
         <label className="ce-one">Web address (lowercase-with-dashes)<input value={g.slug} pattern="[a-z0-9]+(-[a-z0-9]+)*" onChange={e => set("guides", at(draft.guides, i, { ...g, slug: e.target.value }))} /></label>
@@ -121,7 +123,7 @@ export function ContentEditor({ initial }: { initial: SiteContent }) {
       <button type="button" className="btn btn-neutral" onClick={() => set("guides", [...draft.guides, { slug: "", title: blank(), summary: blank(), updated: new Date().toISOString().slice(0, 10), sections: [{ heading: blank(), body: blank() }] }])}>+ Add guide</button>
     </>}
 
-    {tab === "packages" && <>
+    {tabSel === "packages" && <>
       {draft.packages.map((p, i) => <fieldset key={i} className="ce-group"><legend>{p.name.en || "New package"}</legend>
         <ItemTools i={i} n={draft.packages.length} move={(a, b) => set("packages", moved(draft.packages, a, b))} remove={() => set("packages", draft.packages.filter((_, k) => k !== i))} />
         <BiInput label="Name" value={p.name} onChange={v => set("packages", at(draft.packages, i, { ...p, name: v }))} />
@@ -133,7 +135,7 @@ export function ContentEditor({ initial }: { initial: SiteContent }) {
       <button type="button" className="btn btn-neutral" onClick={() => set("packages", [...draft.packages, { name: blank(), for: blank(), includes: [blank()] }])}>+ Add package</button>
     </>}
 
-    {tab === "faq" && <>
+    {tabSel === "faq" && <>
       {draft.faq.map((f, i) => <fieldset key={i} className="ce-group"><legend>{f.q.en || "New question"}</legend>
         <ItemTools i={i} n={draft.faq.length} move={(a, b) => set("faq", moved(draft.faq, a, b))} remove={() => set("faq", draft.faq.filter((_, k) => k !== i))} />
         <BiInput label="Question" value={f.q} onChange={v => set("faq", at(draft.faq, i, { ...f, q: v }))} />
@@ -142,11 +144,52 @@ export function ContentEditor({ initial }: { initial: SiteContent }) {
       <button type="button" className="btn btn-neutral" onClick={() => set("faq", [...draft.faq, { q: blank(), a: blank() }])}>+ Add question</button>
     </>}
 
-    <div className="ce-bar">
+    {tabSel !== "images" && <div className="ce-bar">
       <button type="button" className="btn btn-primary" disabled={busy || !dirty} onClick={() => save()}>{busy ? "Saving…" : "Save"}</button>
       <button type="button" className="btn btn-neutral" disabled={busy} onClick={() => setDraft(d => ({ ...d, [tab]: saved[tab] }))} hidden={!dirty}>Undo changes</button>
       <button type="button" className="btn btn-neutral" disabled={busy} onClick={() => save(true)}>Reset to default</button>
       <p className="small-note" role="status">{dirty ? "Unsaved changes" : msg}</p>
-    </div>
+    </div>}
   </section>;
+}
+
+const slots: { key: MediaSlot; title: string; hint: string }[] = [
+  { key: "menu-products", title: "Products menu picture", hint: "Shown beside the Products drop-down menu on computers. Portrait works best (about 600×800)." },
+  { key: "menu-services", title: "Services menu picture", hint: "Shown beside the Services drop-down menu. Portrait, about 600×800." },
+  { key: "menu-about", title: "About menu picture", hint: "Shown beside the About drop-down menu. Portrait, about 600×800." },
+  { key: "share", title: "Default link-share picture", hint: "What Facebook, WhatsApp and Messenger show when someone shares oanro.com or a page without its own picture. Landscape 1200×630." },
+];
+/** Shrinks a photo in the browser (max 1600px, JPEG) so uploads stay small and fast. */
+async function shrink(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas"); canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  for (const q of [0.86, 0.78, 0.68, 0.58, 0.48]) { const url = canvas.toDataURL("image/jpeg", q); if (url.length < 260000) return url; }
+  throw new Error("TOO_BIG");
+}
+/** Admin → Website content → Images: upload or remove each picture. Changes go live immediately. */
+function MediaManager({ initial }: { initial: SiteContent["media"] }) {
+  const [media, setMedia] = useState(initial); const [busy, setBusy] = useState<string | null>(null); const [msg, setMsg] = useState("");
+  async function put(key: MediaSlot, image: string | null) {
+    setBusy(key); setMsg("");
+    const res = await fetch("/api/admin/site-media", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ key, image }) }).catch(() => null);
+    const data = await res?.json().catch(() => ({})) as { media?: SiteContent["media"] } | undefined; setBusy(null);
+    if (!data?.media) { setMsg("Could not save the picture. Please try a JPG or PNG photo."); return; }
+    setMedia(data.media); setMsg(image ? "Picture saved. Live now." : "Picture removed. The placeholder shows instead.");
+  }
+  return <div className="ce-media">
+    <p className="small-note">Upload your own pictures. Large photos are made smaller automatically. Without a picture, menus show a clean OANRO placeholder. The labels on the menu pictures are in the Texts tab (Menu pictures).</p>
+    {slots.map(s => { const src = mediaUrl({ media }, s.key); return <fieldset key={s.key} className="ce-group"><legend>{s.title}</legend>
+      <div className={`ce-media-row${s.key === "share" ? " is-wide" : ""}`}>
+        <div className="ce-media-preview">{src ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={src} alt="" /> : <span>No picture yet</span>}</div>
+        <div className="ce-media-actions"><small>{s.hint}</small>
+          <label className="btn btn-primary btn-sm ce-file">{busy === s.key ? "Saving…" : src ? "Replace picture" : "Upload picture"}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy !== null}
+            onChange={async e => { const f = e.target.files?.[0]; e.target.value = ""; if (!f) return; try { await put(s.key, await shrink(f)); } catch { setMsg("That picture could not be used. Please try another JPG or PNG."); } }} /></label>
+          {src && <button type="button" className="btn btn-neutral btn-sm" disabled={busy !== null} onClick={() => put(s.key, null)}>Remove</button>}
+        </div>
+      </div>
+    </fieldset>; })}
+    <p className="small-note" role="status">{msg}</p>
+  </div>;
 }
