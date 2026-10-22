@@ -631,12 +631,14 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
 }
 
 /* ---------- 8. One site on three screens ---------- */
-.v2-devices { position: relative; display: grid; grid-template-columns: 1fr; justify-items: center; margin-top: 4rem; padding-bottom: 1rem; }
+.v2-devices { display: grid; justify-items: center; margin-top: 4rem; padding-bottom: 1rem; }
+/* The tablet and phone overlap the laptop's lower corners; the stage's bottom padding gives them room, so the caption below never collides. */
+.v2-devices-stage { position: relative; display: grid; justify-items: center; width: 100%; padding-bottom: clamp(2.75rem, 10vw, 6rem); }
 .v2-device { background: #15191b; border: 1px solid #2a3034; box-shadow: 0 30px 60px -25px rgb(0 0 0 / .7); overflow: hidden; }
 .v2-screen { height: 100%; overflow: hidden; background: #f6f5f0; }
 .v2-device.is-laptop { width: min(640px, 92%); aspect-ratio: 16 / 10; border-radius: 14px; padding: 10px; }
 .v2-device.is-tablet { position: absolute; left: calc(50% - min(380px, 46vw)); bottom: 0; width: min(200px, 30%); aspect-ratio: 3 / 4; border-radius: 16px; padding: 8px; }
-.v2-device.is-phone { position: absolute; right: calc(50% - min(360px, 45vw)); bottom: -10px; width: min(110px, 18%); aspect-ratio: 9 / 19; border-radius: 18px; padding: 6px; }
+.v2-device.is-phone { position: absolute; right: calc(50% - min(360px, 45vw)); bottom: 0; width: min(110px, 18%); aspect-ratio: 9 / 19; border-radius: 18px; padding: 6px; }
 .v2-device .v2-screen { border-radius: 6px; }
 .v2-mock { display: grid; gap: 8px; padding: 8px; animation: mock-scroll 14s ease-in-out infinite alternate; }
 .v2-mock i { display: block; border-radius: 4px; background: #dedcd4; }
@@ -648,8 +650,8 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
 .v2-mock .m-cards b { display: block; height: 40px; border-radius: 4px; background: #fff; border: 1px solid #e3e1da; }
 .is-phone .v2-mock .m-cards { grid-template-columns: 1fr; }
 @keyframes mock-scroll { from { transform: translateY(0); } to { transform: translateY(-40%); } }
-.v2-devices-note { margin: 2rem auto 0; max-width: 34rem; text-align: center; color: #a9afab; }
-@media (max-width: 640px) { .v2-device.is-tablet { left: 2%; } .v2-device.is-phone { right: 2%; } }
+.v2-devices-note { margin: clamp(1.75rem, 4vw, 2.75rem) auto 0; max-width: min(34rem, 100%); padding-inline: 1rem; text-align: center; color: #a9afab; line-height: 1.6; text-wrap: balance; }
+@media (max-width: 640px) { .v2-device.is-tablet { left: 2%; } .v2-device.is-phone { right: 2%; } .v2-devices { margin-top: 2.5rem; } }
 
 /* ---------- 9. Headline with a slow light moving through the letters ---------- */
 .v2-mask { background: linear-gradient(100deg, #ededE6 0%, #ededE6 35%, #3ddc97 50%, #ededE6 65%, #ededE6 100%); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: mask-sweep 7s ease-in-out infinite; }
