@@ -1,7 +1,7 @@
 "use client";
 import { ActionIcon } from "./action-icon";
 import { useState } from "react";
-import { permissions, permissionInfo, type Permission } from "@/lib/permissions";
+import { permissionGroups, permissionInfo, sensitivePermissions, type Permission } from "@/lib/permissions";
 import type { StaffOverview } from "@/lib/rbac";
 import { useAdminCall } from "./admin-ui";
 import { formatDhaka } from "@/lib/dhaka-time";
@@ -21,7 +21,6 @@ export function StaffDashboard({ initial, selfId, isOwner = false }: { initial: 
     if (!done) setNotice(n => { const code = Object.keys(extra).find(k => n.includes(k)); return code ? extra[code] : n; });
     return done;
   };
-  const toggle = (list: Permission[], p: Permission) => list.includes(p) ? list.filter(x => x !== p) : [...list, p];
 
   return <div className="admin-sections staff-admin">
     <section><h2>People with admin access</h2>
@@ -50,7 +49,7 @@ export function StaffDashboard({ initial, selfId, isOwner = false }: { initial: 
     <section><h2>Roles</h2><p>A role is a set of permissions. Changes apply immediately to everyone with that role.</p>
       {data.roles.map(r => { const current = edits[r.id] ?? r.permissions as Permission[]; const dirty = edits[r.id] !== undefined; return <details key={r.id} className="role-card"><summary><strong>{r.name}</strong> <small>{r.members} member{r.members === 1 ? "" : "s"} · {r.permissions.length} permission{r.permissions.length === 1 ? "" : "s"}{r.builtIn ? " · template" : ""}</small></summary>
         <p>{r.description}</p>
-        <div className="permission-grid">{permissions.map(p => <label key={p} className={p === "staff.manage" ? "permission-sensitive" : ""}><input type="checkbox" checked={current.includes(p)} disabled={busy} onChange={() => setEdits(e => ({ ...e, [r.id]: toggle(current, p) }))} /><span><b>{permissionInfo[p].label}</b><small>{permissionInfo[p].detail}</small></span></label>)}</div>
+        <PermissionPicker value={current} disabled={busy} onChange={v => setEdits(e => ({ ...e, [r.id]: v }))} />
         <div className="product-form-actions">
           <button type="button" className="button brand-button" disabled={busy || !dirty} onClick={async () => { if (await run("PATCH", { action: "role-permissions", roleId: r.id, permissions: current }, `${r.name} updated.`)) setEdits(e => { const n = { ...e }; delete n[r.id]; return n; }); }}>Save permissions</button>
           {dirty && <button type="button" className="button" disabled={busy} onClick={() => setEdits(e => { const n = { ...e }; delete n[r.id]; return n; })}>Undo</button>}
@@ -61,10 +60,20 @@ export function StaffDashboard({ initial, selfId, isOwner = false }: { initial: 
         : <form className="pulse-form product-form" onSubmit={async e => { e.preventDefault(); if (await run("POST", { action: "role-create", ...newRole }, `Role ${newRole.name} created.`)) setNewRole(null); }}>
           <label>Role name<input required maxLength={40} value={newRole.name} disabled={busy} onChange={e => setNewRole(r => r && ({ ...r, name: e.target.value }))} /></label>
           <label>Description<input maxLength={200} value={newRole.description} disabled={busy} onChange={e => setNewRole(r => r && ({ ...r, description: e.target.value }))} /></label>
-          <div className="permission-grid">{permissions.map(p => <label key={p}><input type="checkbox" checked={newRole.permissions.includes(p)} onChange={() => setNewRole(r => r && ({ ...r, permissions: toggle(r.permissions, p) }))} /><span><b>{permissionInfo[p].label}</b><small>{permissionInfo[p].detail}</small></span></label>)}</div>
+          <PermissionPicker value={newRole.permissions} onChange={v => setNewRole(r => r && ({ ...r, permissions: v }))} />
           <div className="product-form-actions"><button className="button brand-button" disabled={busy}>Create role</button><button type="button" className="button" onClick={() => setNewRole(null)}>Cancel</button></div>
         </form>}
     </section>
     <p role="status" aria-live="polite">{notice}</p>
   </div>;
+}
+
+/** Permissions grouped by area (Daily work, Store, Website…), each group with its own colour and a "select all". */
+function PermissionPicker({ value, onChange, disabled }: { value: Permission[]; onChange: (next: Permission[]) => void; disabled?: boolean }) {
+  return <div className="permission-groups">{permissionGroups.map(g => {
+    const all = g.items.every(p => value.includes(p));
+    return <fieldset key={g.label} className="permission-group" data-group={g.label.toLowerCase().split(" ")[0]}>
+      <legend>{g.label} <button type="button" className="perm-all" disabled={disabled} onClick={() => onChange(all ? value.filter(p => !g.items.includes(p)) : [...new Set([...value, ...g.items])])}>{all ? "Clear" : "Select all"}</button></legend>
+      <div className="permission-grid">{g.items.map(p => <label key={p} className={sensitivePermissions.includes(p) ? "permission-sensitive" : ""}><input type="checkbox" checked={value.includes(p)} disabled={disabled} onChange={() => onChange(value.includes(p) ? value.filter(x => x !== p) : [...value, p])} /><span><b>{permissionInfo[p].label}{sensitivePermissions.includes(p) ? " · sensitive" : ""}</b><small>{permissionInfo[p].detail}</small></span></label>)}</div>
+    </fieldset>; })}</div>;
 }

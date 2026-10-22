@@ -12,6 +12,8 @@ import { requestLocale } from "@/lib/request-locale";
 import { bnDigits, publicRules } from "@/lib/public-rules";
 import { formatPrice } from "@/lib/catalog";
 import { storeLive } from "@/lib/seo";
+import { getSiteContent } from "@/lib/site-content";
+import { pick, type TextKey } from "@/lib/site-content-data";
 import { DeliveryChecker, HeroBrand, ProductStory, ShopTabs, StudioTerminal, ValueLetters, WhyBento } from "@/components/home-v2";
 
 // Homepage, design "I1 · Final homepage" (canvas). Every number shown comes from the admin rules or the live catalog:
@@ -24,20 +26,22 @@ export default async function Home() {
   const bn = locale === "bn";
   const cod = rules.codLimit > 0;
   const live = storeLive();
+  // Texts and section switches from Admin → Website content.
+  const content = await getSiteContent(); const f = content.features; const tx = (k: TextKey) => pick(content, k, locale);
   return <main id="main-content">
     <section className="v2-hero" aria-labelledby="hero-title">
       <div className="v2-hero-copy">
         <HeroBrand />
-        <p className="v2-lede v2-fade" style={{ animationDelay: "1.2s" }}><Localized en="Shop winter clothing, caps, tech and jewelry with cash on delivery — or hire OANRO Studio for software, website and app development." bn="শীতের পোশাক, ক্যাপ, টেক ও জুয়েলারি কিনুন ক্যাশ অন ডেলিভারিতে — অথবা সফটওয়্যার, ওয়েবসাইট ও অ্যাপ বানাতে OANRO স্টুডিওকে বলুন।" /></p>
+        <p className="v2-lede v2-fade" style={{ animationDelay: "1.2s" }}>{tx("hero.lede")}</p>
         <div className="v2-actions v2-fade" style={{ animationDelay: "1.5s" }}>
-          {config.products && <Link className="v2-btn v2-btn-light" href="#products"><Localized en="Shop the collection" bn="কালেকশন দেখুন" /><ArrowUpRight size={17} /></Link>}
-          {config.services && <Link className="v2-btn v2-btn-ghost v2-btn-quote" href="#studio"><span className="v2-long"><Localized en="Get a free quote" bn="ফ্রি কোট নিন" /></span><span className="v2-short"><Localized en="Free quote" bn="ফ্রি কোট" /></span><ArrowUpRight size={17} /></Link>}
+          {config.products && <Link className="v2-btn v2-btn-light" href="#products">{tx("hero.ctaShop")}<ArrowUpRight size={17} /></Link>}
+          {config.services && <Link className="v2-btn v2-btn-ghost v2-btn-quote" href="#studio"><span className="v2-long">{tx("hero.ctaQuote")}</span><span className="v2-short"><Localized en="Free quote" bn="ফ্রি কোট" /></span><ArrowUpRight size={17} /></Link>}
         </div>
       </div>
       <div className="v2-planet" aria-hidden="true" />
     </section>
 
-    {(config.products || config.services) && <ShopTabs showServices={config.services} chips={<>
+    {f.shopTabs && (config.products || config.services) && <ShopTabs showServices={config.services} chips={f.promiseStrip && <>
       <span><Localized en="Delivery across Bangladesh" bn="সারা বাংলাদেশে ডেলিভারি" /></span>
       {cod && <span><Localized en="Cash on delivery" bn="ক্যাশ অন ডেলিভারি" /></span>}
       <span className="is-bkash"><Localized en="bKash" bn="বিকাশ" /></span>
@@ -50,7 +54,7 @@ export default async function Home() {
       <span><Localized en="Shop in Bangla or English" bn="বাংলা বা ইংরেজিতে কেনাকাটা" /></span>
     </>} />}
 
-    {config.products && <div className="container v2-help-row">
+    {f.deliveryPanel && config.products && <div className="container v2-help-row">
       <DeliveryChecker rules={rules} />
       <div className="v2-panel">
         <h2 className="v2-h3">{bn ? "যেভাবে খুশি পেমেন্ট করুন" : "Pay the way you like"}</h2>
@@ -63,35 +67,35 @@ export default async function Home() {
       </div>
     </div>}
 
-    {config.products && <ProductStory />}
+    {f.productStory && config.products && <ProductStory />}
 
-    {campaigns.map(c => <CampaignShowcase key={c.id} campaign={c} />)}
+    {f.campaigns && campaigns.map(c => <CampaignShowcase key={c.id} campaign={c} />)}
 
-    {config.products && <WhyBento rules={rules} services={config.services} />}
+    {f.bento && config.products && <WhyBento rules={rules} services={config.services} />}
 
-    <section id="about" className="container v2-brand" aria-labelledby="about-title">
+    {f.about && <section id="about" className="container v2-brand" aria-labelledby="about-title">
       <div className="v2-orbit-wrap" aria-hidden="true"><div className="v2-orbit"><div className="ring1" /><div className="ring2" /><div className="core"><Image src="/logo.svg" alt="" width={56} height={56} /></div></div></div>
       <div className="v2-brand-copy">
-        <p className="v2-eyebrow"><Localized en="Who we are" bn="আমরা কারা" /></p>
-        <h2 id="about-title" className="v2-h2" style={{ marginTop: "0.6rem" }}><Localized en="We are OANRO." bn="আমরা OANRO।" /></h2>
-        <p className="v2-body"><Localized en="Built for what's next. Every product we offer is chosen with intent, and every website, app and system we build is held to one standard — fast, honest and made to last. When our name is on it, it has to be right." bn="আগামীর জন্য তৈরি। আমাদের প্রতিটি পণ্য উদ্দেশ্য নিয়ে বাছাই করা, আর প্রতিটি ওয়েবসাইট, অ্যাপ ও সিস্টেম একটিই মানে তৈরি — দ্রুত, সৎ ও টেকসই। যেখানে আমাদের নাম থাকে, সেখানে কাজটা ঠিক হতেই হবে।" /></p>
+        <p className="v2-eyebrow">{tx("about.eyebrow")}</p>
+        <h2 id="about-title" className="v2-h2" style={{ marginTop: "0.6rem" }}>{tx("about.title")}</h2>
+        <p className="v2-body">{tx("about.body")}</p>
         <p className="v2-sign"><span>Team oanro</span></p>
       </div>
-    </section>
+    </section>}
 
-    <ValueLetters />
+    {f.values && <ValueLetters />}
 
-    {config.services && <StudioTerminal />}
+    {f.studio && config.services && <StudioTerminal />}
 
-    <section id="contact" className="container" aria-labelledby="contact-title"><div className="v2-contact">
+    {f.contact && <section id="contact" className="container" aria-labelledby="contact-title"><div className="v2-contact">
       <div>
-        <h2 id="contact-title" className="v2-h2"><Localized en="Let's start a conversation" bn="চলুন কথা শুরু করি" /></h2>
-        <p><Localized en="A question about a product, a service or a project? A real person from our team replies." bn="পণ্য, সেবা বা প্রজেক্ট নিয়ে প্রশ্ন? আমাদের টিমের একজন মানুষ উত্তর দেবেন।" /></p>
+        <h2 id="contact-title" className="v2-h2">{tx("contact.title")}</h2>
+        <p>{tx("contact.body")}</p>
         {!live && <p style={{ fontSize: "0.85rem" }}><Localized en="Design preview: sample products and images. Ordering opens soon." bn="ডিজাইন প্রিভিউ: নমুনা পণ্য ও ছবি। অর্ডার শিগগিরই চালু হবে।" /></p>}
       </div>
       <div className="contact-actions"><MessageReveal />{config.contactEmail && <a className="button light-button" href={`mailto:${config.contactEmail}`}><Mail size={17} />{config.contactEmail}</a>}</div>
-    </div></section>
+    </div></section>}
 
-    {config.products && <HomeFaq rules={rules} locale={locale} services={config.services} />}
+    {f.faq && config.products && <HomeFaq rules={rules} locale={locale} services={config.services} />}
   </main>;
 }

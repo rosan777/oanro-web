@@ -2,9 +2,10 @@
 // approved, and returned when it is rejected. Every step is audit-logged inside its own transaction.
 import { randomBytes, randomUUID } from "node:crypto";
 import { and, asc, count, desc, eq, getTableColumns, gte, inArray, isNull, sql } from "drizzle-orm";
-import { auditEvent, orderEvent, orderItem, product, productCollection, productVariant, shopOrder, storeSetting, user, type DeliveryStage, type OrderStatus, type PaymentMethod } from "./db/schema";
+import { auditEvent, orderEvent, orderItem, product, productCollection, productVariant, shopOrder, storeSetting, user, type DeliveryStage, type OrderStatus, type PaymentMethod, orderDiscount } from "./db/schema";
 import { withImageFlag } from "./db/light";
 import { nextStages } from "./order-flow";
+import { redeemDiscount } from "./discount-store";
 import type { OrderInput } from "./order-input";
 import { ProductStoreError, type CatalogDb } from "./product-store";
 
@@ -89,7 +90,10 @@ export async function createOrder(db: CatalogDb, customer: { id: string }, input
       const cod = input.paymentType === "cod";
       if (cod && subtotal > rules.codLimit) throw new ProductStoreError("COD_LIMIT");
       // "total" is the money received now by bKash/Nagad: everything for prepaid, only the delivery charge for COD.
-      const total = cod ? rules.deliveryCharge : subtotal + rules.deliveryCharge;
+      // A discount code takes taka off the products (never the delivery charge); its use is counted inside this transaction.
+      const discount = input.discountCode ? await redeemDiscount(tx, input.discountCode, subtotal) : 0;
+      const payable = subtotal - discount;
+      const total = cod ? rules.deliveryCharge : payable + rules.deliveryCharge;
       const reserved: boolean[] = [];
       // Per-variant shortage names the colour and size (the count is for that option only).
       const oos = (line: typeof lines[number], left: number | null) => new ProductStoreError(`OUT_OF_STOCK:${line.slug}:${left ?? 0}:${line.color}:${encodeURIComponent(line.size)}`);
@@ -113,10 +117,11 @@ export async function createOrder(db: CatalogDb, customer: { id: string }, input
         reserved.push(true);
       }
       await tx.insert(shopOrder).values({ id, code, userId: customer.id, method: input.method, payTo, payerNumber: input.payerNumber, trxId: input.trxId,
-        imageData: screenshot, total, paymentType: input.paymentType, deliveryCharge: rules.deliveryCharge, codDue: cod ? subtotal : 0, customerName: input.name, phone: input.phone, address: input.address, note: input.note });
+        imageData: screenshot, total, paymentType: input.paymentType, deliveryCharge: rules.deliveryCharge, codDue: cod ? payable : 0, customerName: input.name, phone: input.phone, address: input.address, note: input.note });
       await tx.insert(orderItem).values(lines.map((l, i) => ({ orderId: id, productId: l.product.id, slug: l.slug, name: l.label, size: l.size, color: l.color, quantity: l.quantity, unitPrice: l.product.price, unitCost: l.product.cost, stockReserved: reserved[i] })));
+      if (discount > 0) await tx.insert(orderDiscount).values({ orderId: id, code: input.discountCode, amount: discount });
       await tx.insert(orderEvent).values({ id: randomUUID(), orderId: id, stage: "placed", actorId: customer.id });
-      await tx.insert(auditEvent).values({ id: randomUUID(), actorId: customer.id, action: "order.create", targetId: id, reason: `${code} ${cod ? "COD " : ""}${input.method} ${input.trxId} ৳${total}${cod ? ` + ৳${subtotal} cash` : ""}` });
+      await tx.insert(auditEvent).values({ id: randomUUID(), actorId: customer.id, action: "order.create", targetId: id, reason: `${code} ${cod ? "COD " : ""}${input.method} ${input.trxId} ৳${total}${cod ? ` + ৳${payable} cash` : ""}${discount ? ` (code ${input.discountCode} −৳${discount})` : ""}` });
     });
   } catch (error) {
     if (uniqueViolation(error)) throw new ProductStoreError("TRX_USED");
@@ -218,4 +223,16 @@ export async function markCodCollected(db: CatalogDb, actorId: string, id: strin
     await tx.insert(orderEvent).values({ id: randomUUID(), orderId: id, stage: "cash_collected", note: "", actorId });
     await tx.insert(auditEvent).values({ id: randomUUID(), actorId, action: "order.cod-collected", targetId: id, reason: `${done[0].code}: ৳${done[0].due} cash received` });
   });
+}
+
+/** Public tracking (no sign-in): the order code plus the phone number used on the order. Returns only the
+ * timeline (no address, payment details or items), and the same "not found" for a wrong code or a wrong phone. */
+export async function trackOrder(db: CatalogDb, rawCode: string, phone: string) {
+  const code = rawCode.trim().toUpperCase();
+  if (!/^OA-[A-Z0-9]{6,14}$/.test(code)) return null;
+  const [o] = await db.select({ id: shopOrder.id, code: shopOrder.code, phone: shopOrder.phone, status: shopOrder.status, delivery: shopOrder.deliveryStatus, courier: shopOrder.courier, trackingCode: shopOrder.trackingCode, createdAt: shopOrder.createdAt })
+    .from(shopOrder).where(eq(shopOrder.code, code)).limit(1);
+  if (!o || o.phone !== phone) return null;
+  const events = await db.select({ stage: orderEvent.stage, createdAt: orderEvent.createdAt }).from(orderEvent).where(eq(orderEvent.orderId, o.id)).orderBy(asc(orderEvent.createdAt));
+  return { code: o.code, status: o.status, delivery: o.delivery, courier: o.courier, trackingCode: o.trackingCode, placedAt: o.createdAt.toISOString(), events: events.map(e => ({ stage: e.stage, at: e.createdAt.toISOString() })) };
 }

@@ -137,3 +137,34 @@ a.today-stat:hover { border-color: var(--brand); }
 .pub-stock input { width: 84px; padding: .45rem .55rem; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
 .pub-links { display: flex; gap: .8rem; font-size: .85rem; } .pub-links a { text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 900px) { .pub-row { grid-template-columns: 30px minmax(0, 1fr) auto; } .pub-stock, .pub-state { grid-column: 2 / -1; } .pub-links { grid-column: 2 / -1; } }
+
+/* Website group (content, announcement bar) */
+.admin-side-group[data-group="website"] { --tone: #2ec4c4; --tone-bg: rgb(46 196 196 / .14); }
+
+/* Roles: permissions grouped by area, each with its own colour */
+.permission-groups { display: grid; gap: 12px; margin: 10px 0; }
+.permission-group { --tone: #64748b; border: 1px solid var(--line); border-left: 4px solid var(--tone); border-radius: 10px; padding: 10px 14px 12px; margin: 0; }
+.permission-group[data-group="daily"] { --tone: #1f9d6b; } .permission-group[data-group="store"] { --tone: #c98a1c; }
+.permission-group[data-group="website"] { --tone: #1a9a9a; } .permission-group[data-group="insights"] { --tone: #2f7fd8; }
+.permission-group[data-group="settings"] { --tone: #8a63d2; }
+.permission-group legend { display: flex; align-items: center; gap: 10px; padding: 0 6px; font-weight: 700; color: var(--tone); }
+.perm-all { font: inherit; font-size: .8rem; font-weight: 600; padding: 2px 10px; border: 1px solid currentColor; border-radius: 999px; background: none; color: inherit; cursor: pointer; }
+.perm-all:disabled { opacity: .5; cursor: default; }
+
+/* Admin → Website content */
+.content-editor { display: grid; gap: 16px; margin-top: 12px; }
+.ce-tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.ce-tabs button { font: inherit; font-size: .9rem; padding: .45rem .9rem; border: 1px solid var(--line); border-radius: 999px; background: none; cursor: pointer; }
+.ce-tabs button[aria-selected="true"] { background: #1a9a9a; border-color: #1a9a9a; color: #fff; }
+.ce-group { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px 16px; margin: 0; display: grid; gap: 12px; }
+.ce-group legend { font-weight: 700; padding: 0 6px; }
+.ce-bi { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.ce-label { grid-column: 1 / -1; font-weight: 600; font-size: .9rem; }
+.ce-bi label, .ce-one { display: grid; gap: 4px; font-size: .85rem; } .ce-bi small { color: #64748b; font-size: .75rem; }
+.ce-bi input, .ce-bi textarea, .ce-one input { width: 100%; padding: .55rem .7rem; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 1rem; resize: vertical; }
+.ce-switch { display: flex; align-items: center; gap: 10px; font-size: .95rem; cursor: pointer; } .ce-switch input { width: 18px; height: 18px; accent-color: #1a9a9a; }
+.ce-sub { display: grid; gap: 8px; padding: 10px 12px; background: rgb(100 116 139 / .06); border-radius: 10px; } .ce-sub > .btn { justify-self: start; }
+.ce-tools { display: flex; gap: 6px; justify-self: end; }
+.ce-bar { position: sticky; bottom: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 0; background: var(--paper, #fff); border-top: 1px solid var(--line); }
+.ce-bar .small-note { margin: 0; }
+@media (max-width: 700px) { .ce-bi { grid-template-columns: 1fr; } }

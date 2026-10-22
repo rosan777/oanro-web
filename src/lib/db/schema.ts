@@ -304,3 +304,47 @@ export const productViewDaily = pgTable("product_view_daily", {
   productId: text("product_id").notNull().references(() => product.id, { onDelete: "cascade" }),
   day: text("day").notNull(), views: integer("views").notNull().default(0),
 }, t => [primaryKey({ columns: [t.productId, t.day] }), index("product_view_day_idx").on(t.day)]);
+
+/* ---------- Added 22 Oct 2026: discount codes, newsletter, saved bags, banners, order labels, customer notes ---------- */
+/** Discount codes typed at checkout. kind: "percent" (value = 1-90) or "amount" (value = ৳ off). Code is stored upper-case. */
+export const discountCode = pgTable("discount_code", {
+  code: text("code").primaryKey(), kind: text("kind").$type<"percent" | "amount">().notNull(), value: integer("value").notNull(),
+  minSubtotal: integer("min_subtotal").notNull().default(0), maxUses: integer("max_uses"), used: integer("used").notNull().default(0),
+  startsAt: time("starts_at"), endsAt: time("ends_at"), active: boolean("active").notNull().default(true),
+  note: text("note").notNull().default(""), createdBy: text("created_by").references(() => user.id), createdAt: time("created_at").notNull().defaultNow(),
+}, t => [
+  check("discount_kind_check", sql`${t.kind} in ('percent', 'amount')`),
+  check("discount_value_check", sql`${t.value} > 0 and (${t.kind} <> 'percent' or ${t.value} <= 90)`),
+  check("discount_used_check", sql`${t.used} >= 0 and (${t.maxUses} is null or ${t.maxUses} > 0)`),
+]);
+/** The discount applied to one order (kept separate so the order table itself is unchanged). */
+export const orderDiscount = pgTable("order_discount", {
+  orderId: text("order_id").primaryKey().references(() => shopOrder.id, { onDelete: "cascade" }),
+  code: text("code").notNull(), amount: integer("amount").notNull(),
+}, t => [check("order_discount_amount_check", sql`${t.amount} > 0`)]);
+/** People who asked for news by email. The token makes the one-click unsubscribe link. */
+export const newsletterSubscriber = pgTable("newsletter_subscriber", {
+  email: text("email").primaryKey(), locale: text("locale").notNull().default("en"), token: text("token").notNull().unique(),
+  consentAt: time("consent_at").notNull().defaultNow(), unsubscribedAt: time("unsubscribed_at"),
+});
+/** A signed-in shopper's bag, saved so one reminder email can be sent if they leave without ordering. */
+export const savedBag = pgTable("saved_bag", {
+  userId: text("user_id").primaryKey().references(() => user.id, { onDelete: "cascade" }),
+  items: jsonb("items").$type<{ slug: string; size: string; color: string; quantity: number }[]>().notNull(),
+  updatedAt: time("updated_at").notNull().defaultNow(), remindedAt: time("reminded_at"),
+});
+/** Messages for the top announcement bar, managed from the admin panel. */
+export const siteBanner = pgTable("site_banner", {
+  id: text("id").primaryKey(), textEn: text("text_en").notNull(), textBn: text("text_bn").notNull().default(""), link: text("link").notNull().default(""),
+  startsAt: time("starts_at"), endsAt: time("ends_at"), enabled: boolean("enabled").notNull().default(true), displayOrder: integer("display_order").notNull().default(0),
+  updatedBy: text("updated_by").references(() => user.id), updatedAt: time("updated_at").notNull().defaultNow(),
+});
+/** Free-text team labels on orders ("Gift wrap", "Call first"…). */
+export const orderLabel = pgTable("order_label", {
+  orderId: text("order_id").notNull().references(() => shopOrder.id, { onDelete: "cascade" }), label: text("label").notNull(),
+}, t => [primaryKey({ columns: [t.orderId, t.label] })]);
+/** Private team notes about a customer (never shown to the customer). */
+export const customerNote = pgTable("customer_note", {
+  id: text("id").primaryKey(), userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  authorId: text("author_id").notNull().references(() => user.id), body: text("body").notNull(), createdAt: time("created_at").notNull().defaultNow(),
+}, t => [index("customer_note_user_idx").on(t.userId, t.createdAt)]);

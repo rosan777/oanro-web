@@ -8,6 +8,8 @@ import { formatPrice } from "@/lib/catalog";
 import { AdminBack } from "@/components/admin-nav";
 import { CustomerDelete } from "@/components/customer-delete";
 import { CustomerEmail } from "@/components/customer-email";
+import { CustomerNotes } from "@/components/team-extras";
+import { listCustomerNotes } from "@/lib/team-notes";
 export const dynamic = "force-dynamic";
 const orderState = (o: { status: string; delivery: string | null; paymentType: string; collected: Date | null }) =>
   o.status === "pending" ? "Waiting for review" : o.status === "rejected" ? "Rejected" : o.delivery === "delivered" ? (o.paymentType === "cod" && !o.collected ? "Delivered, cash not received" : "Delivered") : o.delivery === "returned" ? "Returned" : o.delivery ? `Approved, ${o.delivery.replaceAll("_", " ")}` : "Approved";
@@ -16,6 +18,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   const c = await getCustomer(catalogDb(), decodeURIComponent((await params).id).slice(0, 100));
   if (!c) notFound();
   const p = c.profile;
+  const notes = (await listCustomerNotes(catalogDb(), c.user.id).catch(() => [])).map(n => ({ ...n, createdAt: n.createdAt.toISOString() }));
   const field = (label: string, value?: string | null) => value ? <div><dt>{label}</dt><dd>{value}</dd></div> : null;
   return <main id="main-content" className="container auth-page admin-customer">
     <AdminBack />
@@ -27,6 +30,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
       {field("Email", `${c.user.email}${c.user.emailVerified ? "" : " (not verified)"}`)}{field("Phone", p?.phone)}{field("Other phone", p?.altPhone)}
       {field("Address", [p?.address, p?.area, p?.city, p?.postcode].filter(Boolean).join(", "))}{field("Permanent address", p?.permanentAddress)}{field("Company", p?.company)}
     </dl></section>}
+    {!c.deleted && access.permissions.has("customers.notes") && <CustomerNotes userId={c.user.id} initial={notes} />}
     <section className="profile-card"><h2>Orders</h2>{access.permissions.has("orders.read") && c.orders.length > 0 && <Link className="text-link" href="/admin/orders">Open orders</Link>}{!c.orders.length ? <p className="report-empty">No orders.</p> : <div className="table-scroll"><table className="report-table">
       <thead><tr><th>Order</th><th>Date</th><th>Payment</th><th className="num">Items</th><th className="num">Amount</th><th>Status</th></tr></thead>
       <tbody>{c.orders.map(o => <tr key={o.id}><th>{o.code}</th><td>{formatDhaka(o.createdAt, "en", { year: true })}</td>

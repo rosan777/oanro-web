@@ -11,6 +11,7 @@ import { bnDigits, dayText } from "@/lib/text-format";
 import { useProductLines, useProducts, useServices } from "./products-context";
 import { PriceTag, ProductPhoto } from "./shell";
 import { useLocale } from "./locale";
+import { useFeature, useText } from "./site-content-context";
 
 /** Category tabs + product cards. Uses the live catalog; the "Web & apps" tab lists real services. */
 /** Product cards lean gently toward the pointer (desktop mouse only; skipped when motion is paused). */
@@ -124,6 +125,8 @@ export function ValueLetters() {
 
 /** Studio section (J4): services list + live-build terminal animation. */
 export function StudioTerminal() {
+  const studioEyebrow = useText("studio.eyebrow"), studioHeadline = useText("studio.headline"), studioLede = useText("studio.lede");
+  const showProcess = useFeature("studioProcess"), showDevices = useFeature("studioDevices");
   const { locale } = useLocale(); const bn = locale === "bn"; const t = (en: string, b: string) => bn ? b : en;
   const services = useServices();
   const lines = bn
@@ -139,9 +142,9 @@ export function StudioTerminal() {
   </div></div>;
   return <section id="studio" className="v2-studio" aria-labelledby="studio-title"><div className="container v2-studio-grid">
     <div>
-      <p className="v2-eyebrow">{t("OANRO Studio · Software, web, app & IT solutions", "OANRO স্টুডিও · সফটওয়্যার, ওয়েব, অ্যাপ ও আইটি সলিউশন")}</p>
-      <h2 id="studio-title" className="v2-h2 v2-on-dark v2-mask">{bn ? <>আমরা বানাই।<br />আপনি ব্যবসা চালান।</> : <>We build it.<br />You run your business.</>}</h2>
-      <p className="v2-lede">{t("Software, websites, apps and IT solutions for businesses anywhere — a fixed quote, a live preview, launched on your own domain.", "যেকোনো জায়গার ব্যবসার জন্য সফটওয়্যার, ওয়েবসাইট, অ্যাপ ও আইটি সলিউশন — নির্দিষ্ট দাম, লাইভ প্রিভিউ, আপনার নিজের ডোমেইনে লঞ্চ।")}</p>
+      <p className="v2-eyebrow">{studioEyebrow}</p>
+      <h2 id="studio-title" className="v2-h2 v2-on-dark v2-mask">{studioHeadline.split("|").map((line, i) => <span key={i}>{i > 0 && <br />}{line}</span>)}</h2>
+      <p className="v2-lede">{studioLede}</p>
       <ul className="v2-service-rows">{services.map(s => <li key={s.slug}><Link href={`/services/${s.slug}`}>{bn && s.bn ? s.bn.title : s.title}<span>{t("Get a quote", "কোট নিন")} →</span></Link></li>)}</ul>
       <div className="v2-actions"><Link href="/contact" className="v2-btn v2-btn-light">{t("Get a free quote", "ফ্রি কোট নিন")} <ArrowUpRight size={17} /></Link></div>
     </div>
@@ -157,7 +160,7 @@ export function StudioTerminal() {
       {row(stack)}
       {row(offer, true)}
     </div>
-  </div><StudioProcess /><StudioDevices /></section>;
+  </div>{showProcess && <StudioProcess />}{showDevices && <StudioDevices />}</section>;
 }
 
 const MEANING = {
@@ -166,6 +169,7 @@ const MEANING = {
 };
 /** Hero brand block: holographic logo card + H1 (search keywords in the small line) + the original O-A-N-R-O letter cycle. */
 export function HeroBrand() {
+  const heroEyebrow = useText("hero.eyebrow"), heroHeadline = useText("hero.headline");
   const { locale } = useLocale(); const bn = locale === "bn";
   const { allowed } = useMotion();
   const [active, setActive] = useState(0);
@@ -178,8 +182,8 @@ export function HeroBrand() {
   return <>
     <span className="holographic-mark v2-holo v2-fade" aria-hidden="true"><Image src="/logo.svg" alt="" width={56} height={56} priority /></span>
     <h1 id="hero-title" className="v2-hero-h1">
-      <span className="v2-eyebrow v2-fade">{bn ? "যা পরবেন · যা গড়বেন · যেখানেই থাকুন" : "What you wear · What you build · Wherever you are"}</span>
-      <span className="v2-h1 v2-track">{bn ? "আগামীর জন্য তৈরি" : "Built for what's next"}</span>
+      <span className="v2-eyebrow v2-fade">{heroEyebrow}</span>
+      <span className="v2-h1 v2-track">{heroHeadline}</span>
     </h1>
     <p className="v2-letters-line v2-fade" aria-hidden="true">
       <span className="v2-mini-letters">{"OANRO".split("").map((ch, i) => <span key={i} className={i === active ? "is-active" : undefined}>{ch}</span>)}</span>
@@ -224,11 +228,12 @@ export function ProductStory() {
 
 /** "Why OANRO" bento grid. Every number comes from the admin delivery rules; tiles without data are left out. */
 export function WhyBento({ rules, services }: { rules: CheckoutRules; services: boolean }) {
+  const bentoTitle = useText("bento.title");
   const { locale } = useLocale(); const bn = locale === "bn"; const t = (en: string, b: string) => bn ? b : en;
   const n = (s: string) => bn ? bnDigits(s) : s;
   return <section className="container v2-bento-wrap" aria-labelledby="bento-title">
     <p className="v2-eyebrow v2-center">{t("Why OANRO", "কেন OANRO")}</p>
-    <h2 id="bento-title" className="v2-h2 v2-center">{t("Made simple, from order to doorstep.", "অর্ডার থেকে দরজা পর্যন্ত — সহজ।")}</h2>
+    <h2 id="bento-title" className="v2-h2 v2-center">{bentoTitle}</h2>
     <div className="v2-bento">
       <div className="v2-tile v2-tile-big v2-tile-dark">
         <span className="v2-tile-label">{t("Delivery", "ডেলিভারি")}</span>

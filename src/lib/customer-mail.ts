@@ -32,7 +32,7 @@ export function validUnsubscribe(email: string, token: string) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-async function optedOut(db: CatalogDb): Promise<string[]> {
+export async function optedOut(db: CatalogDb): Promise<string[]> {
   const [row] = await db.select({ value: storeSetting.value }).from(storeSetting).where(eq(storeSetting.key, OPT_OUT_KEY)).limit(1);
   try { const list = JSON.parse(row?.value ?? "[]"); return Array.isArray(list) ? list.filter(x => typeof x === "string") : []; } catch { return []; }
 }

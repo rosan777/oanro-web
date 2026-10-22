@@ -26,7 +26,7 @@ async function loadOrder(db: CatalogDb, id: string) {
 type Order = NonNullable<Awaited<ReturnType<typeof loadOrder>>>;
 const itemLines = (o: Order) => o.items.map(i => `• ${i.name} (${i.size}) × ${i.quantity} — ${tk(i.unitPrice * i.quantity)}`).join("\n");
 const method = (o: Order) => o.method === "bkash" ? "bKash" : "Nagad";
-function layout(title: string, paragraphs: string[], cta?: { label: string; href: string }) {
+export function layout(title: string, paragraphs: string[], cta?: { label: string; href: string }) {
   return `<div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:0 auto;color:#151515">
 <div style="background:#1f513c;color:#fff;padding:16px 20px;font-weight:700;letter-spacing:.04em">OANRO</div>
 <div style="padding:20px;border:1px solid #deded8;border-top:0;background:#fff"><h2 style="margin:0 0 12px;font-size:18px">${esc(title)}</h2>

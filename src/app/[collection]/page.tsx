@@ -8,7 +8,7 @@ import { presetLabel } from "@/lib/categories";
 import { categoryGuide } from "@/lib/seo-copy";
 import { absoluteUrl } from "@/lib/seo";
 import { JsonLd } from "@/components/json-ld";
-import { ProductCard } from "@/components/collection-conveyor";
+import { CollectionBrowser } from "@/components/collection-browser";
 import Link from "@/components/locale-link";
 
 // Category page for a product section, at a keyword URL: the section's slug from admin (e.g. /winter-clothing).
@@ -60,7 +60,7 @@ export default async function CategoryPage({ params }: Props) {
     <p className="eyebrow">{presetLabel[collection.preset][locale]}</p>
     <h1>{copy.name}</h1>
     <p className="category-intro">{[copy.headline, copy.description].filter(Boolean).join(". ")}</p>
-    {items.length ? <div className="category-grid">{items.map((product, index) => <ProductCard key={product.slug} product={product} index={index} duplicate={false} />)}</div>
+    {items.length ? <CollectionBrowser items={items} />
       : <p className="category-empty">{bn ? "এই সেকশনের পণ্য শীঘ্রই আসছে।" : "Products for this section are coming soon."}</p>}
     <section className="category-guide"><h2>{guide.heading}</h2>{guide.paragraphs.map(text => <p key={text.slice(0, 24)}>{text}</p>)}<p><Link href="/delivery-returns" className="text-link">{bn ? "ডেলিভারি ও রিটার্ন" : "Delivery & Returns"}</Link></p></section>
   </main>;
