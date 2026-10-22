@@ -1069,3 +1069,39 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   .site-footer .footer-bottom { gap: 0.4rem 1rem; padding-block: 0.8rem 1rem; font-size: 0.72rem; }
   .footer-tools { gap: 0.25rem 1rem; }
 }
+
+/* Studio on every screen size: the same side-by-side layout as desktop (text and services left, live-build terminal right), scaled down smoothly with the screen width.
+   The "How we work" timeline also stays horizontal (5 steps in a row). */
+@keyframes line-draw-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (max-width: 1024px) {
+  .v2-studio { padding-block: clamp(2rem, 6vw, 4rem); }
+  .v2-studio-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(0.75rem, 3vw, 2.5rem); align-items: center; }
+  .v2-studio-grid > div { flex: none; }
+  .v2-studio .v2-eyebrow { font-size: clamp(0.5rem, 1.6vw, 0.75rem); letter-spacing: 0.1em; }
+  .v2-studio .v2-h2 { font-size: clamp(1.25rem, 5.6vw, 3rem); }
+  .v2-studio .v2-lede { font-size: clamp(0.62rem, 2.1vw, 1rem); line-height: 1.5; margin-top: 0.5rem; }
+  .v2-service-rows { margin-top: clamp(0.6rem, 2vw, 1.4rem); }
+  .v2-service-rows a { gap: 0.4rem; padding: clamp(0.4rem, 1.6vw, 0.9rem) 0.2rem; font-size: clamp(0.66rem, 2.3vw, 1.05rem); }
+  .v2-service-rows a:hover { padding-left: 0.2rem; }
+  .v2-service-rows span { font-size: clamp(0.5rem, 1.7vw, 0.82rem); }
+  .v2-studio .v2-actions { margin-top: clamp(0.7rem, 2.5vw, 1.5rem); }
+  .v2-studio .v2-actions .v2-btn { padding: clamp(0.45rem, 1.6vw, 0.85rem) clamp(0.7rem, 2.6vw, 1.4rem); font-size: clamp(0.66rem, 2.2vw, 1rem); min-height: 36px; }
+  .v2-terminal { border-radius: clamp(10px, 2.4vw, 20px); }
+  .v2-terminal-bar { gap: 4px; padding: clamp(6px, 1.6vw, 14px) clamp(8px, 2vw, 16px); }
+  .v2-terminal-bar i { width: clamp(6px, 1.4vw, 11px); height: clamp(6px, 1.4vw, 11px); }
+  .v2-terminal-bar span { margin-left: 6px; font-size: clamp(0.46rem, 1.5vw, 0.72rem); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .v2-terminal-body { padding: clamp(0.55rem, 2.4vw, 1.4rem); font-size: clamp(0.45rem, 1.75vw, 0.88rem); line-height: 1.9; white-space: nowrap; overflow: hidden; }
+  .t-line { overflow: hidden; text-overflow: ellipsis; }
+  .v2-marquee-dark { margin-top: 0.5rem; }
+  .v2-marquee-dark .v2-chips { gap: 5px; font-size: clamp(0.46rem, 1.6vw, 0.72rem); }
+  .v2-marquee-dark .v2-chips span { padding: 0.22rem 0.5rem; }
+
+  .v2-process { margin-top: clamp(1.8rem, 6vw, 3.5rem); }
+  .v2-process-list, .v2-process-list[class] { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(0.3rem, 1.6vw, 1rem); }
+  .v2-process-list::before, .v2-process-list::after { left: clamp(12px, 3vw, 22px); right: clamp(12px, 3vw, 22px); top: clamp(12px, 3vw, 21px); bottom: auto; width: auto; height: 2px; }
+  .v2-process-list::after { transform-origin: left; animation-name: line-draw-x; }
+  .v2-process-list li { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.3rem; align-items: start; }
+  .v2-process-list li small { grid-column: auto; font-size: clamp(0.5rem, 1.8vw, 0.85rem); line-height: 1.35; }
+  .v2-process-dot { width: clamp(24px, 6vw, 44px); height: clamp(24px, 6vw, 44px); font-size: clamp(0.6rem, 1.9vw, 0.95rem); border-width: 1.5px; }
+  .v2-process-list strong { font-size: clamp(0.72rem, 2.8vw, 1.3rem); }
+}
