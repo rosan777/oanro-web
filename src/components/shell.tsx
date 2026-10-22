@@ -113,8 +113,9 @@ export function Footer({ config }: { config: SiteConfig }) {
   const footerTagline = useText("footer.tagline"), showNewsletter = useFeature("newsletter"), showSocial = useFeature("socialIcons");
   const { contact } = useSiteContent(); const address = bn ? contact.address.bn || contact.address.en : contact.address.en;
   // Organised columns (Shop, Services, Help) with real links to category and service pages: good for visitors and for Google.
+  const linkCols = 2 + (config.products && lines.length > 0 ? 1 : 0) + (config.services && services.length > 0 ? 1 : 0);
   return <footer className="site-footer"><div className="container">
-    <div className="footer-grid">
+    <div className="footer-grid" style={{ ["--footer-cols" as string]: linkCols }}>
       <div className="footer-brand"><Link className="brand" href="/"><Image src="/logo.svg" alt="" width={42} height={42} />OANRO</Link>
         <p>{footerTagline}</p>
         {(contact.email || contact.phone || address) && <ul className="footer-contact">
@@ -123,12 +124,17 @@ export function Footer({ config }: { config: SiteConfig }) {
           {address && <li><MapPin size={16} aria-hidden="true" /><span>{address}</span></li>}
         </ul>}
         {showSocial && <SocialLinks socials={contact.socials} />}
-        {showNewsletter && <NewsletterSignup />}
-        <a href="#top" className="text-link">{t("Back to top", "উপরে ফিরে যান")}<ArrowUpRight size={16} /></a></div>
+      </div>
       {config.products && lines.length > 0 && <nav aria-label={t("Shop", "শপ")} className="footer-col"><strong>{t("Shop", "শপ")}</strong>{lines.map(({ collection }) => <Link key={collection.id} href={`/${collection.slug}`}>{bn && collection.bn ? collection.bn.name : collection.name}</Link>)}</nav>}
       {config.services && services.length > 0 && <nav aria-label={t("Services", "সেবা")} className="footer-col"><strong>{t("Services", "সেবা")}</strong>{services.map(s => <Link key={s.slug} href={`/services/${s.slug}`}>{bn && s.bn ? s.bn.title : s.title}</Link>)}</nav>}
       <nav aria-label={t("Help", "সহায়তা")} className="footer-col"><strong>{t("Help", "সহায়তা")}</strong>
-        <Link href="/track">{t("Track your order", "অর্ডার ট্র্যাক করুন")}</Link><Link href="/delivery-returns">{t("Delivery & returns", "ডেলিভারি ও রিটার্ন")}</Link><Link href="/about">{t("About OANRO", "OANRO সম্পর্কে")}</Link><Link href="/company-profile">{t("Company profile", "কোম্পানি প্রোফাইল")}</Link><Link href="/guides">{t("Guides", "গাইড")}</Link><Link href="/contact">{t("Contact", "যোগাযোগ")}</Link><Link href="/privacy">{t("Privacy", "প্রাইভেসি")}</Link><Link href="/terms">{t("Terms", "শর্তাবলি")}</Link></nav>
+        <Link href="/track">{t("Track your order", "অর্ডার ট্র্যাক করুন")}</Link><Link href="/delivery-returns">{t("Delivery & returns", "ডেলিভারি ও রিটার্ন")}</Link><Link href="/contact">{t("Contact", "যোগাযোগ")}</Link><Link href="/guides">{t("Guides", "গাইড")}</Link></nav>
+      <nav aria-label={t("Company", "কোম্পানি")} className="footer-col"><strong>{t("Company", "কোম্পানি")}</strong>
+        <Link href="/about">{t("About OANRO", "OANRO সম্পর্কে")}</Link><Link href="/company-profile">{t("Company profile", "কোম্পানি প্রোফাইল")}</Link><Link href="/privacy">{t("Privacy", "প্রাইভেসি")}</Link><Link href="/terms">{t("Terms", "শর্তাবলি")}</Link></nav>
+    </div>
+    <div className={`footer-extra${showNewsletter ? "" : " is-solo"}`}>
+      {showNewsletter && <NewsletterSignup />}
+      <a href="#top" className="text-link footer-top">{t("Back to top", "উপরে ফিরে যান")}<ArrowUpRight size={16} /></a>
     </div>
     <div className="footer-bottom"><span>{t("© 2026 OANRO · Trade License No. 002039", "© ২০২৬ OANRO · ট্রেড লাইসেন্স নং ০০২০৩৯")}</span>
       
