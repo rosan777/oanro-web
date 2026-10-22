@@ -997,7 +997,7 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
 @media (max-width: 1024px), (hover: none), (pointer: coarse) { .v2-bento-wrap { display: none; } }
 
 /* Menu picture ("New season", "OANRO Studio", "Our story") beside the drop-down menus: desktop computers only. On phones and tablets the menu shows just the links, so it fits on one screen. */
-@media (max-width: 1024px), (hover: none), (pointer: coarse) { .mega-feature { display: none; } }
+@media (max-width: 1024px), (hover: none), (pointer: coarse) { .mega-feature, .mega-feature.is-placeholder { display: none; } }
 
 /* "Why OANRO" (desktop): compact 3 × 2 grid of equal tiles instead of one huge delivery tile; smaller numbers and padding. */
 .v2-bento-wrap { margin-block: 3rem; }
@@ -1009,3 +1009,31 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
 .v2-bento .v2-tile-num small { font-size: 0.42em; }
 .v2-bento .v2-tile p { font-size: 0.95rem; line-height: 1.45; }
 .v2-bento .v2-tile-pay b { padding: 0.35rem 0.7rem; font-size: 0.92rem; }
+
+/* "Why OANRO" (desktop), one colour system: a dark brand panel like the Studio and O-A-N-R-O sections, tiles in the same dark tone with green accents only.
+   Hover: the tile lifts and a soft green glow rises from its corner. On scroll (where supported) the tiles rise in one after another. */
+.v2-bento-wrap { padding: 2.4rem 2.2rem 2.2rem; border-radius: 28px; background: var(--space); color: #ededE6; }
+.v2-bento-wrap .v2-eyebrow { color: var(--glow); }
+.v2-bento-wrap .v2-h2 { color: #ededE6; }
+.v2-bento .v2-tile, .v2-bento .v2-tile-dark, .v2-bento .v2-tile-green { position: relative; overflow: hidden; background: #0d1210; border: 1px solid var(--edge); color: #ededE6; transition: transform 0.3s ease, border-color 0.3s ease; }
+.v2-bento .v2-tile::before { content: ""; position: absolute; inset: auto -30% -60% auto; width: 80%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgb(61 220 151 / 0.22), transparent 65%); opacity: 0; transform: scale(0.6); transition: opacity 0.45s ease, transform 0.45s ease; pointer-events: none; }
+.v2-bento .v2-tile:hover { transform: translateY(-4px); border-color: rgb(61 220 151 / 0.45); box-shadow: none; }
+.v2-bento .v2-tile:hover::before { opacity: 1; transform: none; }
+.v2-bento .v2-tile > * { position: relative; }
+.v2-bento .v2-tile p, .v2-bento .v2-tile-dark p, .v2-bento .v2-tile-green p { color: #a9b1ac; }
+.v2-bento .v2-tile-label, .v2-bento .v2-tile-dark .v2-tile-label, .v2-bento .v2-tile-green .v2-tile-label { color: var(--glow); }
+.v2-bento .v2-tile-num, .v2-bento .v2-tile-big .v2-tile-num { color: #ededE6; }
+.v2-bento .v2-tile-big { background: linear-gradient(150deg, #12261d 0%, #0d1210 70%); border-color: #1f3a2d; }
+.v2-bento .v2-tile-big .v2-tile-num { color: var(--glow); }
+.v2-bento .v2-tile-pay b { display: inline-flex; align-items: center; gap: 0.45rem; background: #141a18; border: 1px solid var(--edge); color: #ededE6; }
+.v2-bento .v2-tile-pay b::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
+.v2-bento .v2-tile-pay .is-bkash::before { background: #e2136e; } .v2-bento .v2-tile-pay .is-nagad::before { background: #f6921e; }
+.v2-bento .v2-tile-link .v2-tile-go { color: var(--glow); }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .v2-bento .v2-tile { animation: v2-rise-in linear both; animation-timeline: view(); animation-range: entry 0% entry 55%; }
+    .v2-bento .v2-tile:nth-child(2), .v2-bento .v2-tile:nth-child(5) { animation-range: entry 8% entry 63%; }
+    .v2-bento .v2-tile:nth-child(3), .v2-bento .v2-tile:nth-child(6) { animation-range: entry 16% entry 71%; }
+  }
+}
+@media (prefers-reduced-motion: reduce) { .v2-bento .v2-tile, .v2-bento .v2-tile::before { transition: none; } .v2-bento .v2-tile:hover { transform: none; } }
