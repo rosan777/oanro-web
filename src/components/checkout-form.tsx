@@ -1,11 +1,13 @@
 "use client";
 import { areaLabel, chargeFor, type DeliveryArea } from "@/lib/delivery-fee";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "@/components/locale-link";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, ShieldAlert } from "lucide-react";
 import { ActionIcon } from "./action-icon";
 import { changeQuantity, clearCart, removeItem, useCart } from "@/lib/cart";
+import { track } from "@/lib/meta-pixel";
+import { allows } from "@/lib/consent";
 import { formatPrice, lineFits, optionLabel, variantSoldOut } from "@/lib/catalog";
 import { resizePhoto } from "@/lib/photo-resize";
 import { useProducts } from "./products-context";
@@ -59,6 +61,8 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
   const off = discount && discount.base === subtotal ? discount.amount : 0;
   // Delivery area decides the charge (owner sets both in admin). Must be chosen before ordering.
   const [area, setArea] = useState<DeliveryArea | null>(null);
+  const started = useRef(false);
+  useEffect(() => { if (started.current || !lines.length) return; started.current = true; track("InitiateCheckout", { value: subtotal, content_ids: lines.map(l => l.item.slug), num_items: lines.length }); }, [lines, subtotal]);
   const fee = area ? chargeFor(rules, area) : 0;
   const payNow = cod ? fee : subtotal - off + fee, payLater = cod ? subtotal - off : 0;
   async function applyCode() {
@@ -92,7 +96,7 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
     setBusy(true); setError(""); setShortage(null);
     try {
       const response = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
-        items: lines.map(({ item }) => ({ slug: item.slug, size: item.size, color: item.color, quantity: item.quantity })), method, paymentType: payType, expectedTotal: subtotal, deliveryArea: area, discountCode: off ? discount!.code : "",
+        items: lines.map(({ item }) => ({ slug: item.slug, size: item.size, color: item.color, quantity: item.quantity })), method, paymentType: payType, expectedTotal: subtotal, deliveryArea: area, adConsent: allows("analytics"), discountCode: off ? discount!.code : "",
         trxId: form.get("trxId"), payerNumber: form.get("payerNumber"), name: form.get("name"), phone: form.get("phone"), address: form.get("address"), note: form.get("note") ?? "", screenshot: shot }) });
       const result = await response.json().catch(() => ({})) as { code?: string; error?: string; field?: string; slug?: string; available?: number; color?: string; size?: string };
       if (result.error === "OUT_OF_STOCK" && result.slug && typeof result.available === "number") {
@@ -104,7 +108,7 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
         setShortage({ slug: result.slug, size: exact ? result.size! : null, color: exact ? result.color! : null, name: p ? `${bn && p.bn ? p.bn.name : p.name}${option ? ` (${option})` : ""}` : result.slug, available: result.available, wanted: mine.reduce((n, { item }) => n + item.quantity, 0) });
         setError(""); return;
       }
-      if (response.ok && result.code) { clearCart(); setDone({ code: result.code }); router.refresh(); window.scrollTo({ top: 0 }); return; }
+      if (response.ok && result.code) { track("Purchase", { value: subtotal - off + fee, content_ids: lines.map(l => l.item.slug), content_type: "product", num_items: lines.reduce((n, l) => n + l.item.quantity, 0) }, result.code); clearCart(); setDone({ code: result.code }); router.refresh(); window.scrollTo({ top: 0 }); return; }
       setError(result.field ? fieldText(bn)[result.field] ?? (bn ? "তথ্য ঠিক করে দিন।" : "Please check the form.") : errorText(bn)[result.error ?? ""] ?? (bn ? "অর্ডার জমা হয়নি। আবার চেষ্টা করুন।" : "The order couldn't be placed. Please try again."));
     } catch { setError(bn ? "সার্ভারে পৌঁছানো যায়নি। আবার চেষ্টা করুন।" : "Couldn't reach the server. Please try again."); }
     finally { setBusy(false); }

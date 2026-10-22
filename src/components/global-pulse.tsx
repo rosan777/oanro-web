@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { useMotion } from "./experience";
 import { PulseThumbnail } from "./pulse-thumbnail";
@@ -41,4 +42,11 @@ export function GlobalPulse({ stories, autoScroll = true, speed = 28 }: { storie
   return <section className="pulse-section" data-pulse-motion={allowed ? "on" : "off"} aria-labelledby="pulse-title"><div className="container pulse-heading"><div><p className="eyebrow"><span className="pulse-live" aria-hidden="true" /><Localized en="Global Pulse · Live" bn="গ্লোবাল পালস · লাইভ" /></p><h2 id="pulse-title"><Localized en="Around the world of technology." bn="প্রযুক্তি জগতের খবর।" /></h2></div></div>
     <div className="pulse-track" ref={track} role="region" aria-label="Global Pulse news" tabIndex={0} onMouseEnter={() => { blocked.current = true; }} onMouseLeave={() => { blocked.current = false; }} onPointerDown={() => { touching.current = true; }} onPointerUp={() => { touching.current = false; idleUntil.current = performance.now() + 1500; }} onPointerCancel={() => { touching.current = false; }} onPointerLeave={() => { touching.current = false; }} onWheel={() => { idleUntil.current = performance.now() + 1500; }}><div className="pulse-group" ref={first}>{render(false)}</div>{stories.length > 1 && <div className="pulse-group" aria-hidden="true">{render(true)}</div>}</div>
   </section>;
+}
+
+/** Admin → Website content → Contact & social decides where the news strip shows: every page, or only the services (Studio) pages. */
+export function PlacedPulse({ stories, where }: { stories: PulseStory[]; where: "everywhere" | "services" }) {
+  const path = usePathname() ?? "/";
+  if (!stories.length || (where === "services" && !/^\/(bn\/)?services(\/|$)/.test(path))) return null;
+  return <GlobalPulse stories={stories} />;
 }

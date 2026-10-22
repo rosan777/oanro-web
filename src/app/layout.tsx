@@ -13,11 +13,13 @@ import { CustomCursor, FloatingHelp } from "@/components/site-extras";
 import { PrivacyCenter } from "@/components/privacy-center";
 import { storefrontCached } from "@/lib/storefront-cache";
 import { activeBanners, listBanners } from "@/lib/banner-store";
-import { getSiteContent } from "@/lib/site-content";
+import { contactLinks, getSiteContent } from "@/lib/site-content";
 import { SiteContentProvider } from "@/components/site-content-context";
 import { storeLive } from "@/lib/seo";
 import { getApprovedPulseStories, getSectionState } from "@/lib/website-sections";
-import { GlobalPulse } from "@/components/global-pulse";
+import { PlacedPulse } from "@/components/global-pulse";
+import { BottomBar } from "@/components/bottom-bar";
+import { MetaPixel } from "@/components/meta-pixel";
 import { ProductsProvider } from "@/components/products-context";
 import { catalogDb, getStoreCollections, getStoreProducts, getStoreServices } from "@/lib/store-products";
 import { siteUrl } from "@/lib/site-url";
@@ -58,5 +60,5 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // The admin Services switch hides services everywhere (rows, menu, search), on top of the environment switch.
   const site = { ...config, services: config.services && sections.services };
   const [stories, catalog, serviceList, lines, popular] = await Promise.all([sections["global-pulse"] ? getApprovedPulseStories() : [], config.products ? getStoreProducts() : [], site.services ? getStoreServices() : [], config.products ? getStoreCollections() : [], config.products && process.env.DATABASE_URL ? popularSlugs() : []]);
-  return <html lang={locale} data-scroll-behavior="smooth" className={`${sans.variable} ${bangla.variable} ${accent.variable} ${display.variable} ${body.variable} ${mono.variable} ${script.variable}`}><body><JsonLd data={organizationJsonLd(config)} /><JsonLd data={websiteJsonLd()} /><LocaleProvider initialLocale={locale}><ProductsProvider products={catalog} services={serviceList} collections={lines} popular={popular}><Experience><SiteContentProvider value={content}><a className="skip-link" href="#main-content">Skip to content</a><div id="top" />{config.intro && <Intro />}<TrustBar rules={rules} locale={locale} live={storeLive()} services={site.services} custom={custom} /><Header config={site} />{children}<GlobalPulse stories={stories} /><Footer config={site} />{content.features.cursorRing && <CustomCursor />}<FloatingHelp whatsappUrl={config.whatsappUrl} /><PrivacyCenter gaId={process.env.NEXT_PUBLIC_GA_ID ?? ""} /></SiteContentProvider></Experience></ProductsProvider></LocaleProvider></body></html>;
+  return <html lang={locale} data-scroll-behavior="smooth" className={`${sans.variable} ${bangla.variable} ${accent.variable} ${display.variable} ${body.variable} ${mono.variable} ${script.variable}`}><body><JsonLd data={organizationJsonLd(content.contact)} /><JsonLd data={websiteJsonLd()} /><LocaleProvider initialLocale={locale}><ProductsProvider products={catalog} services={serviceList} collections={lines} popular={popular}><Experience><SiteContentProvider value={content}><a className="skip-link" href="#main-content">Skip to content</a><div id="top" />{config.intro && <Intro />}<TrustBar rules={rules} locale={locale} live={storeLive()} services={site.services} custom={custom} /><Header config={site} />{children}<PlacedPulse stories={stories} where={content.contact.pulseWhere} /><Footer config={site} />{content.features.cursorRing && <CustomCursor />}<FloatingHelp whatsappUrl={contactLinks(content).whatsappButton} />{content.features.bottomBar && <BottomBar shop={config.products} />}{content.features.metaPixel && content.contact.pixelId && <MetaPixel pixelId={content.contact.pixelId} />}<PrivacyCenter gaId={process.env.NEXT_PUBLIC_GA_ID ?? ""} /></SiteContentProvider></Experience></ProductsProvider></LocaleProvider></body></html>;
 }

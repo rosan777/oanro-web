@@ -13,15 +13,17 @@ export function absoluteUrl(path: string) {
   return `${siteUrl()}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-export function organizationJsonLd(contact: { contactEmail: string; messengerUrl: string }) {
+export function organizationJsonLd(contact: { email: string; phone: string; messenger: string; address: { en: string }; socials: { url: string }[] }) {
   const base = siteUrl();
+  const sameAs = [...contact.socials.map(s => s.url), ...(contact.messenger ? [contact.messenger] : [])];
   return {
     "@context": "https://schema.org", "@type": "Organization", "@id": `${base}/#organization`,
     name: SITE_NAME, url: base, logo: absoluteUrl("/logo.svg"), description: DEFAULT_DESCRIPTION,
-    address: { "@type": "PostalAddress", addressCountry: "BD" },
+    address: { "@type": "PostalAddress", addressCountry: "BD", ...(contact.address.en ? { streetAddress: contact.address.en } : {}) },
     areaServed: "Worldwide",
-    ...(contact.contactEmail ? { email: contact.contactEmail } : {}),
-    ...(contact.messengerUrl ? { sameAs: [contact.messengerUrl] } : {}),
+    ...(contact.email ? { email: contact.email } : {}),
+    ...(contact.phone ? { telephone: contact.phone } : {}),
+    ...(sameAs.length ? { sameAs } : {}),
   };
 }
 

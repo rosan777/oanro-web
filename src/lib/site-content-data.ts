@@ -50,17 +50,29 @@ export const featureFields = {
   cursorRing: { group: "Whole site", label: "Desktop cursor ring" },
   studioPackages: { group: "Service pages", label: "Ways to work with us (packages)" },
   serviceFaq: { group: "Service pages", label: "Common questions (FAQ)" },
+  socialIcons: { group: "Contact & social", label: "Social media icons in the footer" },
+  whatsappButton: { group: "Contact & social", label: "Floating WhatsApp button (needs a WhatsApp number)" },
+  whatsappOrder: { group: "Contact & social", label: "“Order on WhatsApp” button on product pages (needs a WhatsApp number)" },
+  bottomBar: { group: "Phones", label: "Bottom tab bar on phones (Home, Shop, Search, Bag, Account)" },
+  metaPixel: { group: "Marketing", label: "Meta (Facebook/Instagram) Pixel — needs a Pixel ID; loads only for visitors who allow analytics" },
+  merchantFeed: { group: "Marketing", label: "Google Shopping product feed (/feed/google.xml)" },
 } satisfies Record<string, { group: string; label: string }>;
 
 export type Package = { name: Bi; for: Bi; includes: Bi[] };
 export type Faq = { q: Bi; a: Bi };
-export type SiteContent = { text: Record<TextKey, Bi>; features: Record<FeatureKey, boolean>; guides: Guide[]; packages: Package[]; faq: Faq[] };
+export const socialPlatforms = ["facebook", "instagram", "tiktok", "x", "youtube", "linkedin", "messenger", "whatsapp", "telegram", "threads", "pinterest", "website"] as const;
+export type SocialPlatform = typeof socialPlatforms[number];
+/** icon: empty = the built-in icon for the platform, or a small uploaded image (data URL). */
+export type Social = { platform: SocialPlatform; url: string; label: string; icon: string };
+export type Contact = { email: string; phone: string; whatsapp: string; messenger: string; address: Bi; socials: Social[]; pixelId: string; pulseWhere: "everywhere" | "services" };
+export type SiteContent = { text: Record<TextKey, Bi>; features: Record<FeatureKey, boolean>; guides: Guide[]; packages: Package[]; faq: Faq[]; contact: Contact };
+export const emptyContact = (): Contact => ({ email: "", phone: "", whatsapp: "", messenger: "", address: { en: "", bn: "" }, socials: [], pixelId: "", pulseWhere: "everywhere" });
 
 export function defaultContent(): SiteContent {
   return {
     text: Object.fromEntries(Object.entries(textFields).map(([k, f]) => [k, { en: f.en, bn: f.bn }])) as Record<TextKey, Bi>,
     features: Object.fromEntries(Object.keys(featureFields).map(k => [k, true])) as Record<FeatureKey, boolean>,
-    guides: defaultGuides, packages: defaultPackages, faq: defaultFaq,
+    guides: defaultGuides, packages: defaultPackages, faq: defaultFaq, contact: emptyContact(),
   };
 }
 
@@ -80,12 +92,28 @@ export const cleanGuides = (v: unknown): Guide[] => (Array.isArray(v) ? v : []).
   const sections = (Array.isArray(x?.sections) ? x.sections : []).slice(0, 20).flatMap((s: Record<string, unknown>) => { const h = bi(s?.heading, 140), b = bi(s?.body, 3000); return h && b ? [{ heading: h, body: b }] : []; });
   return sections.length ? [{ slug, title, summary, updated: /^\d{4}-\d{2}-\d{2}$/.test(str(x?.updated, 10)) ? str(x?.updated, 10) : new Date().toISOString().slice(0, 10), sections }] : [];
 });
+const httpsUrl = (v: unknown) => { const u = str(v, 300); try { const x = new URL(u); return x.protocol === "https:" ? x.toString() : ""; } catch { return ""; } };
+const iconData = (v: unknown) => { const u = str(v, 16_000); return /^data:image\/(png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/]+=*$/.test(u) ? u : ""; };
+/** Contact details, social links and marketing IDs. Bad values are dropped, never stored. */
+export function cleanContact(v: unknown): Contact {
+  const o = (v ?? {}) as Record<string, unknown>;
+  const email = str(o.email, 120).toLowerCase();
+  const digits = (x: unknown) => str(x, 20).replace(/[^\d+]/g, "");
+  const address = bi(o.address, 160) ?? { en: "", bn: "" };
+  const socials = (Array.isArray(o.socials) ? o.socials : []).slice(0, 12).flatMap((x: Record<string, unknown>) => {
+    const platform = socialPlatforms.includes(x?.platform as SocialPlatform) ? x.platform as SocialPlatform : null; const url = httpsUrl(x?.url);
+    return platform && url ? [{ platform, url, label: str(x?.label, 40), icon: iconData(x?.icon) }] : [];
+  });
+  return { email: /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/.test(email) ? email : "", phone: digits(o.phone), whatsapp: digits(o.whatsapp).replace(/\D/g, ""), messenger: httpsUrl(o.messenger),
+    address, socials, pixelId: /^\d{6,20}$/.test(str(o.pixelId, 20)) ? str(o.pixelId, 20) : "", pulseWhere: o.pulseWhere === "services" ? "services" : "everywhere" };
+}
 /** Saved changes on top of the defaults. Unknown or broken parts fall back to the default. */
 export function mergeContent(saved: Partial<Record<keyof SiteContent, unknown>> | null): SiteContent {
   const d = defaultContent();
   if (!saved) return d;
   const guides = cleanGuides(saved.guides), packages = cleanPackages(saved.packages), faq = cleanFaq(saved.faq);
   return { text: { ...d.text, ...cleanText(saved.text) }, features: { ...d.features, ...cleanFeatures(saved.features) },
-    guides: saved.guides !== undefined ? guides : d.guides, packages: saved.packages !== undefined ? packages : d.packages, faq: saved.faq !== undefined ? faq : d.faq };
+    guides: saved.guides !== undefined ? guides : d.guides, packages: saved.packages !== undefined ? packages : d.packages, faq: saved.faq !== undefined ? faq : d.faq,
+    contact: saved.contact !== undefined ? cleanContact(saved.contact) : d.contact };
 }
 export const pick = (c: SiteContent, key: TextKey, locale: "en" | "bn") => c.text[key][locale] || c.text[key].en;
