@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { featureFields, textFields, type FeatureKey, type SiteContent, type TextKey } from "@/lib/site-content-data";
+import { featureFields, socialPlatforms, textFields, type FeatureKey, type SiteContent, type SocialPlatform, type TextKey } from "@/lib/site-content-data";
+import { platformName, SocialIcon } from "./social-icon";
 import type { Bi } from "@/lib/content";
 
-type Part = "text" | "features" | "guides" | "packages" | "faq";
-const tabs: [Part, string][] = [["text", "Texts"], ["features", "Sections on/off"], ["guides", "Guides"], ["packages", "Studio packages"], ["faq", "Service FAQ"]];
+type Part = "contact" | "text" | "features" | "guides" | "packages" | "faq";
+const tabs: [Part, string][] = [["contact", "Contact & social"], ["text", "Texts"], ["features", "Sections on/off"], ["guides", "Guides"], ["packages", "Studio packages"], ["faq", "Service FAQ"]];
 const groupBy = <K extends string>(fields: Record<K, { group: string }>) => {
   const out = new Map<string, K[]>();
   (Object.keys(fields) as K[]).forEach(k => out.set(fields[k].group, [...(out.get(fields[k].group) ?? []), k]));
@@ -35,7 +36,7 @@ const at = <T,>(list: T[], i: number, v: T) => list.map((x, k) => k === i ? v : 
 /** Admin → Website content: texts, section switches, guides, studio packages and service FAQ. */
 export function ContentEditor({ initial }: { initial: SiteContent }) {
   const [saved, setSaved] = useState(initial); const [draft, setDraft] = useState(initial);
-  const [tab, setTab] = useState<Part>("text"); const [busy, setBusy] = useState(false); const [msg, setMsg] = useState("");
+  const [tab, setTab] = useState<Part>("contact"); const [busy, setBusy] = useState(false); const [msg, setMsg] = useState("");
   const dirty = JSON.stringify(draft[tab]) !== JSON.stringify(saved[tab]);
   const set = <P extends Part>(part: P, value: SiteContent[P]) => { setDraft(d => ({ ...d, [part]: value })); setMsg(""); };
 
@@ -47,11 +48,53 @@ export function ContentEditor({ initial }: { initial: SiteContent }) {
     if (!data?.content) { setMsg("Could not save. Please check the fields and try again."); return; }
     setSaved(data.content); setDraft(d => ({ ...d, [tab]: data.content![tab] }));
     const dropped = !reset && Array.isArray(draft[tab]) && (data.content[tab] as unknown[]).length < (draft[tab] as unknown[]).length;
-    setMsg(reset ? "Back to default. Live now." : dropped ? "Saved. Items with empty required fields were left out." : "Saved. Live now.");
+    const changed = !reset && tab === "contact" && JSON.stringify(data.content.contact) !== JSON.stringify(draft.contact);
+    setMsg(reset ? "Back to default. Live now." : dropped ? "Saved. Items with empty required fields were left out." : changed ? "Saved. Some entries were not valid (links must start with https://, email must be complete) and were cleared or left out — please check." : "Saved. Live now.");
   }
 
   return <section className="content-editor">
     <div className="ce-tabs" role="tablist">{tabs.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => { setTab(id); setMsg(""); }}>{label}</button>)}</div>
+
+    {tab === "contact" && (() => { const c = draft.contact; const setC = (patch: Partial<SiteContent["contact"]>) => set("contact", { ...c, ...patch });
+      const setSocial = (i: number, patch: Partial<SiteContent["contact"]["socials"][number]>) => setC({ socials: at(c.socials, i, { ...c.socials[i], ...patch }) });
+      const upload = (i: number, file: File | undefined) => { if (!file) return;
+        if (!/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type) || file.size > 11_000) { setMsg("Icon must be a PNG, JPG, WebP or SVG under 11 KB (a small square image, e.g. 64×64)."); return; }
+        const reader = new FileReader(); reader.onload = () => setSocial(i, { icon: String(reader.result) }); reader.readAsDataURL(file); };
+      return <>
+      <fieldset className="ce-group"><legend>Contact details</legend>
+        <p className="small-note">Shown in the footer, on the Contact page and in Google&rsquo;s business info. Leave a box empty to hide it.</p>
+        <label className="ce-one">Email<input type="email" value={c.email} onChange={e => setC({ email: e.target.value })} placeholder="support@oanro.com" /></label>
+        <label className="ce-one">Phone (shown as a call link)<input value={c.phone} onChange={e => setC({ phone: e.target.value })} placeholder="+8801XXXXXXXXX" inputMode="tel" /></label>
+        <label className="ce-one">WhatsApp number (with country code, digits only)<input value={c.whatsapp} onChange={e => setC({ whatsapp: e.target.value })} placeholder="8801XXXXXXXXX" inputMode="tel" /><small>Turn the WhatsApp buttons on or off in the Sections tab.</small></label>
+        <label className="ce-one">Messenger link<input value={c.messenger} onChange={e => setC({ messenger: e.target.value })} placeholder="https://m.me/yourpage" /></label>
+        <BiInput label="Address or area (e.g. Mirpur, Dhaka)" value={c.address} onChange={v => setC({ address: v })} />
+      </fieldset>
+      <fieldset className="ce-group"><legend>Social media icons</legend>
+        <p className="small-note">Each link shows as an icon in the footer and on the Contact page. Use the built-in icon or upload your own small icon.</p>
+        {c.socials.map((x, i) => <div key={i} className="ce-sub ce-social">
+          <span className="ce-social-preview"><SocialIcon social={x} size={26} /></span>
+          <label>Platform<select value={x.platform} onChange={e => setSocial(i, { platform: e.target.value as SocialPlatform })}>{socialPlatforms.map(p => <option key={p} value={p}>{platformName[p]}</option>)}</select></label>
+          <label className="ce-grow">Link (https://…)<input value={x.url} onChange={e => setSocial(i, { url: e.target.value })} placeholder="https://facebook.com/oanro" /></label>
+          <label>Hover text (optional)<input value={x.label} maxLength={40} onChange={e => setSocial(i, { label: e.target.value })} placeholder={`OANRO on ${platformName[x.platform]}`} /></label>
+          <div className="ce-tools">
+            <label className="btn btn-neutral btn-sm ce-file">{x.icon ? "Change icon" : "Upload icon"}<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={e => upload(i, e.target.files?.[0])} /></label>
+            {x.icon && <button type="button" className="btn btn-neutral btn-sm" onClick={() => setSocial(i, { icon: "" })}>Use built-in icon</button>}
+            <button type="button" className="btn btn-neutral btn-sm" disabled={i === 0} onClick={() => setC({ socials: moved(c.socials, i, i - 1) })} aria-label="Move up">↑</button>
+            <button type="button" className="btn btn-neutral btn-sm" onClick={() => setC({ socials: c.socials.filter((_, k) => k !== i) })}>Remove</button>
+          </div>
+        </div>)}
+        <button type="button" className="btn btn-neutral" disabled={c.socials.length >= 12} onClick={() => setC({ socials: [...c.socials, { platform: (["facebook", "instagram", "tiktok"] as SocialPlatform[]).find(p => !c.socials.some(s => s.platform === p)) ?? "website", url: "", label: "", icon: "" }] })}>+ Add social link</button>
+      </fieldset>
+      <fieldset className="ce-group"><legend>Marketing</legend>
+        <label className="ce-one">Meta Pixel ID (numbers only, from Meta Events Manager)<input value={c.pixelId} onChange={e => setC({ pixelId: e.target.value.trim() })} placeholder="123456789012345" inputMode="numeric" /><small>Loads only for visitors who allow Analytics. Turn it on or off in the Sections tab. The server-side token (META_CAPI_TOKEN) is a secret and goes in Vercel, not here.</small></label>
+        <p className="small-note">Google Shopping feed address for Merchant Center: <code>https://oanro.com/feed/google.xml</code> (switch in the Sections tab).</p>
+      </fieldset>
+      <fieldset className="ce-group"><legend>Global Pulse news strip</legend>
+        <label className="ce-switch"><input type="radio" name="pulse" checked={c.pulseWhere === "everywhere"} onChange={() => setC({ pulseWhere: "everywhere" })} />Show on every page</label>
+        <label className="ce-switch"><input type="radio" name="pulse" checked={c.pulseWhere === "services"} onChange={() => setC({ pulseWhere: "services" })} />Show only on service (Studio) pages</label>
+        <small>To hide it everywhere, use Admin → Sections.</small>
+      </fieldset>
+    </>; })()}
 
     {tab === "text" && groupBy(textFields).map(([group, keys]) => <fieldset key={group} className="ce-group"><legend>{group}</legend>
       {(keys as TextKey[]).map(k => { const f = textFields[k] as { label: string; long?: boolean; hint?: string };

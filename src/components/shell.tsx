@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "@/components/locale-link";
-import { ArrowUpRight, ChevronDown, Menu, Search, ShoppingBag, X, Plus, Minus, Trash2 } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Menu, Search, ShoppingBag, X, Plus, Minus, Trash2, Mail, MapPin, Phone } from "lucide-react";
 import type { SiteConfig } from "@/lib/site-config";
 import { formatPrice, lineFits, optionLabel, variantSoldOut } from "@/lib/catalog";
 import { usePopularProducts, useProductLines, useProducts, useServices } from "./products-context";
@@ -12,7 +12,8 @@ import { useCart, changeQuantity, removeItem } from "@/lib/cart";
 import { MotionToggle } from "./experience";
 import { PrivacySettingsLink } from "./privacy-center";
 import { NewsletterSignup } from "./site-extras";
-import { useFeature, useText } from "./site-content-context";
+import { useFeature, useSiteContent, useText } from "./site-content-context";
+import { SocialLinks } from "./social-icon";
 import { LanguageSwitch, Localized, RegionPicker, useLocale } from "./locale";
 
 export function ProductPhoto({ position, label, className = "", image }: { position: string; label: string; className?: string; image?: string | null }) {
@@ -38,6 +39,8 @@ export function Header({ config }: { config: SiteConfig }) {
   const searchDialog = useRef<HTMLDialogElement>(null);
   const cartDialog = useRef<HTMLDialogElement>(null);
   useEffect(() => { const open = () => cartDialog.current?.showModal(); window.addEventListener("oanro-open-bag", open); return () => window.removeEventListener("oanro-open-bag", open); }, []);
+  // The phone bottom bar opens search with this event.
+  useEffect(() => { const open = () => { setMega(null); setMobile(false); searchDialog.current?.showModal(); }; window.addEventListener("oanro-open-search", open); return () => window.removeEventListener("oanro-open-search", open); }, []);
   const cart = useCart();
   const products = useProducts(); const services = useServices();
   // Ignore saved bag items whose product or size is no longer offered.
@@ -105,12 +108,20 @@ export function Footer({ config }: { config: SiteConfig }) {
   const { locale } = useLocale(); const bn = locale === "bn";
   const lines = useProductLines().filter(line => line.count > 0); const services = useServices();
   const t = (en: string, b: string) => bn ? b : en;
-  const footerTagline = useText("footer.tagline"), showNewsletter = useFeature("newsletter");
+  const footerTagline = useText("footer.tagline"), showNewsletter = useFeature("newsletter"), showSocial = useFeature("socialIcons");
+  const { contact } = useSiteContent(); const address = bn ? contact.address.bn || contact.address.en : contact.address.en;
   // Organised columns (Shop, Services, Help) with real links to category and service pages: good for visitors and for Google.
   return <footer className="site-footer"><div className="container">
     <div className="footer-grid">
       <div className="footer-brand"><Link className="brand" href="/"><Image src="/logo.svg" alt="" width={42} height={42} />OANRO</Link>
-        <p>{footerTagline}</p>{showNewsletter && <NewsletterSignup />}
+        <p>{footerTagline}</p>
+        {(contact.email || contact.phone || address) && <ul className="footer-contact">
+          {contact.email && <li><Mail size={16} aria-hidden="true" /><a href={`mailto:${contact.email}`}>{contact.email}</a></li>}
+          {contact.phone && <li><Phone size={16} aria-hidden="true" /><a href={`tel:${contact.phone}`}>{contact.phone}</a></li>}
+          {address && <li><MapPin size={16} aria-hidden="true" /><span>{address}</span></li>}
+        </ul>}
+        {showSocial && <SocialLinks socials={contact.socials} />}
+        {showNewsletter && <NewsletterSignup />}
         <a href="#top" className="text-link">{t("Back to top", "উপরে ফিরে যান")}<ArrowUpRight size={16} /></a></div>
       {config.products && lines.length > 0 && <nav aria-label={t("Shop", "শপ")} className="footer-col"><strong>{t("Shop", "শপ")}</strong>{lines.map(({ collection }) => <Link key={collection.id} href={`/${collection.slug}`}>{bn && collection.bn ? collection.bn.name : collection.name}</Link>)}</nav>}
       {config.services && services.length > 0 && <nav aria-label={t("Services", "সেবা")} className="footer-col"><strong>{t("Services", "সেবা")}</strong>{services.map(s => <Link key={s.slug} href={`/services/${s.slug}`}>{bn && s.bn ? s.bn.title : s.title}</Link>)}</nav>}

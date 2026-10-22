@@ -93,7 +93,7 @@ export default async function Home() {
         <p>{tx("contact.body")}</p>
         {!live && <p style={{ fontSize: "0.85rem" }}><Localized en="Design preview: sample products and images. Ordering opens soon." bn="ডিজাইন প্রিভিউ: নমুনা পণ্য ও ছবি। অর্ডার শিগগিরই চালু হবে।" /></p>}
       </div>
-      <div className="contact-actions"><MessageReveal />{config.contactEmail && <a className="button light-button" href={`mailto:${config.contactEmail}`}><Mail size={17} />{config.contactEmail}</a>}</div>
+      <div className="contact-actions"><MessageReveal />{content.contact.email && <a className="button light-button" href={`mailto:${content.contact.email}`}><Mail size={17} />{content.contact.email}</a>}</div>
     </div></section>}
 
     {f.faq && config.products && <HomeFaq rules={rules} locale={locale} services={config.services} />}

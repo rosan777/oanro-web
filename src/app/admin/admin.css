@@ -168,3 +168,13 @@ a.today-stat:hover { border-color: var(--brand); }
 .ce-bar { position: sticky; bottom: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 0; background: var(--paper, #fff); border-top: 1px solid var(--line); }
 .ce-bar .small-note { margin: 0; }
 @media (max-width: 700px) { .ce-bi { grid-template-columns: 1fr; } }
+
+/* Contact & social editor */
+.ce-social { grid-template-columns: auto minmax(120px, 160px) 1fr minmax(140px, 200px); align-items: end; }
+.ce-social label { display: grid; gap: 4px; font-size: .85rem; } .ce-social select, .ce-social input { width: 100%; padding: .5rem .6rem; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+.ce-social .ce-tools { grid-column: 1 / -1; justify-self: start; flex-wrap: wrap; }
+.ce-social-preview { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); }
+.ce-social-preview img { width: 26px; height: 26px; object-fit: contain; }
+.ce-file { position: relative; overflow: hidden; } .ce-file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.ce-one small, .ce-group > small { color: #64748b; font-size: .78rem; }
+@media (max-width: 700px) { .ce-social { grid-template-columns: auto 1fr; } .ce-social .ce-grow, .ce-social label:nth-of-type(3) { grid-column: 1 / -1; } }

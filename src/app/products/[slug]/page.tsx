@@ -20,8 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = ((tagline ? `${tagline} ` : "") + body).slice(0, 158);
   const path = `/products/${product.slug}`;
   return { title: name, description, alternates: alternatesFor(path, locale),
-    openGraph: { type: "website", siteName: SITE_NAME, title: name, description, url: localePath(path, locale), locale: locale === "bn" ? "bn_BD" : "en_BD", images: product.image ? [{ url: product.image, width: 800, height: 800, alt: name }] : ["/images/campaign.png"] },
-    twitter: { card: "summary_large_image", title: name, description, images: [product.image || "/images/campaign.png"] } };
+    openGraph: { type: "website", siteName: SITE_NAME, title: name, description, url: localePath(path, locale), locale: locale === "bn" ? "bn_BD" : "en_BD", images: [{ url: `/og/product/${product.slug}`, width: 1200, height: 630, alt: name }] },
+    twitter: { card: "summary_large_image", title: name, description, images: [`/og/product/${product.slug}`] } };
 }
 export default async function ProductPage({ params }: Props) {
   const product = await find((await params).slug); if (!product) notFound();
