@@ -995,3 +995,6 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
 
 /* "Why OANRO" grid on the homepage: desktop computers only. Hidden on phones and tablets to keep the homepage short; delivery, payment and return details stay on the product pages and Delivery & returns. */
 @media (max-width: 1024px), (hover: none), (pointer: coarse) { .v2-bento-wrap { display: none; } }
+
+/* Menu picture ("New season", "OANRO Studio", "Our story") beside the drop-down menus: desktop computers only. On phones and tablets the menu shows just the links, so it fits on one screen. */
+@media (max-width: 1024px), (hover: none), (pointer: coarse) { .mega-feature { display: none; } }
