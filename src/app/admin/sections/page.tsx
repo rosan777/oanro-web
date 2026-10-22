@@ -36,7 +36,7 @@ export default async function SectionsPage() {
     {catalog.ready && can("products.manage") && <CreateCollection />}</>}
     {(can("services.manage") || can("pulse.manage") || can("site.manage")) && <h2>Other sections</h2>}
     <div className="admin-card-grid">
-      {(can("services.manage") || can("site.manage")) && <Card href="/admin/services" label="Tech solutions" title="Services" on={sections.services} detail={services.managed ? `${services.services.filter(s => s.status === "published").length} published · ${services.services.length} total` : "4 built-in services (import to edit)"}>
+      {(can("services.manage") || can("site.manage")) && <Card href="/admin/services" label="Tech solutions" title="Services" on={sections.services} detail={services.managed ? `${services.services.filter(s => s.status === "published").length} published · ${services.services.length} total` : "No services yet"}>
         {can("site.manage") ? <SectionSwitch kind="site" id="services" on={sections.services} name="Services" /> : null}
       </Card>}
       {(can("pulse.manage") || can("site.manage")) && <Card href="/admin/pulse" label="News strip" title="Global Pulse" on={sections["global-pulse"]} detail={`${stories.length} stor${stories.length === 1 ? "y" : "ies"}`}>

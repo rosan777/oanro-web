@@ -58,3 +58,26 @@ export function scoreFields(query: string, fields: Field[]) {
 export function rank<T>(query: string, items: T[], fields: (item: T) => Field[]) {
   return items.map(item => ({ item, score: scoreFields(query, fields(item)) })).filter(r => r.score > 0).sort((a, b) => b.score - a.score).map(r => r.item);
 }
+
+// "Did you mean something like this?" When nothing matches directly, guess what the shopper is after
+// (clothing, jewelry, tech or services) from their words, even with typos, and suggest items of that kind.
+const families: Record<string, string[]> = {
+  wear: ["wear", "clothing", "clothes", "cloth", "dress", "shirt", "tshirt", "hoodie", "sweater", "knit", "jumper", "jacket", "coat", "layer", "winter", "warm", "scarf", "shawl", "gloves", "socks", "cap", "hat", "beanie", "pant", "trouser", "fashion", "style", "jama", "kapor", "জামা", "কাপড়", "পোশাক", "শীত", "শীতের", "সোয়েটার", "জ্যাকেট", "টুপি", "ক্যাপ", "শাল", "চাদর", "seasonal"],
+  jewelry: ["jewelry", "jewellery", "jewel", "ornament", "necklace", "pendant", "chain", "locket", "earring", "jhumka", "ring", "bangle", "bracelet", "anklet", "nosepin", "gold", "silver", "pearl", "stone", "gift", "গহনা", "অলংকার", "নেকলেস", "দুল", "আংটি", "চুড়ি", "উপহার"],
+  tech: ["tech", "gadget", "electronics", "headphone", "headphones", "earbuds", "earphone", "speaker", "keyboard", "mouse", "powerbank", "charger", "cable", "watch", "smartwatch", "phone", "mobile", "laptop", "computer", "accessory", "accessories", "টেক", "গ্যাজেট", "হেডফোন", "চার্জার", "ঘড়ি"],
+  services: ["web", "website", "app", "software", "it", "design", "developer", "development", "seo", "business", "ecommerce", "system", "ওয়েব", "ওয়েবসাইট", "অ্যাপ", "সফটওয়্যার"],
+};
+/** Which kinds of thing the query is about (best guess; empty when unclear). */
+export function intents(query: string) {
+  const found = new Set<string>();
+  for (const q of words(query)) for (const [name, list] of Object.entries(families)) if (list.some(w => wordScore(q, w) >= 0.5)) found.add(name);
+  return [...found];
+}
+/** Items of the same kind as the query, for when there is no direct match. */
+export function related<T>(query: string, items: T[], fields: (item: T) => Field[]) {
+  const kinds = intents(query); if (!kinds.length) return [];
+  // Strict here (exact word or word start, no typo guessing): the vocabulary is broad, so loose matching would drift.
+  const vocab = kinds.flatMap(k => families[k]).filter(w => w.length >= 3);
+  const score = (item: T) => fields(item).reduce((sum, f) => sum + words(f.text).filter(w => vocab.some(v => w === v || w.startsWith(v))).length * f.weight, 0);
+  return items.map(item => ({ item, s: score(item) })).filter(x => x.s > 0).sort((a, b) => b.s - a.s).map(x => x.item);
+}

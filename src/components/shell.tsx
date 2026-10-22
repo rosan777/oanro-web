@@ -6,8 +6,8 @@ import Link from "@/components/locale-link";
 import { ArrowUpRight, ChevronDown, Menu, Search, ShoppingBag, X, Plus, Minus, Trash2, Mail, MapPin, Phone } from "lucide-react";
 import type { SiteConfig } from "@/lib/site-config";
 import { formatPrice, lineFits, optionLabel, variantSoldOut } from "@/lib/catalog";
-import { usePopularProducts, useProductLines, useProducts, useServices } from "./products-context";
-import { rank } from "@/lib/smart-search";
+import { useProductLines, useProducts, useServices } from "./products-context";
+import { rank, related } from "@/lib/smart-search";
 import { useCart, changeQuantity, removeItem } from "@/lib/cart";
 import { MotionToggle } from "./experience";
 import { PrivacySettingsLink } from "./privacy-center";
@@ -48,7 +48,6 @@ export function Header({ config }: { config: SiteConfig }) {
   const bag = cart.flatMap(item => { const product = products.find(p => p.slug === item.slug && lineFits(p, item.size, item.color)); return product ? [{ item, product, gone: variantSoldOut(product, item.size, item.color) }] : []; });
   const count = bag.reduce((sum, { item }) => sum + item.quantity, 0);
   const total = bag.reduce((sum, { item, product, gone }) => sum + (gone ? 0 : product.price * item.quantity), 0);
-  const popular = usePopularProducts(4);
   const sectionName = (id?: string) => { const c = lines.find(l => l.collection.id === (id ?? "seasonal"))?.collection; return c ? `${c.name} ${c.bn?.name ?? ""}` : ""; };
   const searching = query.trim().length > 0;
   // Smart search: every word is matched on its own (exact, start of word, small typos, English/Bangla synonyms).
@@ -58,9 +57,11 @@ export function Header({ config }: { config: SiteConfig }) {
   const matchedServices = searching && config.services ? rank(query, services, s => [
     { text: `${s.title} ${s.bn?.title ?? ""}`, weight: 3 }, { text: `${s.category ?? ""} ${s.word}`, weight: 2 }, { text: `${s.text} ${s.bn?.text ?? ""}`, weight: 1 }]).slice(0, 6) : [];
   const noMatch = searching && !matchedProducts.length && !matchedServices.length;
-  // Before typing (or when nothing matches) show a few popular picks instead of an empty list.
-  const filteredProducts = !config.products ? [] : searching && !noMatch ? matchedProducts : popular;
-  const filteredServices = matchedServices;
+  // Nothing is shown before the shopper types. With no direct match, suggest items of the same kind (clothing, jewelry, tech, services).
+  const productFields = (p: typeof products[number]) => [{ text: `${p.name} ${p.bn?.name ?? ""}`, weight: 3 }, { text: `${p.category} ${p.bn?.category ?? ""} ${sectionName(p.collectionId)}`, weight: 2 }, { text: `${p.tagline} ${p.bn?.tagline ?? ""}`, weight: 1 }];
+  const serviceFields = (s: typeof services[number]) => [{ text: `${s.title} ${s.bn?.title ?? ""}`, weight: 3 }, { text: `${s.category ?? ""} ${s.word}`, weight: 2 }, { text: `${s.text} ${s.bn?.text ?? ""}`, weight: 1 }];
+  const filteredProducts = !searching || !config.products ? [] : noMatch ? related(query, products, productFields).slice(0, 6) : matchedProducts;
+  const filteredServices = !searching || !config.services ? [] : noMatch ? related(query, services, serviceFields).slice(0, 3) : matchedServices;
   const closeMenu = () => { setMega(null); setMobile(false); };
   const groups = [...(config.products ? ["Products"] : []), ...(config.services ? ["Services"] : []), "About"];
   const label = (value: string) => locale === "bn" ? ({ Products: "পণ্য", Services: "সেবা", About: "আমাদের কথা" }[value] || value) : value;
@@ -79,7 +80,7 @@ export function Header({ config }: { config: SiteConfig }) {
         <div className="container mega-content"><div className="mega-intro"><span className="eyebrow">{t("Explore OANRO", "OANRO ঘুরে দেখুন")}</span><h2>{group === "Products" ? t("Find your next.", "আপনার পরেরটা খুঁজুন।") : group === "Services" ? t("Build what's next.", "আগামীকে গড়ুন।") : t("A considered approach.", "ভেবেচিন্তে এগোনো।")}</h2><p>{group === "Products" ? t("Browse by product line.", "পণ্যের লাইন অনুযায়ী দেখুন।") : group === "Services" ? t("Practical technology for people and businesses.", "মানুষ ও ব্যবসার জন্য কার্যকর প্রযুক্তি।") : t("Discover our story and get in touch.", "আমাদের গল্প জানুন ও যোগাযোগ করুন।")}</p></div>
           <div className="mega-links">
             {group === "About" && <Link href="/account" onClick={closeMenu}><Localized en="My account" bn="আমার অ্যাকাউন্ট" /><ArrowUpRight size={16} /></Link>}
-            {group === "Products" && <>{lines.map(({ collection: c }) => <Link onClick={closeMenu} key={c.id} href={`/${c.slug}`}>{bn && c.bn ? c.bn.name : c.name}<ArrowUpRight size={16} /></Link>)}{config.partners && <Link href="/#partners" onClick={closeMenu}>{t("Partner Picks", "পার্টনার পছন্দ")}<ArrowUpRight size={16} /></Link>}</>}
+            {group === "Products" && <>{!lines.some(l => l.count > 0) && <p className="mega-empty">{t("New products are on the way.", "নতুন পণ্য আসছে।")}</p>}{lines.filter(l => l.count > 0).map(({ collection: c }) => <Link onClick={closeMenu} key={c.id} href={`/${c.slug}`}>{bn && c.bn ? c.bn.name : c.name}<ArrowUpRight size={16} /></Link>)}{config.partners && <Link href="/#partners" onClick={closeMenu}>{t("Partner Picks", "পার্টনার পছন্দ")}<ArrowUpRight size={16} /></Link>}</>}
             {group === "Services" && services.map(s => <Link key={s.slug} href={`/services/${s.slug}`} onClick={closeMenu}>{bn && s.bn ? s.bn.title : s.title}<ArrowUpRight size={16} /></Link>)}
             {group === "About" && <><Link href="/#about" onClick={closeMenu}>{t("Our approach", "আমাদের পদ্ধতি")}<ArrowUpRight size={16} /></Link><Link href="/#contact" onClick={closeMenu}>{t("Contact OANRO", "OANRO-তে যোগাযোগ")}<ArrowUpRight size={16} /></Link></>}
           </div>
@@ -91,10 +92,10 @@ export function Header({ config }: { config: SiteConfig }) {
     <dialog ref={searchDialog} className="search-dialog" aria-labelledby="search-title" onClick={e => { if (e.target === e.currentTarget) searchDialog.current?.close(); }}>
       <div className="dialog-content"><div className="dialog-heading"><h2 id="search-title"><Localized en="Find something good." bn="ভালো কিছু খুঁজুন।" /></h2><button type="button" className="icon-button" title="Close search" aria-label="Close search" onClick={() => searchDialog.current?.close()}><X /></button></div>
         <label className="search-field"><Search size={20} /><span className="sr-only"><Localized en="Search products and services" bn="পণ্য ও সেবা খুঁজুন" /></span><input type="search" placeholder={t("Search products or services", "পণ্য বা সেবা খুঁজুন")} value={query} onChange={e => setQuery(e.target.value)} /></label>
-        <p className="small-note" role="status">{!searching ? t("Popular right now", "এখন জনপ্রিয়") : noMatch ? t(`No exact match for “${query.trim()}”. You might like these:`, `“${query.trim()}” এর সাথে হুবহু কিছু মেলেনি। এগুলো দেখতে পারেন:`) : t(`${filteredProducts.length + filteredServices.length} results`, `${filteredProducts.length + filteredServices.length}টি ফলাফল`)}</p>
+        <p className="small-note" role="status">{!searching ? t("Type a product, category or service.", "পণ্য, ক্যাটাগরি বা সেবার নাম লিখুন।") : noMatch ? (filteredProducts.length + filteredServices.length ? t(`No exact match for “${query.trim()}”. Similar items:`, `“${query.trim()}” এর সাথে হুবহু কিছু মেলেনি। কাছাকাছি কিছু:`) : t(`Nothing found for “${query.trim()}”.`, `“${query.trim()}” পাওয়া যায়নি।`)) : t(`${filteredProducts.length + filteredServices.length} results`, `${filteredProducts.length + filteredServices.length}টি ফলাফল`)}</p>
         <div className="search-results">{filteredProducts.map(p => <Link key={p.slug} href={`/products/${p.slug}`} onClick={() => searchDialog.current?.close()}><ProductPhoto position={p.position} image={p.image} label={p.name} /><span><strong>{bn && p.bn ? p.bn.name : p.name}</strong><small>{bn && p.bn ? p.bn.category : p.category}{p.inStock === false ? t(" / Out of stock", " / স্টক শেষ") : ""}</small></span><ArrowUpRight size={18} /></Link>)}
           {filteredServices.map(s => <Link key={s.slug} href={`/services/${s.slug}`} onClick={() => searchDialog.current?.close()}><span className="service-search-mark">{s.word}</span><span><strong>{bn && s.bn ? s.bn.title : s.title}</strong><small><Localized en="Technology service" bn="প্রযুক্তি সেবা" /></small></span><ArrowUpRight size={18} /></Link>)}
-          {!filteredProducts.length && !filteredServices.length && <p className="empty-state"><Localized en="Try “winter”, “web”, or “headphones”." bn="“ক্যাপ”, “ওয়েব” বা “হেডফোন” লিখে দেখুন।" /></p>}</div>
+          {!filteredProducts.length && !filteredServices.length && <p className="empty-state">{searching ? <><Localized en="Tell us what you need and we will try to find it for you." bn="কী খুঁজছেন জানান, আমরা খুঁজে দেওয়ার চেষ্টা করব।" /> <Link href="/contact" onClick={() => searchDialog.current?.close()}><Localized en="Ask us" bn="জিজ্ঞাসা করুন" /></Link></> : <Localized en="Try “winter”, “cap”, “necklace” or “website”." bn="“শীত”, “ক্যাপ”, “নেকলেস” বা “ওয়েবসাইট” লিখে দেখুন।" />}</p>}</div>
       </div>
     </dialog>
     <dialog ref={cartDialog} className="cart-dialog" aria-labelledby="bag-title" onClick={e => { if (e.target === e.currentTarget) cartDialog.current?.close(); }}>

@@ -16,22 +16,22 @@ function missingSchema(error: unknown) {
   return ["42P01", "42703"].includes(e?.code ?? "") || ["42P01", "42703"].includes(e?.cause?.code ?? "");
 }
 /**
- * Storefront catalog. The demo list is shown only when no database is configured, a catalog migration
- * has not run yet, or the owner has never added a product. Other database errors fail closed (empty)
- * so hidden or archived products are never resurrected from the demo list.
+ * Storefront catalog. The demo list is shown only when no database is configured or a catalog migration has not
+ * run yet. With a database, the shop shows exactly what the owner published, even when that is nothing
+ * (an empty shop never fills up with sample products). Other database errors fail closed (empty).
  */
-const cachedProducts = storefrontCached("products", async () => { const db = catalogDb(); const [managed, list] = await Promise.all([hasManagedCatalog(db), listStorefrontProducts(db)]); return managed ? list : null; });
-const cachedServices = storefrontCached("services", async () => { const db = catalogDb(); const [managed, list] = await Promise.all([hasManagedServices(db), listStorefrontServices(db)]); return managed ? list : null; });
+const cachedProducts = storefrontCached("products", () => listStorefrontProducts(catalogDb()));
+const cachedServices = storefrontCached("services", () => listStorefrontServices(catalogDb()));
 const cachedCollections = storefrontCached("collections", () => listStorefrontCollections(catalogDb()));
 const cachedCampaigns = storefrontCached("campaigns", () => listActiveCampaigns(catalogDb()));
 async function loadStoreProducts(): Promise<Product[]> {
   if (!process.env.DATABASE_URL) return demoProducts;
-  try { return (await cachedProducts()) ?? demoProducts; }
+  try { return await cachedProducts(); }
   catch (error) { return missingSchema(error) ? demoProducts : []; }
 }
 async function loadStoreServices(): Promise<Service[]> {
   if (!process.env.DATABASE_URL) return demoServices;
-  try { return (await cachedServices()) ?? demoServices; }
+  try { return await cachedServices(); }
   catch (error) { return missingSchema(error) ? demoServices : []; }
 }
 /** Published product rows (sections), in display order. Before the migration, mirrors the old Caps/Tech switches. */
