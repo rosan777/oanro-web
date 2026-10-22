@@ -992,3 +992,6 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
   body:has(.bottom-bar) .announce-toast { bottom: calc(62px + env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion: reduce) { .announce-toast { transition: none; } }
+
+/* "Why OANRO" grid on the homepage: desktop computers only. Hidden on phones and tablets to keep the homepage short; delivery, payment and return details stay on the product pages and Delivery & returns. */
+@media (max-width: 1024px), (hover: none), (pointer: coarse) { .v2-bento-wrap { display: none; } }
