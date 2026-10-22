@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { mediaUrl } from "@/lib/site-content-data";
+import { getSiteContent } from "@/lib/site-content";
 import { notFound } from "next/navigation";
 import { getSiteConfig } from "@/lib/site-config";
 import { getStoreCollections, getStoreProducts } from "@/lib/store-products";
@@ -39,7 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title, description, alternates: alternatesFor(path, locale),
     // An empty section is a thin page: keep it out of Google until it has products.
     ...(data.items.length ? {} : { robots: { index: false, follow: true } }),
-    openGraph: { type: "website", siteName: "OANRO", url: localePath(path, locale), title, description, locale: bn ? "bn_BD" : "en_BD", images: [data.items.find(p => p.image)?.image || "/images/campaign.png"] } };
+    openGraph: { type: "website", siteName: "OANRO", url: localePath(path, locale), title, description, locale: bn ? "bn_BD" : "en_BD", images: [data.items.find(p => p.image)?.image || mediaUrl(await getSiteContent(), "share") || "/images/campaign.png"] } };
 }
 
 export default async function CategoryPage({ params }: Props) {

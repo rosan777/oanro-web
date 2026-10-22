@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { mediaUrl } from "@/lib/site-content-data";
 import { notFound } from "next/navigation";
 import { getSiteConfig } from "@/lib/site-config";
 import { getSectionState } from "@/lib/website-sections";
@@ -35,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = ([copy.text, copy.detail].filter(Boolean).join(" ") || title).slice(0, 158);
   const path = `/services/${service.slug}`;
   return { title, description, alternates: alternatesFor(path, locale),
-    openGraph: { type: "website", siteName: "OANRO", url: localePath(path, locale), title, description, locale: bn ? "bn_BD" : "en_BD", images: [service.image || "/images/campaign.png"] } };
+    openGraph: { type: "website", siteName: "OANRO", url: localePath(path, locale), title, description, locale: bn ? "bn_BD" : "en_BD", images: [service.image || mediaUrl(await getSiteContent(), "share") || "/images/campaign.png"] } };
 }
 
 export default async function ServicePage({ params }: Props) {
