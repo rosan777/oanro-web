@@ -11,7 +11,7 @@ export type ProfileIconName = typeof profileIcons[number];
 
 /** How a section is drawn. Every kind uses the same fields, so the admin can add any kind as a new section. */
 export const sectionKinds = {
-  cover: { label: "Cover (big title, focus cards)", hint: "Title: use | for a new line; the second line is green. Body: tagline. Items: focus cards." },
+  cover: { label: "Cover (big title, focus cards)", hint: "Small label: text after | is shown smaller (e.g. IT Services|& E-commerce). Title: use | for a new line; the second line is green. Body: tagline. Items: focus cards." },
   intro: { label: "Text + side cards", hint: "Body: paragraphs (blank line between them). Group 1: side cards. Group 2: small fact boxes." },
   cards: { label: "Card grid", hint: "Group 1: cards (icon, title, short text, optional bullet list — one line per bullet). Group 2 (optional): small tags shown above the cards, with its heading." },
   split: { label: "Feature panel + numbered list", hint: "Group heading + Paragraph: the green panel on the left. Items: numbered points on the right (title only)." },
@@ -39,7 +39,7 @@ const section = (id: string, kind: SectionKind, p: Partial<Omit<ProfileSection, 
 
 export function defaultProfile(): CompanyProfile {
   return { sections: [
-    section("cover", "cover", { dark: true, eyebrow: "IT Services (E-commerce)", title: "Company|Profile", body: "A brand built for what's next.", strip: "oanro.com  •  support@oanro.com  •  Licensed business",
+    section("cover", "cover", { dark: true, eyebrow: "IT Services|& E-commerce", title: "Company|Profile", body: "A brand built for what's next.", strip: "oanro.com  •  support@oanro.com  •  Licensed business",
       groups: [group("", [item("cpu", "Software, Embedded & AI"), item("life-buoy", "Managed Services"), item("cloud-cog", "Cloud Architecture & DevOps"), item("briefcase", "Business & Operations Support")])] }),
     section("profile", "intro", { eyebrow: "Who we are", title: "Company profile", strip: "Originality • Ambition • Next-generation • Reliability • Opportunity",
       body: "OANRO is a forward-looking company working where technology meets commerce. We design, build and run software for businesses of every size, and we run an online store of carefully selected products.\n\nFrom a first website to an enterprise platform with AI built in, one team takes responsibility from the first conversation to long-term support. We work with clients around the world, remotely and on clear written terms.\n\nOur name is our standard: Originality, Ambition, Next-generation thinking, Reliability and Opportunity in every project we take on.",
@@ -129,5 +129,10 @@ export function cleanProfile(v: unknown): CompanyProfile {
 /** Saved value (or nothing) → a complete profile. Nothing saved yet = the default profile. */
 export function mergeProfile(saved: unknown): CompanyProfile {
   if (!saved || typeof saved !== "object" || !Array.isArray((saved as CompanyProfile).sections)) return defaultProfile();
-  return cleanProfile(saved);
+  return upgradeOldDefaults(cleanProfile(saved));
+}
+/** A profile saved before a default text changed keeps the old wording; swap old default texts for the new ones (texts the owner wrote are kept). */
+const oldDefaults: Record<string, string> = { "E-commerce & IT Services": "IT Services|& E-commerce", "IT Services (E-commerce)": "IT Services|& E-commerce" };
+function upgradeOldDefaults(p: CompanyProfile): CompanyProfile {
+  return { sections: p.sections.map(s => oldDefaults[s.eyebrow.en] ? { ...s, eyebrow: { ...s.eyebrow, en: oldDefaults[s.eyebrow.en] } } : s) };
 }

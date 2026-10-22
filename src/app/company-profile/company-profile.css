@@ -7,6 +7,7 @@
 .cp-head > div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .cp-eyebrow { font-family: var(--font-label), monospace; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand); }
 .is-dark .cp-eyebrow { color: var(--glow); }
+.cp-eyebrow-small { font-size: 0.77em; letter-spacing: 0.12em; opacity: 0.85; } /* 10 : 13 ratio to the main label */
 .cp-h2, .cp h3, .cp-cover-title h1, .cp-cover-title h2, .cp-thanks-title { font-family: var(--font-display), var(--font-bangla), sans-serif; text-transform: uppercase; line-height: 0.95; letter-spacing: 0.005em; }
 .cp-h2 { font-size: clamp(2rem, 4.2vw, 2.9rem); font-weight: 700; }
 .cp h3 { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.02em; }

@@ -31,7 +31,7 @@ function Section({ s, t, h1, email }: { s: ProfileSection; t: T; h1: boolean; em
       const [l1, l2] = t(s.title).split("|"); const Title = h1 ? "h1" : "h2";
       return <section className={cls} id={s.id} aria-label={t(s.title).replace(/\|/g, " ")}>
         <div className="cp-orbit" aria-hidden /><div className="cp-planet" aria-hidden />
-        <div className="cp-cover-top"><span className="cp-wordmark">OAN<b>R</b>O</span>{t(s.eyebrow) && <span className="cp-eyebrow">{t(s.eyebrow)}</span>}</div>
+        <div className="cp-cover-top"><span className="cp-wordmark">OAN<b>R</b>O</span>{t(s.eyebrow) && (() => { const [big, small] = t(s.eyebrow).split("|"); return <span className="cp-eyebrow">{big.trim()}{small && <small className="cp-eyebrow-small"> {small.trim()}</small>}</span>; })()}</div>
         <div className="cp-cover-title"><Title>{l1}{l2 && <><br /><em>{l2}</em></>}</Title>{t(s.body) && <p className="cp-tagline">{t(s.body)}</p>}</div>
         {g(0).length > 0 && <div className="cp-focus">{g(0).map((it, i) => <div key={i}><Ico name={it.icon} /><strong>{t(it.title)}</strong></div>)}</div>}
         <Strip s={s} t={t} />
