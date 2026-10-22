@@ -998,3 +998,14 @@ dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: now
 
 /* Menu picture ("New season", "OANRO Studio", "Our story") beside the drop-down menus: desktop computers only. On phones and tablets the menu shows just the links, so it fits on one screen. */
 @media (max-width: 1024px), (hover: none), (pointer: coarse) { .mega-feature { display: none; } }
+
+/* "Why OANRO" (desktop): compact 3 × 2 grid of equal tiles instead of one huge delivery tile; smaller numbers and padding. */
+.v2-bento-wrap { margin-block: 3rem; }
+.v2-bento-wrap .v2-h2 { font-size: clamp(1.8rem, 3vw, 2.4rem); }
+.v2-bento { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: auto; gap: 12px; margin-top: 1.4rem; }
+.v2-bento .v2-tile { padding: 1.1rem 1.2rem; border-radius: 18px; gap: 0.5rem; min-height: 132px; }
+.v2-bento .v2-tile-big, .v2-bento .v2-tile-wide { grid-column: auto; grid-row: auto; }
+.v2-bento .v2-tile-num, .v2-bento .v2-tile-big .v2-tile-num { font-size: 2.6rem; }
+.v2-bento .v2-tile-num small { font-size: 0.42em; }
+.v2-bento .v2-tile p { font-size: 0.95rem; line-height: 1.45; }
+.v2-bento .v2-tile-pay b { padding: 0.35rem 0.7rem; font-size: 0.92rem; }
