@@ -2,6 +2,7 @@ import { ViewCounter } from "@/components/view-counter";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getSiteConfig } from "@/lib/site-config";
+import { publicRules } from "@/lib/public-rules";
 import { getStoreCollections, getStoreProducts } from "@/lib/store-products";
 import ProductDetail from "@/components/product-detail";
 import { JsonLd } from "@/components/json-ld";
@@ -43,5 +44,5 @@ export default async function ProductPage({ params }: Props) {
     image: [absoluteUrl(product.image || "/images/campaign.png")], brand: { "@type": "Brand", name: SITE_NAME },
     offers: { "@type": "Offer", url: pageUrl, priceCurrency: "BDT", price: product.price, itemCondition: "https://schema.org/NewCondition",
       availability: product.inStock === false ? "https://schema.org/OutOfStock" : "https://schema.org/InStock", seller: { "@id": `${siteUrl()}/#organization` } } } : null;
-  return <><JsonLd data={breadcrumb} />{productSchema && <JsonLd data={productSchema} />}<ViewCounter slug={product.slug} /><ProductDetail product={product} contact={getSiteConfig()} related={{ same, others, sectionName }} /></>;
+  return <><JsonLd data={breadcrumb} />{productSchema && <JsonLd data={productSchema} />}<ViewCounter slug={product.slug} /><ProductDetail product={product} rules={await publicRules()} contact={getSiteConfig()} related={{ same, others, sectionName }} /></>;
 }

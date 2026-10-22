@@ -6,6 +6,8 @@ export type Product = {
   image?: string | null; bn?: ProductCopy | null; collectionId?: string;
   /** Public availability only. The stock count itself is never sent to customers. */
   inStock?: boolean;
+  /** Only when 1-5 are left (honest "only N left"); larger stock counts are never sent to customers. */
+  left?: number | null;
   /** Original price shown crossed out (only when higher than price). */
   compareAt?: number | null;
   /** Colour choices; image is that colour's photo (null = use the main photo). */
