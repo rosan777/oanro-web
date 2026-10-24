@@ -31,7 +31,7 @@ export default async function AboutPage() {
       <ol>{values.map(([title, text], i) => <li key={title}><span>{"OANRO"[i]}</span><div><strong>{title}</strong><p>{text}</p></div></li>)}</ol>
     </section>
     <section className="about-facts"><h2>{t("The details", "বিস্তারিত")}</h2>
-      <dl><div><dt>{t("Licensed business", "লাইসেন্সপ্রাপ্ত ব্যবসা")}</dt><dd>{t("Trade License No. 002039", "ট্রেড লাইসেন্স নং ০০২০৩৯")}</dd></div>
+      <dl><div><dt>{t("Licensed business", "লাইসেন্সপ্রাপ্ত ব্যবসা")}</dt><dd>{t("Trade license held", "ট্রেড লাইসেন্স আছে")}</dd></div>
         <div><dt>{t("What we do", "আমরা কী করি")}</dt><dd>{t("IT services & e-commerce", "আইটি সেবা ও ই-কমার্স")}</dd></div>
         <div><dt>{t("Who we work with", "কাদের সাথে কাজ করি")}</dt><dd>{t("Businesses and shoppers worldwide", "বিশ্বজুড়ে ব্যবসা ও ক্রেতা")}</dd></div>
         <div><dt>{t("Full company details", "কোম্পানির পূর্ণ তথ্য")}</dt><dd><Link href="/company-profile">{t("Company profile", "কোম্পানি প্রোফাইল")}</Link></dd></div>

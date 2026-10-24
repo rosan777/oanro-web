@@ -18,11 +18,11 @@
     "seed:jewelry-images": "node --import tsx scripts/seed-jewelry-images.ts"
   },
   "dependencies": {
-    "@next/env": "16.4.0",
+    "@next/env": "^16.4.1",
     "better-auth": "1.7.7",
     "drizzle-orm": "0.45.4",
     "lucide-react": "^0.468.0",
-    "next": "16.4.0",
+    "next": "^16.4.1",
     "nodemailer": "10.1.0",
     "pg": "8.23.1",
     "react": "19.3.0",
