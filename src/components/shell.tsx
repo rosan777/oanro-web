@@ -135,7 +135,7 @@ export function Footer({ config }: { config: SiteConfig }) {
     <div className={`footer-extra${showNewsletter ? "" : " is-solo"}`}>
       {showNewsletter && <NewsletterSignup />}
     </div>
-    <div className="footer-bottom"><span>{t("© 2026 OANRO · Trade License No. 002039", "© ২০২৬ OANRO · ট্রেড লাইসেন্স নং ০০২০৩৯")}</span>
+    <div className="footer-bottom"><span>{t("© 2026 OANRO · Licensed business", "© ২০২৬ OANRO · লাইসেন্সপ্রাপ্ত ব্যবসা")}</span>
       
       <span className="footer-tools"><RegionPicker /><PrivacySettingsLink /><MotionToggle /></span></div>
   </div></footer>;
