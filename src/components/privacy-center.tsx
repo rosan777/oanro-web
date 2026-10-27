@@ -82,7 +82,10 @@ export function PrivacyCenter({ gaId }: { gaId: string }) {
             <p id={`pc-${r.id}`} className="pc-desc" hidden={open !== r.id}>{r.text}</p>
           </li>)}
         </ul>
-          <button type="button" className="pc-btn pc-primary pc-confirm" onClick={() => finish(draft)}>{t("Confirm my choices", "আমার পছন্দ সেভ করুন")}</button>
+          <div className="pc-manage-actions">
+            <button type="button" className="pc-btn pc-ghost pc-confirm" onClick={() => finish(NONE)}>{t("Reject all", "সব প্রত্যাখ্যান করুন")}</button>
+            <button type="button" className="pc-btn pc-primary pc-confirm" onClick={() => finish(draft)}>{t("Confirm my choices", "আমার পছন্দ সেভ করুন")}</button>
+          </div>
         </div>}
         <div className="pc-bar">
           <div className="pc-copy">
@@ -90,9 +93,8 @@ export function PrivacyCenter({ gaId }: { gaId: string }) {
             <p className="pc-text"><span className="pc-long">{t("We use cookies to run this site and, if you allow, to personalise it. ", "সাইট চালাতে ও আপনি চাইলে আপনার মতো করে সাজাতে আমরা কুকি ব্যবহার করি। ")}</span><span className="pc-short">{t("We use cookies. ", "আমরা কুকি ব্যবহার করি। ")}</span><Link href="/privacy#cookies" onClick={() => dialog.current?.close()}>{t("Policy", "পলিসি")}</Link></p>
           </div>
           <div className="pc-bar-actions">
+            <button type="button" className="pc-btn pc-ghost" aria-expanded={manage} onClick={() => setManage(m => !m)}><span className="pc-long">{t("Reject / Manage", "প্রত্যাখ্যান / পরিচালনা")}</span><span className="pc-short">{t("Manage", "পরিচালনা")}</span></button>
             <button type="button" className="pc-btn pc-primary" onClick={() => finish(ALL)}><span className="pc-long">{t("Accept all", "সব মেনে নিন")}</span><span className="pc-short">{t("Accept", "মেনে নিন")}</span></button>
-            <button type="button" className="pc-btn pc-ghost" onClick={() => finish(NONE)}><span className="pc-long">{t("Only essential", "শুধু প্রয়োজনীয়")}</span><span className="pc-short">{t("Essential", "প্রয়োজনীয়")}</span></button>
-            <button type="button" className="pc-btn pc-link" aria-expanded={manage} onClick={() => setManage(m => !m)}>{t("Manage", "পছন্দ")}</button>
           </div>
         </div>
       </div>

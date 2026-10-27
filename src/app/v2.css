@@ -289,26 +289,26 @@ dialog.privacy-center.is-closing::backdrop { animation: pop-fade .42s ease-in re
 .pc-brand { display: flex; align-items: center; gap: 0.6rem; font-weight: 700; letter-spacing: 0.22em; }
 .pc-title { margin-top: 1.4rem; padding-bottom: 0.8rem; border-bottom: 1px solid #2a2f33; font-family: var(--font-display), var(--font-bangla), sans-serif; font-weight: 500; font-size: 1.9rem; text-transform: uppercase; }
 html[lang="bn"] .pc-title { font-family: var(--font-bangla), sans-serif; text-transform: none; }
-.pc-text { margin-top: 1rem; color: #c9cec9; font-size: 0.95rem; line-height: 1.6; }
-.pc-text a { color: var(--glow); text-decoration: underline; text-underline-offset: 3px; }
+.pc-text { margin-top: 1rem; color: #2a2a27; font-size: 0.95rem; line-height: 1.6; }
+.pc-text a { color: var(--brand); text-decoration: underline; text-underline-offset: 3px; }
 .pc-btn { width: 100%; min-height: 50px; border-radius: 14px; font-weight: 700; font-size: 1rem; border: 1px solid transparent; transition: background 0.2s, color 0.2s, border-color 0.2s; }
-.pc-primary { margin-top: 1.4rem; background: var(--glow); color: var(--space); }
-.pc-primary:hover { background: #6ee7b7; }
-.pc-ghost { margin-top: 0.6rem; background: transparent; color: #ededE6; border-color: #3a4045; }
-.pc-ghost:hover { border-color: var(--glow); color: var(--glow); }
+.pc-primary { margin-top: 1.4rem; background: var(--brand); color: #fff; }
+.pc-primary:hover { background: #163f2e; }
+.pc-ghost { margin-top: 0.6rem; background: transparent; color: var(--brand); border-color: var(--brand); }
+.pc-ghost:hover { background: var(--brand); color: #fff; }
 .pc-sub { margin-top: 1.8rem; padding-bottom: 0.7rem; border-bottom: 1px solid #2a2f33; font-family: var(--font-label), monospace; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
 .pc-list { list-style: none; margin: 0; padding: 0; }
-.pc-list li { border-bottom: 1px solid #1c2023; }
+.pc-list li { border-bottom: 1px solid var(--line); }
 .pc-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 60px; }
-.pc-expand { flex: 1; display: flex; align-items: center; gap: 0.5rem; padding: 0.9rem 0; border: 0; background: transparent; text-align: left; font-size: 1.02rem; }
-.pc-expand svg { color: #8e948f; transition: transform 0.25s; }
+.pc-expand { flex: 1; display: flex; align-items: center; gap: 0.5rem; padding: 0.9rem 0; border: 0; background: transparent; text-align: left; font-size: 1.02rem; color: #151515; }
+.pc-expand svg { color: var(--muted); transition: transform 0.25s; }
 .pc-expand[aria-expanded="true"] svg { transform: rotate(180deg); }
-.pc-always { font-size: 0.82rem; font-weight: 600; color: var(--glow); white-space: nowrap; }
-.pc-switch { position: relative; width: 52px; height: 30px; flex-shrink: 0; border: 1px solid #3a4045; border-radius: 999px; background: #1a1f22; transition: background 0.2s, border-color 0.2s; }
-.pc-switch span { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #8e948f; transition: transform 0.2s, background 0.2s; }
-.pc-switch[aria-checked="true"] { background: var(--brand); border-color: var(--glow); }
-.pc-switch[aria-checked="true"] span { transform: translateX(22px); background: var(--glow); }
-.pc-desc { margin: 0 0 1rem; padding: 0.9rem 1rem; border-radius: 12px; background: #11161a; color: #c9cec9; font-size: 0.9rem; line-height: 1.55; }
+.pc-always { font-size: 0.82rem; font-weight: 600; color: var(--brand); white-space: nowrap; }
+.pc-switch { position: relative; width: 52px; height: 30px; flex-shrink: 0; border: 1px solid var(--line); border-radius: 999px; background: #e9e7de; transition: background 0.2s, border-color 0.2s; }
+.pc-switch span { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #ffffff; box-shadow: 0 1px 3px rgba(21,21,21,0.25); transition: transform 0.2s, background 0.2s; }
+.pc-switch[aria-checked="true"] { background: var(--brand); border-color: var(--brand); }
+.pc-switch[aria-checked="true"] span { transform: translateX(22px); background: #ffffff; }
+.pc-desc { margin: 0 0 1rem; padding: 0.9rem 1rem; border-radius: 12px; background: #efeee6; color: #3a3a36; font-size: 0.9rem; line-height: 1.55; }
 .pc-actions { margin-top: 1.4rem; }
 .pc-actions .pc-primary { margin-top: 0; }
 .footer-tools { display: inline-flex; flex-wrap: wrap; gap: 1.25rem; align-items: center; }
@@ -456,8 +456,8 @@ html[lang="bn"] .pc-title { font-family: var(--font-bangla), sans-serif; text-tr
    Non-blocking: the page stays usable. Overrides the earlier centred pop-up rules.
    ============================================================ */
 dialog.privacy-center, dialog.privacy-center[open] { position: fixed; inset: auto 0 0 0; top: auto; left: 0; right: 0; bottom: 0; translate: none; margin: 0; z-index: 70;
-  width: 100%; max-width: 100%; max-height: 85dvh; height: auto; border-radius: 0; border: 0; border-top: 1px solid rgb(61 220 151 / 0.25);
-  background: rgb(7 9 10 / 0.96); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 -18px 50px -20px rgb(0 0 0 / 0.6);
+  width: 100%; max-width: 100%; max-height: 85dvh; height: auto; border-radius: 0; border: 0; border-top: 1px solid var(--line);
+  background: rgb(246 245 240 / 0.97); color: #151515; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 -18px 50px -20px rgb(21 21 21 / 0.18);
   animation: pc-bar-in 0.45s cubic-bezier(.2,.7,.2,1) both; }
 dialog.privacy-center.is-closing { animation: pc-bar-out 0.35s ease-in both; }
 @keyframes pc-bar-in { from { transform: translateY(100%); } to { transform: none; } }
@@ -468,12 +468,12 @@ dialog.privacy-center .pc-inner { width: min(1200px, 100%); margin: 0 auto; padd
 dialog.privacy-center .pc-title { display: flex; align-items: center; gap: 0.5rem; margin: 0; padding: 0; border: 0; font-size: 1.15rem; letter-spacing: 0.02em; }
 dialog.privacy-center .pc-text { margin-top: 0.3rem; font-size: 0.85rem; line-height: 1.5; }
 .pc-bar-actions { display: flex; align-items: center; gap: 0.5rem; flex: 0 0 auto; }
-.pc-bar-actions .pc-btn { width: auto; min-height: 40px; margin: 0; padding: 0 1.1rem; font-size: 0.85rem; border-radius: 999px; white-space: nowrap; }
-.pc-link { background: transparent; color: var(--glow); border: 0; text-decoration: underline; text-underline-offset: 3px; }
-.pc-link:hover { color: #6ee7b7; }
-.pc-manage { padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid #1c2023; }
+.pc-bar-actions .pc-btn { width: auto; min-height: 44px; margin: 0; padding: 0 1.1rem; font-size: 0.875rem; font-weight: 600; border-radius: 8px; white-space: nowrap; }
+.pc-link { background: transparent; color: var(--brand); border: 0; text-decoration: underline; text-underline-offset: 3px; }
+.pc-link:hover { color: #163f2e; }
+.pc-manage { padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--line); }
 .pc-manage .pc-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; }
-.pc-manage .pc-list li { border: 1px solid #1c2023; border-radius: 12px; padding: 0 0.85rem; }
+.pc-manage .pc-list li { border: 1px solid var(--line); border-radius: 12px; padding: 0 0.85rem; }
 .pc-manage .pc-row { min-height: 52px; }
 .pc-manage .pc-expand { font-size: 0.92rem; padding: 0.6rem 0; }
 .pc-manage .pc-desc { margin: 0 0 0.75rem; padding: 0; background: none; font-size: 0.8rem; }
@@ -494,21 +494,31 @@ dialog.privacy-center .pc-text { margin-top: 0.3rem; font-size: 0.85rem; line-he
   .pc-manage .pc-confirm { width: 100%; min-height: 36px; font-size: 0.78rem; }
 }
 @media (prefers-reduced-motion: reduce) { dialog.privacy-center, dialog.privacy-center[open], dialog.privacy-center.is-closing { animation: none; } }
-/* Privacy bar: one single line on every screen. */
+/* Desktop: a full-width bar — 56px side padding, 44px two-button group (Reject/Manage, Accept all).
+   Phone: a floating rounded card inset from the edges, not a flush bar — stacked text + two full-width buttons. */
 .pc-short { display: none; }
-.pc-bar, .pc-bar-actions { flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; }
 .pc-bar { gap: 1rem; }
-dialog.privacy-center .pc-inner { padding-block: 0.6rem calc(0.6rem + env(safe-area-inset-bottom)); }
-dialog.privacy-center .pc-text { margin: 0; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pc-bar-actions .pc-btn { min-height: 34px; padding: 0 0.95rem; font-size: 0.8rem; }
-.pc-bar-actions .pc-link { flex: none !important; padding: 0 0.4rem; min-height: 34px !important; }
+/* Compact and centred: text and buttons sit close together instead of stretching edge to edge. */
+dialog.privacy-center .pc-inner { width: min(760px, 100%); padding: 0.75rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom)); }
+dialog.privacy-center .pc-text { margin: 0; font-size: 0.8125rem; line-height: 1.45; }
+dialog.privacy-center:focus, dialog.privacy-center .pc-text a:focus, dialog.privacy-center .pc-text a:focus-visible { outline: none !important; }
+.pc-bar-actions .pc-btn { min-height: 36px; padding: 0 1rem; font-size: 0.8125rem; }
+.pc-bar-actions .pc-link { padding: 0 0.4rem; min-height: 36px; }
+.pc-manage-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.9rem; }
+.pc-manage .pc-confirm { margin-top: 0; }
 @media (max-width: 760px) {
-  .pc-long { display: none; } .pc-short { display: inline; }
-  .pc-bar { gap: 0.5rem; }
-  .pc-bar-actions { gap: 0.3rem; }
-  .pc-bar-actions .pc-btn { flex: none; min-height: 30px; padding: 0 0.6rem; font-size: 0.75rem; }
-  dialog.privacy-center .pc-inner { padding-inline: 0.75rem; }
-  dialog.privacy-center .pc-text { font-size: 0.75rem; }
+  dialog.privacy-center, dialog.privacy-center[open] {
+    inset: auto; left: 0.75rem; right: 0.75rem; bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    width: auto; max-width: none; border-radius: 16px; border: 1px solid var(--line);
+    box-shadow: 0 14px 36px -8px rgb(21 21 21 / 0.22);
+  }
+  dialog.privacy-center .pc-inner { padding: 0.875rem; }
+  .pc-bar { flex-direction: column; align-items: stretch; gap: 0.625rem; }
+  dialog.privacy-center .pc-text { font-size: 0.8125rem; line-height: 1.45; white-space: normal; }
+  .pc-bar-actions { flex-wrap: nowrap; gap: 0.5rem; }
+  .pc-bar-actions .pc-btn { flex: 1 1 0; min-height: 38px; padding: 0 0.5rem; font-size: 0.8125rem; }
+  .pc-manage-actions { flex-direction: column-reverse; gap: 0.625rem; }
+  .pc-manage-actions .pc-confirm { width: 100%; }
 }
 
 /* Language menu (header) and country + language picker (footer) */

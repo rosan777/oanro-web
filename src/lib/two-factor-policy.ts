@@ -9,8 +9,17 @@ import { randomUUID } from "node:crypto";
 // until they do, admin pages and admin actions are blocked for them. Google sign-ins are protected by Google.
 const KEY = "security.require_staff_2fa";
 export async function staffTwoFactorRequired(db: CatalogDb) {
-  const [row] = await db.select({ value: storeSetting.value }).from(storeSetting).where(eq(storeSetting.key, KEY)).limit(1);
-  return row?.value === "true";
+  // Retries once on a dropped connection so a brief network blip doesn't crash the page; falls back to "not required" if it still fails.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const [row] = await db.select({ value: storeSetting.value }).from(storeSetting).where(eq(storeSetting.key, KEY)).limit(1);
+      return row?.value === "true";
+    } catch (error) {
+      if (attempt === 1) { console.error("staffTwoFactorRequired: giving up after retry", error); return false; }
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  }
+  return false;
 }
 export async function setStaffTwoFactorRequired(db: CatalogDb, actorId: string, on: boolean) {
   await db.transaction(async tx => {
