@@ -51,6 +51,7 @@ export const featureFields = {
   filters: { group: "Category pages", label: "Filters and sorting" },
   newsletter: { group: "Whole site", label: "Newsletter sign-up in the footer" },
   cursorRing: { group: "Whole site", label: "Desktop cursor ring" },
+  intro: { group: "Whole site", label: "Welcome intro animation (logo splash on first visit)" },
   studioPackages: { group: "Service pages", label: "Ways to work with us (packages)" },
   serviceFaq: { group: "Service pages", label: "Common questions (FAQ)" },
   socialIcons: { group: "Contact & social", label: "Social media icons in the footer" },
@@ -78,7 +79,8 @@ export const emptyContact = (): Contact => ({ email: "", phone: "", whatsapp: ""
 export function defaultContent(): SiteContent {
   return {
     text: Object.fromEntries(Object.entries(textFields).map(([k, f]) => [k, { en: f.en, bn: f.bn }])) as Record<TextKey, Bi>,
-    features: { ...Object.fromEntries(Object.keys(featureFields).map(k => [k, true])), featuredProductSlug: "" } as FeatureSettings,
+    // Everything starts on, except the logo intro (it was off on the live site before this switch existed).
+    features: { ...Object.fromEntries(Object.keys(featureFields).map(k => [k, k !== "intro"])), featuredProductSlug: "" } as FeatureSettings,
     guides: defaultGuides, packages: defaultPackages, faq: defaultFaq, contact: emptyContact(), media: {},
   };
 }
