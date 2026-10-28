@@ -502,6 +502,24 @@ html:has([data-motion="paused"]) { scroll-behavior: auto; }
 .auth-links { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 24px; }
 .auth-links button { text-decoration: underline; padding: 4px; }
 .auth-card :focus-visible { outline: 3px solid #597e5b; outline-offset: 3px; }
+/* Password field with Show/Hide (src/components/password-field.tsx). Flex row, so it never overlaps at zoom or on a 320px phone. */
+.password-field { display: grid; gap: 10px; }
+.security-form .password-field { gap: .3rem; font-size: .85rem; font-weight: 600; }
+.password-input { display: flex; gap: 8px; align-items: stretch; }
+.password-input input { flex: 1 1 auto; }
+.password-toggle { flex: 0 0 auto; min-width: 64px; min-height: 44px; padding: 0 12px; border: 1px solid #869b89; border-radius: 6px; background: #fff; color: #142e22; font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer; }
+.password-toggle:hover { background: #eef3ee; }
+.password-toggle:focus-visible { outline: 3px solid #597e5b; outline-offset: 2px; }
+/* "Did you mean ...?" under the sign-up email field (src/components/auth-panel.tsx). */
+.auth-card .email-hint { padding: 12px; border: 1px solid #c49a4a; border-radius: 8px; background: #fbf5e8; }
+.auth-card .email-hint p { margin: 0 0 10px; }
+.email-hint-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.email-hint-actions button { min-height: 44px; padding: 0 14px; border: 1px solid #869b89; border-radius: 6px; background: #fff; color: #142e22; font: inherit; font-weight: 600; cursor: pointer; }
+.email-hint-actions button:first-child { background: #1f513c; border-color: #1f513c; color: #fff; }
+/* "Resend verification email" under the sign-in / sign-up form (src/components/auth-panel.tsx). */
+.resend-box { margin-top: 12px; }
+.resend-box button { min-height: 44px; padding: 0 14px; border: 1px solid #869b89; border-radius: 6px; background: #fff; color: #142e22; font: inherit; font-weight: 600; cursor: pointer; }
+.resend-box button:disabled { cursor: not-allowed; }
 
 /* Global Pulse: larger reviewed thumbnails and glass cards. */
 .pulse-section { background: radial-gradient(ellipse at 15% 100%, #50856a18, transparent 65%), var(--surface); }
