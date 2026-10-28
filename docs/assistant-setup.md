@@ -1,4 +1,5 @@
 # OANRO Assistant: setup, operations, hosting and rollback
+> Before pushing or going live, read `docs/assistant-go-live.md` (release notes, live steps, rollback, what is and is not verified).
 
 Status: implemented locally and **not deployed**. Nothing here has been pushed, merged or migrated in production.
 
