@@ -1,3 +1,6 @@
 {
-  "crons": [{ "path": "/api/cron/bag-reminders", "schedule": "0 5 * * *" }]
+  "crons": [
+    { "path": "/api/cron/bag-reminders", "schedule": "0 5 * * *" },
+    { "path": "/api/cron/assistant-cleanup", "schedule": "30 3 * * *" }
+  ]
 }

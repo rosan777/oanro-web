@@ -31,6 +31,7 @@ export function menuFor(access: Access, counts: AdminCounts): MenuGroup[] {
     { label: "Insights", items: [
       { href: "/admin/reports/sales", label: "Sales & stock", need: ["reports.read"] },
       { href: "/admin/reports/profit", label: "Profit", need: ["profit.read"] },
+      { href: "/admin/assistant", label: "Assistant", need: ["assistant.view", "assistant.edit"] },
       { href: "/admin/activity", label: "Activity log", need: ["audit.read"] },
     ] },
     { label: "Settings", items: [

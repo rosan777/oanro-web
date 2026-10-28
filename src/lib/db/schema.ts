@@ -354,3 +354,55 @@ export const customerNote = pgTable("customer_note", {
   id: text("id").primaryKey(), userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
   authorId: text("author_id").notNull().references(() => user.id), body: text("body").notNull(), createdAt: time("created_at").notNull().defaultNow(),
 }, t => [index("customer_note_user_idx").on(t.userId, t.createdAt)]);
+
+// ---- OANRO Assistant. Settings and FAQ are owner-edited; sessions/logs hold only sanitised text and expire after 30 days.
+export const assistantSetting = pgTable("assistant_setting", {
+  key: text("key").primaryKey(), value: text("value").notNull(),
+  updatedBy: text("updated_by").references(() => user.id), updatedAt: time("updated_at").notNull().defaultNow(),
+});
+export const assistantFaq = pgTable("assistant_faq", {
+  id: text("id").primaryKey(),
+  questionEn: text("question_en").notNull(), questionBn: text("question_bn").notNull().default(""),
+  answerEn: text("answer_en").notNull(), answerBn: text("answer_bn").notNull().default(""),
+  /** Extra words (any language) that should match this question, comma separated. */
+  keywords: text("keywords").notNull().default(""),
+  enabled: boolean("enabled").notNull().default(true),
+  updatedBy: text("updated_by").references(() => user.id),
+  createdAt: time("created_at").notNull().defaultNow(), updatedAt: time("updated_at").notNull().defaultNow(),
+});
+/** A random, unverified chat session. It is not a customer identity. */
+export const assistantSession = pgTable("assistant_session", {
+  id: text("id").primaryKey(), language: text("language").notNull().default("en"),
+  outcome: text("outcome").notNull().default("open"), messageCount: integer("message_count").notNull().default(0),
+  startedAt: time("started_at").notNull().defaultNow(), lastAt: time("last_at").notNull().defaultNow(),
+  expiresAt: time("expires_at").notNull(),
+}, t => [index("assistant_session_last_idx").on(t.lastAt), index("assistant_session_expiry_idx").on(t.expiresAt),
+  check("assistant_session_outcome_check", sql`${t.outcome} in ('open', 'answered', 'faq', 'unanswered', 'handoff', 'error')`)]);
+export const assistantLog = pgTable("assistant_log", {
+  id: text("id").primaryKey(), sessionId: text("session_id").notNull().references(() => assistantSession.id, { onDelete: "cascade" }),
+  role: text("role").notNull(), content: text("content").notNull(), language: text("language").notNull().default("en"),
+  source: text("source").notNull().default("ai"), provider: text("provider"), model: text("model"),
+  inputTokens: integer("input_tokens").notNull().default(0), outputTokens: integer("output_tokens").notNull().default(0),
+  createdAt: time("created_at").notNull().defaultNow(), expiresAt: time("expires_at").notNull(),
+}, t => [index("assistant_log_session_idx").on(t.sessionId, t.createdAt), index("assistant_log_expiry_idx").on(t.expiresAt),
+  check("assistant_log_role_check", sql`${t.role} in ('user', 'assistant')`),
+  check("assistant_log_source_check", sql`${t.source} in ('ai', 'faq', 'system')`)]);
+/** Questions the assistant could not answer reliably, for the team to review. Deleted with the logs. */
+export const assistantUnanswered = pgTable("assistant_unanswered", {
+  id: text("id").primaryKey(), sessionId: text("session_id").notNull().references(() => assistantSession.id, { onDelete: "cascade" }),
+  excerpt: text("excerpt").notNull(), reason: text("reason").notNull(), language: text("language").notNull().default("en"),
+  createdAt: time("created_at").notNull().defaultNow(), expiresAt: time("expires_at").notNull(),
+  resolvedAt: time("resolved_at"), resolvedBy: text("resolved_by").references(() => user.id),
+}, t => [index("assistant_unanswered_open_idx").on(t.resolvedAt, t.createdAt), index("assistant_unanswered_expiry_idx").on(t.expiresAt)]);
+/** Daily counters per provider (UTC day, which is when the free providers reset). Incremented atomically. */
+export const assistantUsage = pgTable("assistant_usage", {
+  day: text("day").notNull(), provider: text("provider").notNull(), kind: text("kind").notNull(),
+  requests: integer("requests").notNull().default(0), failures: integer("failures").notNull().default(0),
+  inputTokens: integer("input_tokens").notNull().default(0), outputTokens: integer("output_tokens").notNull().default(0),
+  audioSeconds: integer("audio_seconds").notNull().default(0), model: text("model"),
+}, t => [primaryKey({ columns: [t.day, t.provider, t.kind] }), check("assistant_usage_kind_check", sql`${t.kind} in ('chat', 'transcribe')`)]);
+/** One row per hand-off request so repeated submissions create a single lead. Holds a hash only, never contact details. */
+export const assistantHandoff = pgTable("assistant_handoff", {
+  dedupeKey: text("dedupe_key").primaryKey(), leadId: text("lead_id").notNull().references(() => lead.id, { onDelete: "cascade" }),
+  createdAt: time("created_at").notNull().defaultNow(),
+});

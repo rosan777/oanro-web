@@ -11,6 +11,9 @@ import "./globals.css";
 import "./v2.css";
 import { CustomCursor, FloatingHelp } from "@/components/site-extras";
 import { PrivacyCenter } from "@/components/privacy-center";
+import { AssistantLoader } from "@/components/assistant-loader";
+import { assistantEnvEnabled } from "@/lib/assistant/config";
+import { publicConfig } from "@/lib/assistant/server";
 import { storefrontCached } from "@/lib/storefront-cache";
 import { activeBanners, listBanners } from "@/lib/banner-store";
 import { contactLinks, getSiteContent } from "@/lib/site-content";
@@ -36,7 +39,7 @@ const bangla = Hind_Siliguri({ variable: "--font-bangla", subsets: ["bengali"], 
 // New brand fonts (I1 design): condensed headings, grotesk body, mono labels, handwritten signature.
 const display = Barlow_Condensed({ variable: "--font-display", subsets: ["latin"], weight: ["400", "500", "600"], display: "swap" });
 const body = Space_Grotesk({ variable: "--font-body", subsets: ["latin"], weight: ["400", "500", "700"], display: "swap" });
-const mono = JetBrains_Mono({ variable: "--font-label", subsets: ["latin"], weight: ["400", "500"], display: "swap", preload: false });
+const mono = JetBrains_Mono({ variable: "--font-label", subsets: ["latin"], weight: ["400", "500", "700"], display: "swap", preload: false });
 const script = Parisienne({ variable: "--font-script", subsets: ["latin"], weight: "400", display: "swap", preload: false });
 const accent = Instrument_Serif({ variable: "--font-accent", subsets: ["latin"], weight: "400", style: ["normal", "italic"], display: "swap", preload: false });
 export async function generateMetadata(): Promise<Metadata> {
@@ -56,6 +59,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const config = getSiteConfig();
   const { locale } = await requestLocale();
   const rules = await publicRules();
+  // Does nothing (no database read, nothing rendered) unless ASSISTANT_ENABLED=true is set for this environment.
+  const assistant = assistantEnvEnabled() ? await publicConfig().catch(() => null) : null;
   const content = await getSiteContent();
   // Owner messages for the top bar (cached with the storefront; dates compared now, so they switch on and off on time).
   const custom = activeBanners(process.env.DATABASE_URL ? await storefrontCached("banners", () => listBanners(catalogDb()))().catch(() => []) : [], locale);
@@ -63,5 +68,5 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // The admin Services switch hides services everywhere (rows, menu, search), on top of the environment switch.
   const site = { ...config, services: config.services && sections.services };
   const [stories, catalog, serviceList, lines, popular] = await Promise.all([sections["global-pulse"] ? getApprovedPulseStories() : [], config.products ? getStoreProducts() : [], site.services ? getStoreServices() : [], config.products ? getStoreCollections() : [], config.products && process.env.DATABASE_URL ? popularSlugs() : []]);
-  return <html lang={locale} data-scroll-behavior="smooth" className={`${sans.variable} ${bangla.variable} ${accent.variable} ${display.variable} ${body.variable} ${mono.variable} ${script.variable}`}><body><JsonLd data={organizationJsonLd(content.contact)} /><JsonLd data={websiteJsonLd()} /><LocaleProvider initialLocale={locale}><ProductsProvider products={catalog} services={serviceList} collections={lines} popular={popular}><Experience><SiteContentProvider value={content}><a className="skip-link" href="#main-content">Skip to content</a><div id="top" />{content.features.intro && <Intro />}<TrustBar rules={rules} locale={locale} live={storeLive()} services={site.services} custom={custom} /><Header config={site} />{children}<PlacedPulse stories={stories} where={content.contact.pulseWhere} /><Footer config={site} />{content.features.cursorRing && <CustomCursor />}<FloatingHelp whatsappUrl={contactLinks(content).whatsappButton} />{content.features.bottomBar && <BottomBar shop={config.products} />}{content.features.metaPixel && content.contact.pixelId && <MetaPixel pixelId={content.contact.pixelId} />}<PrivacyCenter gaId={process.env.NEXT_PUBLIC_GA_ID ?? ""} /></SiteContentProvider></Experience></ProductsProvider></LocaleProvider></body></html>;
+  return <html lang={locale} data-scroll-behavior="smooth" className={`${sans.variable} ${bangla.variable} ${accent.variable} ${display.variable} ${body.variable} ${mono.variable} ${script.variable}`}><body><JsonLd data={organizationJsonLd(content.contact)} /><JsonLd data={websiteJsonLd()} /><LocaleProvider initialLocale={locale}><ProductsProvider products={catalog} services={serviceList} collections={lines} popular={popular}><Experience><SiteContentProvider value={content}><a className="skip-link" href="#main-content">Skip to content</a><div id="top" />{content.features.intro && <Intro />}<TrustBar rules={rules} locale={locale} live={storeLive()} services={site.services} custom={custom} /><Header config={site} />{children}<PlacedPulse stories={stories} where={content.contact.pulseWhere} /><Footer config={site} />{content.features.cursorRing && <CustomCursor />}<FloatingHelp whatsappUrl={contactLinks(content).whatsappButton} />{content.features.bottomBar && <BottomBar shop={config.products} />}{content.features.metaPixel && content.contact.pixelId && <MetaPixel pixelId={content.contact.pixelId} />}{assistant?.enabled && <AssistantLoader config={assistant} />}<PrivacyCenter gaId={process.env.NEXT_PUBLIC_GA_ID ?? ""} /></SiteContentProvider></Experience></ProductsProvider></LocaleProvider></body></html>;
 }
