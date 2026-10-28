@@ -17,6 +17,7 @@ import { safeContactUrl } from "./sanitize";
 import { consume, defaultSettings, getSettings, hash, listFaq, newSessionToken, sessionIdFor, type AssistantSettings, type Faq } from "./store";
 import type { HumanHelp, PublicAssistantConfig, StoreMode } from "./types";
 import type { ToolContext } from "./tools";
+import { appSecret } from "../app-secret";
 
 export const noStore = { "Cache-Control": "no-store, private" };
 export const hasDatabase = () => Boolean(process.env.DATABASE_URL);
@@ -85,7 +86,7 @@ export async function limit(request: Request, name: string, max: number, windowM
 
 // ---- Session cookie: a random bearer value; the database only keeps its hash, and the browser script cannot read it ----
 const COOKIE = "oanro_asst", OK = "oanro_asst_ok";
-const secret = () => process.env.BETTER_AUTH_SECRET || "oanro-local";
+const secret = () => appSecret("oanro-local");
 const sign = (v: string) => createHmac("sha256", secret()).update(v).digest("base64url");
 export function readCookie(request: Request, name: string) {
   const m = (request.headers.get("cookie") ?? "").split(/;\s*/).find(c => c.startsWith(`${name}=`));

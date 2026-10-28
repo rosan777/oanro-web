@@ -1,13 +1,13 @@
 import { subscribe } from "@/lib/marketing";
 import { catalogDb } from "@/lib/store-products";
 import { underLimit } from "@/lib/rate-limit";
+import { originMatchesHost } from "@/lib/same-host";
 export const runtime = "nodejs";
 const noStore = { "Cache-Control": "no-store" };
 
 /** Footer sign-up: { email, locale, consent: true }. Same-site only, at most 5 sign-ups per visitor per hour. */
 export async function POST(request: Request) {
-  const origin = request.headers.get("origin"), host = request.headers.get("host");
-  if (!origin || !host || new URL(origin).host !== host) return Response.json({ error: "ORIGIN_FORBIDDEN" }, { status: 403, headers: noStore });
+  if (!originMatchesHost(request)) return Response.json({ error: "ORIGIN_FORBIDDEN" }, { status: 403, headers: noStore });
   const data = await request.json().catch(() => ({})) as { email?: unknown; locale?: unknown; consent?: unknown; website?: unknown };
   // "website" is a hidden field only bots fill in.
   if (data.website) return Response.json({ ok: true }, { headers: noStore });

@@ -3,6 +3,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { rateLimit } from "./db/schema";
 import type { CatalogDb } from "./product-store";
+import { appSecret } from "./app-secret";
 
 /** The visitor's IP as Vercel reports it (first entry of x-forwarded-for). */
 export function clientIp(request: Request) {
@@ -18,7 +19,7 @@ export function clientIp(request: Request) {
 export async function underLimit(db: CatalogDb, request: Request, name: string, max: number, windowMs: number) {
   const ip = clientIp(request);
   if (!ip) return true;
-  const hash = createHash("sha256").update(`${process.env.BETTER_AUTH_SECRET ?? "oanro"}:oanro-limit:${ip}`).digest("hex").slice(0, 32);
+  const hash = createHash("sha256").update(`${appSecret("oanro")}:oanro-limit:${ip}`).digest("hex").slice(0, 32);
   const now = Date.now(), windowStart = now - windowMs;
   try {
     const [row] = await db.insert(rateLimit).values({ id: randomUUID(), key: `oanro:${name}:${hash}`, count: 1, lastRequest: now })

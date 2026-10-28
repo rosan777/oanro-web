@@ -6,11 +6,12 @@ import { createLead } from "../lead-store";
 import type { LeadInput } from "../product-input";
 import { ProductStoreError, type CatalogDb } from "../product-store";
 import type { Lang, ProviderId } from "./types";
+import { appSecret } from "../app-secret";
 
 const DAY = 86_400_000;
 export const RETENTION_DAYS = 30;
 export const utcDay = (d = new Date()) => d.toISOString().slice(0, 10);
-export const hash = (value: string, salt = "assistant") => createHash("sha256").update(`${process.env.BETTER_AUTH_SECRET ?? "oanro"}:${salt}:${value}`).digest("hex");
+export const hash = (value: string, salt = "assistant") => createHash("sha256").update(`${appSecret("oanro")}:${salt}:${value}`).digest("hex");
 
 // ---- Settings (owner-edited) -------------------------------------------------
 export type AssistantSettings = { enabled: boolean; voice: boolean; tracking: boolean; tone: string; handoffNote: string };
