@@ -4,8 +4,8 @@ const env = process.env;
 const bool = (v: string | undefined, d: boolean) => v === undefined || v === "" ? d : v === "true" || v === "1";
 const int = (v: string | undefined, d: number, min: number, max: number) => { const n = Number(v); return Number.isInteger(n) && n >= min && n <= max ? n : d; };
 
-/** Master switch (environment). Off unless ASSISTANT_ENABLED=true, so nothing goes live by accident before the migration is applied and the owner opts in. Admin switches can only turn things off further. */
-export const assistantEnvEnabled = () => bool(env.ASSISTANT_ENABLED, false);
+/** Optional emergency stop. Normally the saved admin switch controls visibility; an explicit false still disables this deployment. */
+export const assistantEnvEnabled = () => bool(env.ASSISTANT_ENABLED, true);
 export const turnstile = () => ({ secret: env.TURNSTILE_SECRET_KEY ?? "", siteKey: env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "" });
 
 export type ProviderSpec = {

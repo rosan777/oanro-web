@@ -14,6 +14,7 @@ import { bengaliShare, detectLanguage, speechLang } from "../src/lib/assistant/l
 import { detectIntent, detectSmallTalk, matchFaq, vagueProductRequest, wantsBrowse } from "../src/lib/assistant/match";
 import { buildSystemPrompt } from "../src/lib/assistant/prompt";
 import { chat, type EngineDeps } from "../src/lib/assistant/engine";
+import { assistantEnvEnabled } from "../src/lib/assistant/config";
 import { resetHealth } from "../src/lib/assistant/providers";
 import { allowedAudioType, transcribeAudio, TranscribeError } from "../src/lib/assistant/transcribe";
 import { trackGate } from "../src/lib/assistant/tracking";
@@ -248,7 +249,7 @@ test("settings, FAQ and unanswered resolution are audited; invalid input is reje
   try {
     assert.deepEqual(await getSettings(db), defaultSettings);
     await saveSettings(db, "owner-1", { voice: false, tone: "warm <b>and</b> brief" });
-    const s = await getSettings(db); assert.equal(s.voice, false); assert.equal(s.enabled, true); assert.ok(!/[<>]/.test(s.tone));
+    const s = await getSettings(db); assert.equal(s.voice, false); assert.equal(s.enabled, false); assert.ok(!/[<>]/.test(s.tone));
     await assert.rejects(saveSettings(db, "owner-1", { enabled: "yes" as unknown as boolean }), /INVALID_SETTING/); await assert.rejects(saveSettings(db, "owner-1", { tone: "x".repeat(301) }), /INVALID_SETTING/);
     const id = await saveFaq(db, "owner-1", parseFaq({ questionEn: "Do you ship abroad?", answerEn: "Not yet.", keywords: "international" }));
     assert.equal((await listFaq(db)).length, 1); await saveFaq(db, "owner-1", parseFaq({ questionEn: "Do you ship abroad?", answerEn: "Soon.", enabled: false }), id);
@@ -307,7 +308,7 @@ test("tools return only current public data: no drafts or hidden items, exact pr
 });
 
 function depsFor(base: Awaited<ReturnType<typeof catalogDeps>>, models: Record<string, MockLanguageModelV4 | null>, over: Partial<EngineDeps> = {}): EngineDeps {
-  return { db: base.db, tools: base.tools, faq: [], settings: defaultSettings, human: { contactUrl: "/contact", whatsapp: "", messenger: "", email: "" }, providers: ["groq", "cloudflare"],
+  return { db: base.db, tools: base.tools, faq: [], settings: { ...defaultSettings, enabled: true }, human: { contactUrl: "/contact", whatsapp: "", messenger: "", email: "" }, providers: ["groq", "cloudflare"],
     model: id => models[id] ? { model: models[id]!, modelId: `${id}-model` } : null, caps: () => ({ requests: 100, tokens: 0 }), personalisation: false, ...over };
 }
 let n = 0; const req = (message: string, over: Record<string, unknown> = {}) => ({ sessionId: "sess-1", requestId: `00000000-0000-4000-8000-${String(++n).padStart(12, "0")}`, message, locale: "en" as const, recent: [] as string[], ...over });
@@ -384,7 +385,7 @@ test("chat: FAQ and rule answers need no AI call; human and tracking requests ar
     const bnP = await chat(noAi, req("ডেলিভারি কতদিন লাগে", { locale: "bn" })); assert.ok(bnP.text.includes("১–৩"));
     const h = await chat(d, req("I want to talk to a person")); assert.equal(h.humanHelp, true);
     const t = await chat(d, req("where is my order")); assert.equal(t.trackingForm, true);
-    const tOff = await chat(depsFor(base, { groq: model }, { settings: { ...defaultSettings, tracking: false } }), req("track my order")); assert.equal(tOff.trackingForm, false);
+    const tOff = await chat(depsFor(base, { groq: model }, { settings: { ...defaultSettings, enabled: true, tracking: false } }), req("track my order")); assert.equal(tOff.trackingForm, false);
     const s = await chat(d, req("my card number is 4111111111111111 cvv 123")); assert.ok(/removed/.test(s.text)); assert.equal(calls, 0, "none of these used the model");
     const dump = JSON.stringify(await base.db.select().from(schema.assistantLog)); assert.ok(!dump.includes("4111111111111111"));
   } finally { await base.pg.close(); }
@@ -510,4 +511,31 @@ test("a vague product request gets a question, not the whole catalog; a specific
     const r = await chat(depsFor(base, { groq: null, cloudflare: null }), req("I want to find a product")); assert.equal(r.cards.length, 0); assert.ok(/What are you looking for/.test(r.text));
     const specific = await chat(depsFor(base, { groq: null, cloudflare: null }), req("looking for a necklace")); assert.equal(specific.cards[0]?.slug, "gold-necklace");
   } finally { await base.pg.close(); }
+});
+
+
+test("admin controls the bot without hosting setup; explicit emergency stop is respected", () => {
+  const previous = process.env.ASSISTANT_ENABLED;
+  try {
+    delete process.env.ASSISTANT_ENABLED; assert.equal(assistantEnvEnabled(), true);
+    process.env.ASSISTANT_ENABLED = "false"; assert.equal(assistantEnvEnabled(), false);
+    process.env.ASSISTANT_ENABLED = "true"; assert.equal(assistantEnvEnabled(), true);
+    process.env.ASSISTANT_ENABLED = "invalid"; assert.equal(assistantEnvEnabled(), false);
+  } finally {
+    if (previous === undefined) delete process.env.ASSISTANT_ENABLED;
+    else process.env.ASSISTANT_ENABLED = previous;
+  }
+});
+
+test("bot starts off and the audited admin switch persists on and off", async () => {
+  const { pg, db } = await freshDb();
+  try {
+    assert.equal((await getSettings(db)).enabled, false);
+    await saveSettings(db, "owner-1", { enabled: true });
+    assert.equal((await getSettings(db)).enabled, true);
+    await saveSettings(db, "owner-1", { enabled: false });
+    assert.equal((await getSettings(db)).enabled, false);
+    const actions = await db.select().from(schema.auditEvent);
+    assert.equal(actions.filter(a => a.action === "assistant.settings").length, 2);
+  } finally { await pg.close(); }
 });

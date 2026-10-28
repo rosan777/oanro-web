@@ -59,7 +59,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const config = getSiteConfig();
   const { locale } = await requestLocale();
   const rules = await publicRules();
-  // Does nothing (no database read, nothing rendered) unless ASSISTANT_ENABLED=true is set for this environment.
+  // The saved admin switch controls visibility. An explicit environment stop skips the database read.
   const assistant = assistantEnvEnabled() ? await publicConfig().catch(() => null) : null;
   const content = await getSiteContent();
   // Owner messages for the top bar (cached with the storefront; dates compared now, so they switch on and off on time).

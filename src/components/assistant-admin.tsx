@@ -1,5 +1,6 @@
 "use client";
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 type Settings = { enabled: boolean; voice: boolean; tracking: boolean; tone: string; handoffNote: string };
 type Faq = { id: string; questionEn: string; questionBn: string; answerEn: string; answerBn: string; keywords: string; enabled: boolean };
@@ -7,17 +8,21 @@ const send = (url: string, method: string, body: object) => fetch(url, { method,
 
 /** Switches and tone. The server checks the permission again; hiding this form is not the protection. */
 export function AssistantSettingsForm({ initial, envEnabled, aiConfigured, transcription }: { initial: Settings; envEnabled: boolean; aiConfigured: boolean; transcription: boolean }) {
+  const router = useRouter();
+  const [saved, setSaved] = useState(initial.enabled);
   const [s, setS] = useState(initial); const [msg, setMsg] = useState(""); const [busy, setBusy] = useState(false);
   async function save(e: FormEvent) {
     e.preventDefault(); setBusy(true); setMsg("");
     const r = await send("/api/admin/assistant/settings", "PUT", s); setBusy(false);
-    setMsg(r.ok ? "Saved. It can take up to a minute to reach every visitor." : "Could not save.");
+    if (r.ok) { setSaved(s.enabled); router.refresh(); }
+    setMsg(r.ok ? "Saved. Visitors see the change on their next page load." : "Could not save. Your previous settings are still active.");
   }
   const sw = (key: "enabled" | "voice" | "tracking", label: string, hint: string) => <label className="disc-check" style={{ alignItems: "flex-start" }}><input type="checkbox" checked={s[key]} onChange={e => setS({ ...s, [key]: e.target.checked })} /><span><strong>{label}</strong><br /><small>{hint}</small></span></label>;
   return <form className="disc-form" onSubmit={save}>
-    {!envEnabled && <p className="small-note wide" role="status"><strong>Not live on this server:</strong> the environment switch <code>ASSISTANT_ENABLED</code> is not <code>true</code>, so visitors cannot see the assistant whatever you choose here.</p>}
+    <p className="small-note wide" role="status"><strong>JUNO: {envEnabled && saved ? "On" : "Off"}</strong> · {envEnabled ? "Use the switch below and save to show or hide the bot." : "Stopped by the hosting emergency switch."}</p>
+    {!envEnabled && <p className="small-note wide" role="status"><strong>Not live on this server:</strong> the hosting emergency switch <code>ASSISTANT_ENABLED</code> is set to a disabled value, so visitors cannot see the assistant whatever you choose here.</p>}
     {!aiConfigured && <p className="small-note wide">No AI provider key is configured. The assistant still answers FAQ and rule questions, searches products and offers human help, but cannot write AI answers.</p>}
-    {sw("enabled", "Assistant on", "Shows the mascot and answers questions. Off: the server refuses every chat request.")}
+    {sw("enabled", "Show JUNO on the website / বট চালু", "On: visitors can open JUNO. Off: hides the bot and stops new chat requests. Save settings to apply.")}
     {sw("voice", "Voice on", transcription ? "Dictation and conversation buttons, and Groq Whisper transcription." : "Buttons are shown; Groq Whisper is not configured, so Auto language falls back to browser recognition.")}
     {sw("tracking", "Order tracking form on", "Lets visitors look up an order with its number and phone, inside the assistant.")}
     <label className="wide">Tone (style only)<input value={s.tone} maxLength={300} onChange={e => setS({ ...s, tone: e.target.value })} placeholder="Warm, short and practical" /></label>

@@ -1,3 +1,5 @@
+> Update, 29 October 2026: normal on/off control now lives in Admin → JUNO bot. See [current launch and control instructions](assistant-live-fix.md); the environment-only instructions below describe the previous release.
+
 # OANRO Assistant ("JUNO"): release notes and go-live guide
 
 Written 2026-10-28 after the final check. Read this before pushing. It covers **everything** in the 9 commits that are ahead of GitHub `main`, not only the assistant.
