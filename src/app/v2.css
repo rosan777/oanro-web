@@ -63,6 +63,12 @@ html[lang="bn"] .v2-h1, html[lang="bn"] .v2-h2, html[lang="bn"] .v2-h3 { font-fa
 .v2-planet { position: absolute; left: 50%; bottom: -1620px; width: 2400px; height: 1800px; margin-left: -1200px; border-radius: 50%; background: var(--planet); animation: v2-rise 2.6s cubic-bezier(.2,.7,.1,1) both; }
 .v2-planet::after { content: ""; position: absolute; inset: 0; border-radius: 50%; animation: v2-glow 6s ease-in-out infinite; }
 .v2-track { animation: v2-track 1.8s cubic-bezier(.2,.7,.2,1) 0.4s both; }
+/* Hero headline. The visible text "tracks in" (its letter-spacing shrinks), which re-wraps it and used to push the whole page down
+   (a layout shift of 45-91px). The box is now sized by an invisible copy of the headline at its final spacing, and the animated text
+   sits on top of it, so the animation no longer changes the layout. Same look, no jump. */
+.v2-track-box { position: relative; display: block; justify-self: stretch; }
+.v2-track-box::before { content: attr(data-text); display: block; visibility: hidden; letter-spacing: 0.005em; }
+.v2-track-box > .v2-track { position: absolute; inset: 0 0 auto 0; pointer-events: none; }
 .v2-fade { animation: v2-fade 0.9s ease both; }
 @keyframes v2-rise { from { transform: translateY(40%); } to { transform: none; } }
 @keyframes v2-glow { 0%, 100% { box-shadow: 0 -15px 110px rgb(61 220 151 / 0.38); } 50% { box-shadow: 0 -15px 160px rgb(61 220 151 / 0.6); } }
