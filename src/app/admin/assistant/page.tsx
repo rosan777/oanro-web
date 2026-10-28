@@ -23,7 +23,9 @@ export default async function AssistantAdminPage({ searchParams }: { searchParam
   const filters = { q: one(sp.q), language: one(sp.language), outcome: one(sp.outcome), provider: one(sp.provider), from: one(sp.from), to: one(sp.to), page: Number(one(sp.page)) || 0 };
   const sessionId = /^[a-f0-9]{32}$/.test(one(sp.session)) ? one(sp.session) : "";
 
-  const [settings, faq, unanswered, usage] = await Promise.all([canEdit ? getSettings(db) : null, canEdit ? listFaq(db) : [], listUnanswered(db, false), usageSince(db, 7)]);
+  const settings = await getSettings(db).catch(() => null);
+  if (!settings) return <main id="main-content" className="container auth-page"><h1>JUNO bot</h1><p role="alert">The assistant database is not ready or could not be reached. JUNO stays off until this is fixed. Apply the assistant database migration and reload this page. Existing shop pages remain available.</p></main>;
+  const [faq, unanswered, usage] = await Promise.all([canEdit ? listFaq(db) : [], listUnanswered(db, false), usageSince(db, 7)]);
   const list = canView ? await listSessions(db, { q: filters.q, language: filters.language || undefined, outcome: filters.outcome || undefined, provider: filters.provider || undefined,
     from: dayStart(filters.from) ?? undefined, to: filters.to ? new Date((dayStart(filters.to)?.getTime() ?? 0) + 864e5) : undefined, page: filters.page }) : null;
   const detail = canView && sessionId ? await getSessionLogs(db, sessionId) : null;
@@ -38,6 +40,10 @@ export default async function AssistantAdminPage({ searchParams }: { searchParam
   return <main id="main-content" className="container auth-page"><h1>Assistant</h1>
     <p className="small-note">The shopping assistant for visitors. Conversations are stored sanitised for 30 days, then deleted automatically. Session IDs are random and are <strong>not</strong> verified customer identities; contact details left through “Ask us to contact me” are in <Link href="/admin/leads">Inquiries</Link>. Times are Asia/Dhaka.</p>
 
+    {canEdit && settings && <><h2 style={{ fontSize: "1.3rem", marginTop: "2rem" }}>Switches and tone</h2>
+      <AssistantSettingsForm initial={settings} envEnabled={assistantEnvEnabled()} aiConfigured={providerConfigured("groq") || providerConfigured("cloudflare")} transcription={Boolean(whisper().key)} />
+    </>}
+
     <h2 style={{ fontSize: "1.3rem", marginTop: "1.5rem" }}>Usage today</h2>
     <p className="small-note">Counted by OANRO per UTC day (it starts at 6:00 AM Dhaka). Providers do not tell us how much free quota is left; their own console is the source of truth. Token counts are as reported by the provider; Cloudflare neurons are not reported, so only requests are capped for it.</p>
     <table className="disc-table"><thead><tr><th>Service</th><th>Model</th><th>Requests</th><th>Tokens in / out</th><th>Audio seconds</th><th>Failures</th><th>Status</th></tr></thead><tbody>
@@ -46,12 +52,11 @@ export default async function AssistantAdminPage({ searchParams }: { searchParam
           <td>{!providerConfigured(p) ? "No key set" : !isHealthy(p) ? `Cooling down until ${when(new Date(cd))} (this server)` : "Ready"}</td></tr>; })}
       <tr><td><strong>Groq Whisper (speech to text)</strong><small>Free limits listed by Groq: 2,000 requests and 28,800 audio seconds per day.</small></td><td>{whisper().model}</td><td>{stat("groq", "transcribe")?.requests ?? 0} / {Number(process.env.ASSISTANT_TRANSCRIBE_DAILY_REQUESTS) || 1500}</td><td>—</td><td>{stat("groq", "transcribe")?.audioSeconds ?? 0} / {limits.audioDailySeconds}</td><td>{stat("groq", "transcribe")?.failures ?? 0}</td><td>{whisper().key ? "Ready" : "No key set"}</td></tr>
     </tbody></table>
-    {!assistantEnvEnabled() && <p className="small-note"><strong>ASSISTANT_ENABLED is not true on this server</strong>, so visitors do not see the assistant yet.</p>}
+    {!assistantEnvEnabled() && <p className="small-note"><strong>The hosting emergency stop is active</strong>, so visitors do not see the assistant yet.</p>}
     <details><summary>Last 7 days</summary><table className="disc-table"><thead><tr><th>Day (UTC)</th><th>Service</th><th>Kind</th><th>Requests</th><th>Tokens in/out</th><th>Audio s</th><th>Failures</th></tr></thead><tbody>
       {usage.map(u => <tr key={`${u.day}${u.provider}${u.kind}`}><td>{u.day}</td><td>{u.provider}</td><td>{u.kind}</td><td>{u.requests}</td><td>{u.inputTokens}/{u.outputTokens}</td><td>{u.audioSeconds}</td><td>{u.failures}</td></tr>)}</tbody></table></details>
 
-    {canEdit && settings && <><h2 style={{ fontSize: "1.3rem", marginTop: "2rem" }}>Switches and tone</h2>
-      <AssistantSettingsForm initial={settings} envEnabled={assistantEnvEnabled()} aiConfigured={providerConfigured("groq") || providerConfigured("cloudflare")} transcription={Boolean(whisper().key)} />
+    {canEdit && settings && <>
       <h2 style={{ fontSize: "1.3rem", marginTop: "2rem" }}>Answers without AI (FAQ)</h2>
       <FaqEditor initial={faq.map(f => ({ id: f.id, questionEn: f.questionEn, questionBn: f.questionBn, answerEn: f.answerEn, answerBn: f.answerBn, keywords: f.keywords, enabled: f.enabled }))} /></>}
 

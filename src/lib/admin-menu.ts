@@ -24,6 +24,7 @@ export function menuFor(access: Access, counts: AdminCounts): MenuGroup[] {
       { href: "/admin/pulse", label: "Global Pulse", need: ["pulse.manage", "site.manage"] },
     ] },
     { label: "Website", items: [
+      { href: "/admin/assistant", label: "JUNO bot · On / Off", need: ["assistant.view", "assistant.edit"] },
       { href: "/admin/content", label: "Website content", need: ["content.manage"] },
       { href: "/admin/company-profile", label: "Company profile", need: ["content.manage"] },
       { href: "/admin/banners", label: "Announcement bar", need: ["banners.manage"] },
@@ -31,7 +32,6 @@ export function menuFor(access: Access, counts: AdminCounts): MenuGroup[] {
     { label: "Insights", items: [
       { href: "/admin/reports/sales", label: "Sales & stock", need: ["reports.read"] },
       { href: "/admin/reports/profit", label: "Profit", need: ["profit.read"] },
-      { href: "/admin/assistant", label: "Assistant", need: ["assistant.view", "assistant.edit"] },
       { href: "/admin/activity", label: "Activity log", need: ["audit.read"] },
     ] },
     { label: "Settings", items: [

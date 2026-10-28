@@ -15,12 +15,12 @@ export const hash = (value: string, salt = "assistant") => createHash("sha256").
 
 // ---- Settings (owner-edited) -------------------------------------------------
 export type AssistantSettings = { enabled: boolean; voice: boolean; tracking: boolean; tone: string; handoffNote: string };
-export const defaultSettings: AssistantSettings = { enabled: true, voice: true, tracking: true, tone: "", handoffNote: "" };
+export const defaultSettings: AssistantSettings = { enabled: false, voice: true, tracking: true, tone: "", handoffNote: "" };
 export async function getSettings(db: CatalogDb): Promise<AssistantSettings> {
   const rows = await db.select().from(assistantSetting);
   const v = (k: string) => rows.find(r => r.key === k)?.value;
   const flag = (k: keyof AssistantSettings, d: boolean) => v(k) === undefined ? d : v(k) === "true";
-  return { enabled: flag("enabled", true), voice: flag("voice", true), tracking: flag("tracking", true), tone: (v("tone") ?? "").slice(0, 300), handoffNote: (v("handoffNote") ?? "").slice(0, 300) };
+  return { enabled: flag("enabled", defaultSettings.enabled), voice: flag("voice", true), tracking: flag("tracking", true), tone: (v("tone") ?? "").slice(0, 300), handoffNote: (v("handoffNote") ?? "").slice(0, 300) };
 }
 export async function saveSettings(db: CatalogDb, actorId: string, patch: Partial<AssistantSettings>) {
   const entries: [string, string][] = [];
