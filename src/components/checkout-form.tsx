@@ -78,12 +78,13 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
   const [error, setError] = useState("");
   // Not enough stock: which product, how many are left, and how many the customer asked for (all sizes).
   const [shortage, setShortage] = useState<{ slug: string; size: string | null; color: string | null; name: string; available: number; wanted: number } | null>(null);
-  const [done, setDone] = useState<{ code: string } | null>(null);
+  // The cash amount is kept with the finished order: the bag is emptied on success, which would otherwise turn "Pay ৳599 in cash" into "Pay ৳0".
+  const [done, setDone] = useState<{ code: string; payLater: number } | null>(null);
   const [copied, setCopied] = useState(false);
 
   if (done) return <section className="checkout-done" role="status"><CheckCircle2 size={48} aria-hidden="true" /><h1>{bn ? "অর্ডার জমা হয়েছে" : "Order received"}</h1>
     <p>{bn ? `অর্ডার নম্বর ${done.code}। আমরা আপনার পেমেন্ট যাচাই করছি। নিশ্চিত হলে আপনার অ্যাকাউন্টে "পেমেন্ট সফল" দেখাবে।` : `Order ${done.code}. We're checking your payment. Once confirmed, your account will show "Payment successful".`}</p>
-    {cod && <p><strong>{bn ? `পণ্য হাতে পেলে ডেলিভারি ম্যানকে নগদ ${formatPrice(payLater, locale)} দেবেন।` : `Pay ${formatPrice(payLater, locale)} in cash to the delivery person when you receive the order.`}</strong></p>}
+    {cod && <p><strong>{bn ? `পণ্য হাতে পেলে ডেলিভারি ম্যানকে নগদ ${formatPrice(done.payLater, locale)} দেবেন।` : `Pay ${formatPrice(done.payLater, locale)} in cash to the delivery person when you receive the order.`}</strong></p>}
     <Link className="button brand-button" href="/account">{bn ? "আমার অর্ডার দেখুন" : "View my orders"}</Link></section>;
   if (!lines.length) return <section className="checkout-empty"><h1>{bn ? "আপনার ব্যাগ খালি" : "Your bag is empty"}</h1><Link className="button brand-button" href="/#products">{bn ? "পণ্য দেখুন" : "Browse products"}</Link></section>;
   if (!methods.length) return <section className="checkout-empty"><h1>{bn ? "অনলাইন পেমেন্ট শীঘ্রই আসছে" : "Online payment is coming soon"}</h1><p>{bn ? "এই মুহূর্তে অর্ডার নেওয়া যাচ্ছে না। পণ্য সম্পর্কে জানতে আমাদের মেসেজ করুন।" : "Orders can't be placed right now. Message us about any product."}</p><Link className="button" href="/contact">{bn ? "যোগাযোগ" : "Contact us"}</Link></section>;
@@ -108,7 +109,7 @@ export function CheckoutForm({ numbers, rules, name, phone, address, verified }:
         setShortage({ slug: result.slug, size: exact ? result.size! : null, color: exact ? result.color! : null, name: p ? `${bn && p.bn ? p.bn.name : p.name}${option ? ` (${option})` : ""}` : result.slug, available: result.available, wanted: mine.reduce((n, { item }) => n + item.quantity, 0) });
         setError(""); return;
       }
-      if (response.ok && result.code) { track("Purchase", { value: subtotal - off + fee, content_ids: lines.map(l => l.item.slug), content_type: "product", num_items: lines.reduce((n, l) => n + l.item.quantity, 0) }, result.code); clearCart(); setDone({ code: result.code }); router.refresh(); window.scrollTo({ top: 0 }); return; }
+      if (response.ok && result.code) { track("Purchase", { value: subtotal - off + fee, content_ids: lines.map(l => l.item.slug), content_type: "product", num_items: lines.reduce((n, l) => n + l.item.quantity, 0) }, result.code); clearCart(); setDone({ code: result.code, payLater }); router.refresh(); window.scrollTo({ top: 0 }); return; }
       setError(result.field ? fieldText(bn)[result.field] ?? (bn ? "তথ্য ঠিক করে দিন।" : "Please check the form.") : errorText(bn)[result.error ?? ""] ?? (bn ? "অর্ডার জমা হয়নি। আবার চেষ্টা করুন।" : "The order couldn't be placed. Please try again."));
     } catch { setError(bn ? "সার্ভারে পৌঁছানো যায়নি। আবার চেষ্টা করুন।" : "Couldn't reach the server. Please try again."); }
     finally { setBusy(false); }
