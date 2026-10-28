@@ -187,7 +187,7 @@ export function HeroBrand() {
     <span className="holographic-mark v2-holo v2-fade" aria-hidden="true"><Image src="/logo.svg" alt="" width={56} height={56} priority /></span>
     <h1 id="hero-title" className="v2-hero-h1">
       <span className="v2-eyebrow v2-fade">{heroEyebrow}</span>
-      <span className="v2-h1 v2-track">{heroHeadline}</span>
+      <span className="v2-h1 v2-track-box" data-text={heroHeadline}><span className="v2-track">{heroHeadline}</span></span>
     </h1>
     <p className="v2-letters-line v2-fade" aria-hidden="true">
       <span className="v2-mini-letters">{"OANRO".split("").map((ch, i) => <span key={i} className={i === active ? "is-active" : undefined}>{ch}</span>)}</span>
