@@ -15,7 +15,14 @@ export const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
 /** Same-origin, signed-in, verified user with the required permission; otherwise null (deny by default). */
 export async function authorize(request: Request, permission: Permission | Permission[]): Promise<{ userId: string; access: Access } | null> {
   if (!authConfigured()) return null;
-  if (request.headers.get("origin") !== new URL(process.env.BETTER_AUTH_URL!).origin) return null;
+  const origin = request.headers.get("origin");
+  if (origin !== new URL(process.env.BETTER_AUTH_URL!).origin) {
+    // Browsers send no Origin header on same-origin GET requests (the CSV export link, the order labels panel), but they do label them
+    // with Sec-Fetch-Site. Read-only requests from this site (or typed in directly) are accepted; anything that changes data, or names another origin, is not.
+    const readOnly = request.method === "GET" || request.method === "HEAD";
+    const site = request.headers.get("sec-fetch-site");
+    if (!(origin === null && readOnly && (site === "same-origin" || site === "none"))) return null;
+  }
   const session = await getAuth().api.getSession({ headers: request.headers });
   if (!session?.user.emailVerified) return null;
   const db = catalogDb();
