@@ -28,6 +28,7 @@ export function LeadInbox({ initial, people, canManage }: { initial: InboxLead[]
         <dl className="lead-details">
           {l.phone && <><dt>Phone</dt><dd><a href={`tel:${l.phone}`}>{l.phone}</a>{l.preferredContact === "whatsapp" && <> · <a href={`https://wa.me/${l.phone.replace(/\D/g, "").replace(/^0/, "880")}`} target="_blank" rel="noreferrer">WhatsApp</a></>}</dd></>}
           {l.email && <><dt>Email</dt><dd><a href={`mailto:${l.email}`}>{l.email}</a></dd></>}
+          {l.subject.startsWith("Shop assistant") && <><dt>Source</dt><dd><strong>Shop assistant chat</strong>{l.subject.includes(" · ") ? <> · page <a href={l.subject.split(" · ")[1]} target="_blank" rel="noreferrer">{l.subject.split(" · ")[1]}</a></> : ""}</dd></>}
           <dt>Prefers</dt><dd>{l.preferredContact}</dd>
           {l.productSlug && <><dt>Product</dt><dd><a href={`/products/${l.productSlug}`} target="_blank" rel="noreferrer">{l.subject}</a>{l.size ? ` · ${l.size}` : ""}{l.quantity ? ` · qty ${l.quantity}` : ""}</dd></>}
           {l.message && <><dt>Message</dt><dd className="lead-message">{l.message}</dd></>}

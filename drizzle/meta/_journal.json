@@ -127,6 +127,13 @@
       "when": 1792689388206,
       "tag": "0017_cloudy_martin_li",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793119999154,
+      "tag": "0018_assistant",
+      "breakpoints": true
     }
   ]
 }

@@ -7,3 +7,14 @@ out/
 test-results/
 
 next-env.d.ts
+
+scripts/dev-db/data/
+scripts/dev-db/node_modules/
+.next-local/
+.next-build/
+.baseline-wt/
+
+# Local-only helpers for testing the assistant on a throwaway database (never pushed)
+.claude/
+scripts/dev-db/
+scripts/dev-migrate.ts

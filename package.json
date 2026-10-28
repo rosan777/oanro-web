@@ -18,7 +18,10 @@
     "seed:jewelry-images": "node --import tsx scripts/seed-jewelry-images.ts"
   },
   "dependencies": {
+    "@ai-sdk/groq": "^4.0.71",
+    "@ai-sdk/openai-compatible": "^3.0.79",
     "@next/env": "^16.4.1",
+    "ai": "^7.0.154",
     "better-auth": "1.7.7",
     "drizzle-orm": "0.45.4",
     "lucide-react": "^0.468.0",
@@ -29,7 +32,8 @@
     "react-dom": "19.3.0",
     "server-only": "0.0.1",
     "simple-icons": "^13.21.0",
-    "three": "^0.180.0"
+    "three": "^0.180.0",
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.9",

@@ -44,3 +44,9 @@ export function rememberProduct(slug: string) {
     localStorage.setItem(RECENT_KEY, JSON.stringify([slug, ...list].slice(0, 20)));
   } catch {}
 }
+
+/** Product pages this visitor opened, only while they allow Personalisation (checked here, on every read, and again by the server). */
+export function recentProducts(): string[] {
+  if (!allows("personalisation")) return [];
+  try { const list = JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]"); return Array.isArray(list) ? list.filter((s): s is string => typeof s === "string" && /^[a-z0-9-]{1,60}$/.test(s)).slice(0, 5) : []; } catch { return []; }
+}
