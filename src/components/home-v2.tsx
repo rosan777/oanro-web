@@ -67,7 +67,7 @@ export function ShopTabs({ showServices, chips }: { showServices: boolean; chips
         {current.lines.map(l => <button key={l.collection.id} type="button" aria-pressed={sub === l.collection.id} onClick={() => setSub(l.collection.id)}>{name(l)}</button>)}
       </div>}
       {single && !isTech && <p className="v2-shop-intro">{bn && single.collection.bn ? single.collection.bn.description : single.collection.description}</p>}
-      <div className="v2-grid" key={`${current.id}-${sub}`}>
+      <div className={`v2-grid${isTech ? "" : " v2-grid-products"}`} key={`${current.id}-${sub}`}>
         {!isTech ? items.map(p => {
           const pname = bn && p.bn ? p.bn.name : p.name; const out = p.inStock === false;
           // Second photo for the hover reveal: the first colour photo that differs from the main one (real photos only).

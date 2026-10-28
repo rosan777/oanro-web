@@ -11,7 +11,7 @@ export const permissionInfo: Record<Permission, { label: string; detail: string 
   "services.manage": { label: "Services", detail: "Add, edit and hide technology services." },
   "campaigns.manage": { label: "Seasonal campaigns", detail: "Create campaigns, schedule them and attach products." },
   "pulse.manage": { label: "Global Pulse", detail: "Publish and edit news stories." },
-  "site.manage": { label: "Site switches", detail: "Turn Services and Global Pulse on or off." },
+  "site.manage": { label: "Site switches", detail: "Turn Services, Global Pulse and the back-to-top button on or off." },
   "leads.read": { label: "View inquiries", detail: "See customer inquiries, including names and phone numbers." },
   "leads.manage": { label: "Handle inquiries", detail: "Change inquiry status, assign them and add notes." },
   "orders.read": { label: "View orders", detail: "See orders, customer names, phone numbers, addresses and payment details." },

@@ -1,12 +1,13 @@
 "use client";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { ArrowUp, MessageSquareX, Square, UserRound } from "lucide-react";
+import { ArrowUp, MessageSquareX, UserRound } from "lucide-react";
 import { recentProducts } from "@/lib/consent";
 import { detectLanguage } from "@/lib/assistant/language";
 import { messages } from "@/lib/assistant/messages";
 import type { ChatReply, PublicAssistantConfig } from "@/lib/assistant/types";
-import { AssistantMascot } from "./assistant-mascot";
+import { JunoThinking } from "./assistant-thinking";
+import { withUserMessage } from "@/lib/assistant/chat-state";
 import { AssistantSky } from "./assistant-sky";
 import { CloseRocket } from "./assistant-close";
 import { AssistantClock } from "./assistant-clock";
@@ -92,7 +93,7 @@ export default function AssistantPanel({ config, onClose }: { config: PublicAssi
   async function send(text: string, requestId = newId()): Promise<ChatReply | null> {
     const message = text.trim(); if (!message || busy) return null;
     setNotice(null); setView("chat"); setBusy(true); setInput("");
-    setMsgs(m => [...m.filter(x => !(x.error && x.requestId === requestId)), { id: `u-${requestId}`, role: "user", text: message }]);
+    setMsgs(m => withUserMessage(m, requestId, { id: `u-${requestId}`, role: "user", text: message }));
     const controller = new AbortController(); abort.current = controller;
     const fail = (error: Msg["error"], textOut: string) => { setMsgs(m => [...m, { id: `e-${newId()}`, role: "bot", text: textOut, error, requestId, retryText: message }]); return null; };
     try {
@@ -155,7 +156,7 @@ export default function AssistantPanel({ config, onClose }: { config: PublicAssi
           {m.error && m.retryText && <div className="asst-msg-tools"><button type="button" className="asst-chip" disabled={busy} onClick={() => void send(m.retryText!, m.requestId)}>{t("Retry", "আবার চেষ্টা")}</button></div>}
         </div>)}
         {msgs.length > 0 && !busy && <button type="button" className="asst-link-btn asst-clear" onClick={clearChat}><MessageSquareX size={13} aria-hidden="true" /> {t("Clear chat", "চ্যাট মুছুন")}</button>}
-        {busy && <div className="asst-typing" role="status"><AssistantMascot size={28} state="thinking" />{t("Thinking…", "ভাবছি…")}<button type="button" className="asst-link-btn" onClick={() => abort.current?.abort()}><Square size={12} aria-hidden="true" /> {t("Cancel", "বাতিল")}</button></div>}
+        {busy && <JunoThinking bn={bn} />}
       </div>
       {notice && <p className="asst-toast" role="status">{notice}</p>}
       {config.voice && <VoiceBar config={config} locale={locale} busy={busy} onDictation={(text: string) => { setInput(text); field.current?.focus(); }} onSend={(text: string) => send(text)} onNotice={setNotice} host={host} />}

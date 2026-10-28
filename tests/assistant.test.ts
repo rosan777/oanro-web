@@ -18,6 +18,7 @@ import { resetHealth } from "../src/lib/assistant/providers";
 import { allowedAudioType, transcribeAudio, TranscribeError } from "../src/lib/assistant/transcribe";
 import { trackGate } from "../src/lib/assistant/tracking";
 import { getPolicy, getProduct, searchProducts, type ToolContext } from "../src/lib/assistant/tools";
+import { withUserMessage } from "../src/lib/assistant/chat-state";
 import { localParts, skyScene } from "../src/lib/assistant/sky";
 import { conditionFrom, readMet, resolvePlace, validZone, weatherFor } from "../src/lib/assistant/weather";
 import { consume, createHandoffLead, defaultSettings, deleteSession, getSessionLogs, getSettings, listFaq, listSessions, listUnanswered, parseFaq, purgeExpired, recentHistory, reserveAudio, reserveCall, resolveUnanswered, saveFaq, saveSettings, touchSession, addLog, addUnanswered, deleteFaq, type Faq } from "../src/lib/assistant/store";
@@ -198,6 +199,17 @@ test("prices always show the Taka sign, whatever currency sign a model writes", 
   assert.equal(cleanReply("It costs ₦120 inside Dhaka."), "It costs ৳120 inside Dhaka.");
   assert.equal(fixCurrency("We open 5 hours 5 days a week, Mars 3, versus 2 options."), "We open 5 hours 5 days a week, Mars 3, versus 2 options.", "ordinary words are never touched");
   assert.equal(fixCurrency("৳1,290 and 120 Taka stay as they are; a $ with no number too."), "৳1,290 and 120 Taka stay as they are; a $ with no number too.");
+});
+test("retrying a failed message replaces it: ids stay unique and the user message is not shown twice", () => {
+  type M = { id: string; role: "user" | "bot"; text: string; error?: string; requestId?: string };
+  const rid = "11111111-1111-4111-8111-111111111111";
+  const first = withUserMessage<M>([{ id: "g", role: "bot", text: "hi" }], rid, { id: `u-${rid}`, role: "user", text: "delivery?" });
+  const failed: M[] = [...first, { id: "e-1", role: "bot", text: "couldn't reach the server", error: "network", requestId: rid }];
+  const retried = withUserMessage<M>(failed, rid, { id: `u-${rid}`, role: "user", text: "delivery?" });
+  assert.deepEqual(retried.map(m => m.id), ["g", `u-${rid}`], "error bubble gone, one user message");
+  assert.equal(new Set(retried.map(m => m.id)).size, retried.length, "no duplicate keys");
+  const other = withUserMessage<M>(retried, "22222222-2222-4222-8222-222222222222", { id: "u-22222222-2222-4222-8222-222222222222", role: "user", text: "next" });
+  assert.equal(other.length, 3, "a different message is simply added");
 });
 test("history keeps each question before its answer even when both share one timestamp", async () => {
   const { pg, db } = await freshDb();

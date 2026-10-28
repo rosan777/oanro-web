@@ -1,9 +1,10 @@
 "use client";
+import { Eye, EyeOff } from "lucide-react";
 import { useId, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { useLocale } from "./locale";
 
 /**
- * Password input with a Show/Hide button.
+ * Password input with a Show/Hide eye icon inside the field (eye = hidden now, tap to show; crossed eye = visible now, tap to hide).
  *
  * - The password is hidden by default. Only this component's own state decides whether it is visible;
  *   nothing is stored, logged or sent anywhere.
@@ -24,9 +25,9 @@ export function PasswordField({ label, hint, ...inputProps }: Props) {
     <label htmlFor={inputId}>{label}</label>
     <div className="password-input">
       <input {...inputProps} id={inputId} type={visible ? "text" : "password"} aria-describedby={hint ? hintId : undefined} autoCapitalize="none" spellCheck={false} />
-      <button type="button" className="password-toggle" onClick={() => setVisible(v => !v)} aria-controls={inputId}
+      <button type="button" className="password-toggle" onClick={() => setVisible(v => !v)} aria-controls={inputId} aria-pressed={visible}
         aria-label={visible ? (bn ? "পাসওয়ার্ড লুকান" : "Hide password") : (bn ? "পাসওয়ার্ড দেখান" : "Show password")}>
-        {visible ? (bn ? "লুকান" : "Hide") : (bn ? "দেখান" : "Show")}
+        {visible ? <EyeOff size={20} strokeWidth={1.75} aria-hidden="true" /> : <Eye size={20} strokeWidth={1.75} aria-hidden="true" />}
       </button>
     </div>
     {hint ? <small id={hintId}>{hint}</small> : null}
