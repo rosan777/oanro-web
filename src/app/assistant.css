@@ -1,17 +1,20 @@
 /* OANRO Assistant: mascot launcher, chat panel (desktop) / full-screen sheet (phones), cards, forms. Text never below 12px. */
-.asst-launcher { position: fixed; right: 1.5rem; bottom: 4.7rem; z-index: 56; display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
-.asst-fab { position: relative; width: 64px; height: 64px; padding: 0; border: 0; border-radius: 50%; background: transparent; box-shadow: none; display: grid; place-items: center; transition: transform 160ms ease; }
+.asst-launcher { position: fixed; right: 1.5rem; bottom: 3.75rem; z-index: 56; display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
+.asst-fab { position: relative; width: 57.6px; height: 57.6px; padding: 0; border: 0; border-radius: 50%; background: transparent; box-shadow: none; display: grid; place-items: center; transition: transform 160ms ease; }
 .asst-fab:hover { transform: translateY(-2px); }
+/* A little lower than before; when the WhatsApp button is on, it stays above it. */
+body:has(.float-wa) .asst-launcher { bottom: 5rem; }
 /* Launcher: the rocket floats on its own (no disc). A thin white edge and soft shadow keep the navy outline readable on dark and light pages. */
 .asst-fab .asst-mascot { width: 100% !important; height: 100% !important; background: transparent; overflow: visible; border-radius: 0; }
 .asst-fab .asst-mascot img { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 5px 7px rgb(0 0 0 / 0.3)); }
 .asst-label { background: var(--brand-strong); color: #f6f5f0; font-size: 0.78rem; line-height: 1.2; padding: 0.4rem 0.7rem; border-radius: 999px; box-shadow: 0 4px 14px rgb(0 0 0 / 0.18); white-space: nowrap; }
 .asst-label[hidden] { display: none; }
 @media (max-width: 767px) {
-  .asst-launcher { right: 0.75rem; bottom: calc(120px + env(safe-area-inset-bottom)); }
-  .asst-fab { width: 56px; height: 56px; }
+  .asst-launcher { right: 0.75rem; bottom: calc(104px + env(safe-area-inset-bottom)); }
+  .asst-fab { width: 50.4px; height: 50.4px; }
   body:has(.sticky-buy.is-shown) .asst-launcher { bottom: calc(184px + env(safe-area-inset-bottom)); }
   body:not(:has(.bottom-bar)) .asst-launcher { bottom: 4.5rem; }
+  body:has(.float-wa) .asst-launcher { bottom: calc(120px + env(safe-area-inset-bottom)); }
   /* On phones the cookie notice spans the width; the assistant waits until the visitor has answered it. */
   body:has(dialog.privacy-center[open]) .asst-launcher { display: none; }
 }
@@ -106,7 +109,6 @@ body:has(dialog.privacy-center[open]) .asst-panel { bottom: 7.5rem; height: min(
 .asst-drift { transform: translateX(120px); }
 .asst-glide { transform: translateX(-20px); }
 /* The rocket is transparent in the header and the thinking line too (like the launcher), with a thin white edge for contrast. */
-.asst-typing .asst-mascot { background: transparent; overflow: visible; border-radius: 0; }
 @media (prefers-reduced-motion: no-preference) {
   .asst-star { animation: asst-twinkle var(--d, 3s) ease-in-out var(--l, 0s) infinite; }
   .asst-win-tw { animation: asst-flicker 5s steps(1, end) var(--l, 0s) infinite; }
@@ -240,7 +242,6 @@ body:has(dialog.privacy-center[open]) .asst-panel { bottom: 7.5rem; height: min(
 .asst-msg-tools { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.45rem; }
 .asst-link-btn { background: none; border: 0; padding: 0.35rem 0; font-size: 0.78rem; text-decoration: underline; text-underline-offset: 3px; min-height: 32px; }
 .asst-notice { font-size: 0.78rem; line-height: 1.4; color: #5b4a1c; background: #f8f0d8; border-radius: 10px; padding: 0.45rem 0.65rem; }
-.asst-typing { align-self: flex-start; display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--muted); }
 .asst-chip { min-height: 36px; padding: 0.3rem 0.75rem; border: 1px solid var(--brand); border-radius: 999px; background: var(--surface); color: var(--brand); font-size: 0.8rem; }
 .asst-chip:hover { background: var(--brand); color: #fff; }
 .asst-status { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.8rem; font-size: 0.82rem; background: #eaf4ee; border-top: 1px solid var(--line); }
@@ -260,7 +261,8 @@ body:has(dialog.privacy-center[open]) .asst-panel { bottom: 7.5rem; height: min(
 
 /* Phones: comfortably tappable targets (44px+). */
 @media (max-width: 640px) {
-  .asst-chip, .asst-voice-btn, .asst-add, .asst-human a, .asst-human button,   .asst-option,   .asst-link-btn { min-height: 44px; padding-inline: 0.3rem; }
+  .asst-chip, .asst-voice-btn, .asst-add, .asst-human a, .asst-human button,   .asst-link-btn { min-height: 44px; padding-inline: 0.3rem; }
+  .asst-option { min-width: 34px; min-height: 34px; } /* size chips in the product card: same smaller phone size as the product page */
   }
 
 /* Message bar, chat-app style: one rounded box; language, dictate, conversation and send sit inside it as round icons. */
@@ -287,7 +289,7 @@ body:has(dialog.privacy-center[open]) .asst-panel { bottom: 7.5rem; height: min(
 .asst-cards { display: grid; gap: 0.45rem; margin-top: 0.45rem; }
 .asst-card { display: grid; grid-template-columns: 52px 1fr; gap: 0.55rem; padding: 0.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; color: var(--foreground); }
 .asst-card .product-photo { width: 52px; height: 52px; border-radius: 8px; background-size: 400% 400%; }
-.asst-card .product-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+.asst-card .product-photo img { width: 100%; height: 100%; object-fit: contain; background: #fff; border-radius: 8px; }
 .asst-card-body { min-width: 0; display: grid; gap: 0.25rem; }
 .asst-card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
 .asst-card h3 { font-size: 0.88rem; line-height: 1.25; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
@@ -309,3 +311,28 @@ body:has(dialog.privacy-center[open]) .asst-panel { bottom: 7.5rem; height: min(
 .asst-add { margin-left: auto; min-height: 32px; padding: 0 0.7rem; border: 0; border-radius: 8px; background: var(--brand); color: #fff; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; }
 .asst-add.is-added { background: #2f7a57; }
 @media (max-width: 640px) { .asst-add { min-height: 40px; } .asst-swatch { width: 36px; height: 36px; min-width: 36px; } }
+
+/* "Juno is thinking" (assistant-thinking.tsx): approved loading state. One scale variable (--tk) sizes the whole indicator: 0.65 = 35% smaller than the approved demo (44px badge -> 28.6px), since this is a quiet status line;
+   text keeps the site's 12px minimum, everything else scales with it. Site colours: forest #1f513c, tint #eaf4ee, ink #151515, muted #5e6461. */
+.asst-think { --tk: 0.65; align-self: flex-start; display: flex; align-items: center; gap: calc(12px * var(--tk)); min-height: calc(44px * var(--tk)); color: #151515; }
+.asst-think-badge { position: relative; flex: 0 0 calc(44px * var(--tk)); width: calc(44px * var(--tk)); height: calc(44px * var(--tk)); display: grid; place-items: center; overflow: hidden; border-radius: calc(11px * var(--tk)); background: #eaf4ee; color: #1f513c; }
+.asst-think-rocket { width: calc(21px * var(--tk)); height: calc(21px * var(--tk)); position: relative; z-index: 1; }
+.asst-think-badge::after { content: ""; position: absolute; width: 2px; height: calc(13px * var(--tk)); left: calc(10px * var(--tk)); bottom: calc(4px * var(--tk)); transform: rotate(43deg); background: linear-gradient(#1f513c, transparent); opacity: 0.4; }
+.asst-think-copy { height: calc(44px * var(--tk)); display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+.asst-think-brand { font-size: 12px; line-height: 12.5px; font-weight: 600; letter-spacing: 0.15px; }
+.asst-think-status { font-size: 12px; line-height: 12.5px; color: #5e6461; white-space: nowrap; }
+.asst-think-dots { display: inline-flex; gap: 2px; margin-left: 4px; vertical-align: middle; }
+.asst-think-dots b { display: block; width: 2.5px; height: 2.5px; background: currentColor; border-radius: 50%; }
+.asst-think-track { height: 2px; width: 100%; overflow: hidden; border-radius: 2px; background: #d9dad3; }
+.asst-think-track::after { content: ""; display: block; width: 34%; height: 100%; background: #1f513c; }
+@media (prefers-reduced-motion: no-preference) {
+  .asst-think-rocket { animation: asst-think-rocket 0.9s ease-in-out infinite; }
+  .asst-think-badge::after { animation: asst-think-flame 0.45s ease-in-out infinite alternate; }
+  .asst-think-dots b { animation: asst-think-dot 1.2s ease-in-out infinite; }
+  .asst-think-dots b:nth-child(2) { animation-delay: 0.18s; } .asst-think-dots b:nth-child(3) { animation-delay: 0.36s; }
+  .asst-think-track::after { animation: asst-think-track 1.45s ease-in-out infinite; }
+}
+@keyframes asst-think-rocket { 0% { translate: calc(-5px * var(--tk)) calc(6px * var(--tk)); opacity: 0; } 25%, 75% { opacity: 1; } 100% { translate: calc(7px * var(--tk)) calc(-8px * var(--tk)); opacity: 0; } }
+@keyframes asst-think-flame { to { scale: 1 0.55; opacity: 0.15; } }
+@keyframes asst-think-dot { 0%, 75%, 100% { opacity: 0.2; } 35% { opacity: 1; } }
+@keyframes asst-think-track { from { translate: -105% 0; } to { translate: 300% 0; } }

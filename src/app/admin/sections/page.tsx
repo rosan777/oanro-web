@@ -39,6 +39,10 @@ export default async function SectionsPage() {
       {(can("services.manage") || can("site.manage")) && <Card href="/admin/services" label="Tech solutions" title="Services" on={sections.services} detail={services.managed ? `${services.services.filter(s => s.status === "published").length} published · ${services.services.length} total` : "No services yet"}>
         {can("site.manage") ? <SectionSwitch kind="site" id="services" on={sections.services} name="Services" /> : null}
       </Card>}
+      {can("site.manage") && <div className={`admin-card ${sections["back-to-top"] ? "is-on" : "is-off"}`}>
+        <div className="admin-card-link is-static"><small>Floating button</small><strong>Back to top</strong><span>Round arrow at the bottom left that appears after scrolling down</span></div>
+        <SectionSwitch kind="site" id="back-to-top" on={sections["back-to-top"]} name="Back to top button" />
+      </div>}
       {(can("pulse.manage") || can("site.manage")) && <Card href="/admin/pulse" label="News strip" title="Global Pulse" on={sections["global-pulse"]} detail={`${stories.length} stor${stories.length === 1 ? "y" : "ies"}`}>
         {can("site.manage") ? <SectionSwitch kind="site" id="global-pulse" on={sections["global-pulse"]} name="Global Pulse" /> : null}
       </Card>}

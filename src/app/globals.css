@@ -240,6 +240,7 @@ button { color: inherit; } svg { flex-shrink: 0; }
 .admin-card.is-on { border-left-color: #12805c; } .admin-card.is-off { border-left-color: #9aa0a6; background: color-mix(in srgb, var(--surface) 85%, #9aa0a6); }
 .admin-card-link { display: grid; gap: .3rem; }
 .admin-card-link:hover strong, .admin-card-link:focus-visible strong { color: var(--brand); text-decoration: underline; }
+.admin-card-link.is-static:hover strong { color: inherit; text-decoration: none; }
 .admin-card small { color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; }
 .admin-card strong { font-size: 1.15rem; } .admin-card span { color: var(--muted); font-size: .85rem; }
 .admin-card em { font-style: normal; font-size: .8rem; color: var(--brand); display: inline-flex; align-items: center; gap: .2rem; }
@@ -342,9 +343,13 @@ dialog::backdrop { background: #15151580; backdrop-filter: blur(4px); }
 .demo-price { display: flex; flex-direction: column; margin-top: 1.5rem; }
 .demo-price strong { font-size: 1.6rem; font-weight: 500; }
 .demo-price span { color: var(--muted); font-size: 0.65rem; }
-.size-selector { padding: 0; margin: 1.5rem 0; border: 0; }
-.size-selector legend { font-size: 0.8rem; margin-bottom: 0.5rem; }
-.size-selector button { min-width: 44px; height: 44px; border: 1px solid var(--line); background: transparent; margin-right: 0.5rem; padding-inline: 0.75rem; font-size: 0.8rem; }
+/* Product size choices. Sizes differ by product and brand (S-XL, 38-46, "One size", "Standard", long names), so the chips wrap onto rows,
+   grow only as much as their label needs, and are smaller on phones (36px; 34px on very small ones; both above the 24px WCAG minimum, with 8px between). */
+.size-selector { padding: 0; margin: 1.25rem 0; border: 0; min-width: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.size-selector legend { font-size: 0.8rem; margin-bottom: 0.1rem; padding: 0; }
+.size-selector button { min-width: 40px; min-height: 40px; max-width: 100%; margin: 0; padding: 0.35rem 0.75rem; border: 1px solid var(--line); background: transparent; font-size: 0.8rem; line-height: 1.2; text-align: center; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+@media (max-width: 767px) { .size-selector { gap: 0.4rem; margin: 1rem 0; } .size-selector button { min-width: 36px; min-height: 36px; padding: 0.3rem 0.6rem; } }
+@media (max-width: 360px) { .size-selector button { min-width: 34px; min-height: 34px; padding: 0.25rem 0.5rem; } }
 .size-selector button[aria-pressed="true"] { background: var(--foreground); color: var(--surface); border-color: var(--foreground); }
 .add-bag { width: 100%; }
 .specifications { margin-top: 2rem; }
@@ -502,14 +507,15 @@ html:has([data-motion="paused"]) { scroll-behavior: auto; }
 .auth-links { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 24px; }
 .auth-links button { text-decoration: underline; padding: 4px; }
 .auth-card :focus-visible { outline: 3px solid #597e5b; outline-offset: 3px; }
-/* Password field with Show/Hide (src/components/password-field.tsx). Flex row, so it never overlaps at zoom or on a 320px phone. */
+/* Password field with a Show/Hide eye icon inside the field (src/components/password-field.tsx). The input keeps its normal styling; the icon sits inside its right edge. */
 .password-field { display: grid; gap: 10px; }
 .security-form .password-field { gap: .3rem; font-size: .85rem; font-weight: 600; }
-.password-input { display: flex; gap: 8px; align-items: stretch; }
-.password-input input { flex: 1 1 auto; }
-.password-toggle { flex: 0 0 auto; min-width: 64px; min-height: 44px; padding: 0 12px; border: 1px solid #869b89; border-radius: 6px; background: #fff; color: #142e22; font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer; }
-.password-toggle:hover { background: #eef3ee; }
-.password-toggle:focus-visible { outline: 3px solid #597e5b; outline-offset: 2px; }
+.password-input { position: relative; display: flex; align-items: stretch; }
+.password-input input { flex: 1 1 auto; min-width: 0; padding-right: 52px; }
+.password-input input::-ms-reveal, .password-input input::-ms-clear { display: none; }
+.password-toggle { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); width: 44px; height: min(44px, calc(100% - 6px)); display: grid; place-items: center; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #1f513c; cursor: pointer; }
+.password-toggle:hover { background: #eaf4ee; }
+.password-toggle:focus-visible { outline: 3px solid #597e5b; outline-offset: -2px; }
 /* "Did you mean ...?" under the sign-up email field (src/components/auth-panel.tsx). */
 .auth-card .email-hint { padding: 12px; border: 1px solid #c49a4a; border-radius: 8px; background: #fbf5e8; }
 .auth-card .email-hint p { margin: 0 0 10px; }
@@ -785,7 +791,7 @@ i.is-brand { background: var(--brand); } i.is-gold { background: var(--gold); } 
 .shelf-photo > a { display: block; }
 .shelf-card:hover .shelf-photo, .shelf-card:focus-within .shelf-photo { transform: translateY(-6px); box-shadow: 0 16px 26px -16px color-mix(in srgb, var(--brand) 65%, transparent); }
 .shelf-name:focus-visible, .shelf-quick:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.shelf-name { color: inherit; text-decoration: none; font-weight: 600; font-size: .9rem; line-height: 1.3; width: fit-content; background: linear-gradient(var(--accent), var(--accent)) 0 100% / 0 2px no-repeat; transition: background-size .35s; }
+.shelf-name { color: inherit; text-decoration: none; font-weight: 600; font-size: .9rem; line-height: 1.3; width: fit-content; display: inline-flex; align-items: center; min-height: 24px; background: linear-gradient(var(--accent), var(--accent)) 0 100% / 0 2px no-repeat; transition: background-size .35s; }
 .shelf-card:hover .shelf-name, .shelf-name:focus-visible { background-size: 100% 2px; }
 .shelf-price { font-weight: 700; color: var(--brand); font-variant-numeric: tabular-nums; font-size: .9rem; }
 .shelf-card.is-out-of-stock .product-photo { filter: grayscale(.85); opacity: .7; }
@@ -1009,7 +1015,7 @@ h2 { font-size: clamp(1.8rem, 3.4vw, 2.5rem); }
 .footer-brand .text-link { border-color: #3a3a37; justify-self: start; }
 .footer-col { display: grid; gap: 0.55rem; align-content: start; font-size: 0.88rem; }
 .footer-col strong { color: #ffffff; font-size: 0.9rem; margin-bottom: 0.2rem; }
-.footer-col a { color: #d9d9d3; }
+.footer-col a { color: #d9d9d3; display: flex; align-items: center; min-height: 24px; } /* 24px minimum tap height (WCAG 2.2 target size) */
 .footer-col a:hover { color: #ffffff; text-decoration: underline; text-underline-offset: 3px; }
 .site-footer .footer-bottom { border-top: 1px solid #2c2c29; color: #a3a39c; font-size: 0.75rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; padding-block: 1.2rem 1.6rem; }
 .pay-chips { display: flex; gap: 0.5rem; flex-wrap: wrap; }
