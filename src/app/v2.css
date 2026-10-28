@@ -582,7 +582,7 @@ dialog.privacy-center:focus, dialog.privacy-center .pc-text a:focus, dialog.priv
 .v2-story-photo .product-photo { width: 100%; height: 100%; }
 .v2-story-photo .product-photo { animation: v2-story-photo-in .5s ease both; }
 @keyframes v2-story-photo-in { from { opacity: .25; transform: scale(1.015); } to { opacity: 1; transform: none; } }
-.v2-story-dots { display: flex; justify-content: center; gap: 8px; margin-top: .75rem; }
+.v2-story-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: .75rem; max-width: 100%; } /* wraps when a product has many photos (8 dots of 44px were wider than a phone) */
 .v2-story-dots button { width: 44px; height: 44px; padding: 0; border: 0; background: transparent; position: relative; }
 .v2-story-dots button::after { content: ""; position: absolute; inset: 17px 6px; border-radius: 99px; background: #c8ccc9; }
 .v2-story-dots button[aria-pressed="true"]::after { background: var(--brand); }
@@ -606,7 +606,7 @@ dialog.privacy-center:focus, dialog.privacy-center .pc-text a:focus, dialog.priv
 }
 @keyframes v2-panel-focus { 0% { opacity: 0.15; } 30%, 70% { opacity: 1; } 100% { opacity: 0.15; } }
 @media (max-width: 767px) {
-  .v2-story { grid-template-columns: 1fr; gap: 1rem; margin-block: 3rem; }
+  .v2-story { grid-template-columns: minmax(0, 1fr); gap: 1rem; margin-block: 3rem; } /* minmax(0, ...) so wide content can never stretch the column past the screen */
   .v2-story-media { position: sticky; top: 64px; z-index: 0; }
   .v2-story-photo { aspect-ratio: 16 / 11; border-radius: 20px; }
   .v2-story-panel { min-height: auto; padding: 1.5rem 1.1rem; margin-bottom: 1rem; border-radius: 18px; background: rgb(246 245 240 / 0.94); position: relative; z-index: 1; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
