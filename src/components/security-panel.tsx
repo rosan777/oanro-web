@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { ActionIcon } from "./action-icon";
 import { useLocale } from "./locale";
+import { PasswordField } from "./password-field";
 import { qrSvg } from "@/lib/qr";
 
 /** "Security" card on My account: two-step verification (authenticator app) and signing out other devices. */
@@ -51,7 +52,7 @@ export function SecurityPanel({ hasPassword, twoFactorOn, isStaff, mustSetup = f
           <li><strong>{L("Step 2: Add OANRO to your authenticator app", "ধাপ ২: authenticator অ্যাপে OANRO যোগ করুন")}</strong><small>{L("Next screen shows a setup key. Type it into Google Authenticator; the app then starts showing 6-digit codes.", "পরের স্ক্রিনে একটি setup key দেখাবে। সেটি Google Authenticator-এ লিখলে অ্যাপে ৬ সংখ্যার কোড আসা শুরু হবে।")}</small></li>
           <li><strong>{L("Step 3: Enter the code from the app", "ধাপ ৩: অ্যাপের কোড লিখুন")}</strong><small>{L("That turns it on.", "এতেই চালু হয়ে যাবে।")}</small></li>
         </ol>}
-        <label>{L("Confirm your password", "পাসওয়ার্ড দিয়ে নিশ্চিত করুন")}<input name="password" type="password" autoComplete="current-password" required autoFocus /></label>
+        <PasswordField label={L("Confirm your password", "পাসওয়ার্ড দিয়ে নিশ্চিত করুন")} name="password" autoComplete="current-password" required autoFocus />
         <div className="admin-product-actions"><button className={`btn btn-sm ${step === "disable" ? "btn-danger-solid" : "btn-primary"}`} disabled={busy}>{step === "disable" ? L("Turn off", "বন্ধ করুন") : L("Continue", "এগিয়ে যান")}</button><button type="button" className="btn btn-neutral btn-sm" onClick={() => { setStep("idle"); setMsg(""); }}>{L("Cancel", "বাতিল")}</button></div>
       </form>}
       {step === "setup" && setup && <div className="security-setup">
