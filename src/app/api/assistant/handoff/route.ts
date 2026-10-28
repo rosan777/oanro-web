@@ -8,6 +8,7 @@ import { parseLeadInput, ProductInputError } from "@/lib/product-input";
 import { ProductStoreError } from "@/lib/product-store";
 import { readObject } from "@/lib/pulse-thumbnail";
 import { catalogDb } from "@/lib/store-products";
+import { appSecret } from "@/lib/app-secret";
 export const runtime = "nodejs";
 
 /** "Message our team": creates ONE lead in the existing inbox after explicit consent. The success answer is sent only after the lead is saved. */
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
     // The same person sending the same message twice in a day is one lead; a different message is a new one.
     const contact = `${input.phone.replace(/\D/g, "")}|${input.email}|${createHash("sha256").update(typed).digest("hex").slice(0, 16)}`;
     const ip = clientIp(request);
-    const result = await createHandoffLead(db, { ...input, subject: `Shop assistant message${page ? ` · ${page}` : ""}` }, contact, ip ? hashIp(ip, process.env.BETTER_AUTH_SECRET ?? "oanro") : null);
+    const result = await createHandoffLead(db, { ...input, subject: `Shop assistant message${page ? ` · ${page}` : ""}` }, contact, ip ? hashIp(ip, appSecret("oanro")) : null);
     if (!session.isNew) await setOutcome(db, session.sessionId, "handoff").catch(() => {});
     return json({ ok: true, duplicate: result.duplicate });
   } catch (error) {

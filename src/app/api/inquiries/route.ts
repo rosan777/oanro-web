@@ -3,20 +3,21 @@ import { parseLeadInput, ProductInputError } from "@/lib/product-input";
 import { createLead, hashIp } from "@/lib/lead-store";
 import { ProductStoreError } from "@/lib/product-store";
 import { catalogDb } from "@/lib/store-products";
+import { originMatchesHost } from "@/lib/same-host";
+import { appSecret } from "@/lib/app-secret";
 export const runtime = "nodejs";
 
 const noStore = { "Cache-Control": "no-store" };
 // Public inquiry endpoint: same-origin only, small body, hidden honeypot field, per-visitor hourly limit.
 export async function POST(request: Request) {
   if (!process.env.DATABASE_URL) return Response.json({ error: "UNAVAILABLE" }, { status: 503, headers: noStore });
-  const origin = request.headers.get("origin"), host = request.headers.get("host");
-  if (!origin || !host || new URL(origin).host !== host) return Response.json({ error: "ORIGIN_FORBIDDEN" }, { status: 403, headers: noStore });
+  if (!originMatchesHost(request)) return Response.json({ error: "ORIGIN_FORBIDDEN" }, { status: 403, headers: noStore });
   let data: Record<string, unknown>;
   try { data = await readObject(request, 8000); } catch { return Response.json({ error: "INVALID_INPUT" }, { status: 400, headers: noStore }); }
   if (typeof data.website === "string" && data.website) return Response.json({ ok: true }, { headers: noStore }); // bot filled the honeypot
   const ip = (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || request.headers.get("x-real-ip") || "";
   try {
-    await createLead(catalogDb(), parseLeadInput(data), ip ? hashIp(ip, process.env.BETTER_AUTH_SECRET ?? "oanro") : null);
+    await createLead(catalogDb(), parseLeadInput(data), ip ? hashIp(ip, appSecret("oanro")) : null);
     return Response.json({ ok: true }, { headers: noStore });
   } catch (error) {
     if (error instanceof ProductInputError) return Response.json({ error: "INVALID_INPUT", field: error.field }, { status: 400, headers: noStore });

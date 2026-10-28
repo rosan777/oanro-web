@@ -8,6 +8,7 @@ import { DELETED_DOMAIN } from "./customer-store";
 import { mailConfigured, sendMail } from "./mailer";
 import { siteUrl } from "./site-url";
 import { ProductStoreError, type CatalogDb } from "./product-store";
+import { appSecret } from "./app-secret";
 
 const OPT_OUT_KEY = "mail.unsubscribed";
 /** Most emails sent in one go (keeps within the request time limit and the mail provider's sending limits). */
@@ -22,7 +23,7 @@ export function cleanMessage(data: Record<string, unknown>) {
   return { subject, body };
 }
 
-const sign = (email: string) => createHmac("sha256", process.env.BETTER_AUTH_SECRET ?? "oanro-dev").update(`unsubscribe:${email}`).digest("base64url").slice(0, 32);
+const sign = (email: string) => createHmac("sha256", appSecret("oanro-dev")).update(`unsubscribe:${email}`).digest("base64url").slice(0, 32);
 export function unsubscribeUrl(raw: string) {
   const email = raw.toLowerCase();
   return `${siteUrl()}/api/unsubscribe?${new URLSearchParams({ e: email, t: sign(email) })}`;
