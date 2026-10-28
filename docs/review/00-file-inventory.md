@@ -214,19 +214,19 @@ Status values: `pending` = not reviewed yet, `partial` = only part read, or only
 | `src/app/guides/[slug]/page.tsx` | source | page / layout / CSS | 28 | pending |
 | `src/app/guides/page.tsx` | source | page / layout / CSS | 18 | pending |
 | `src/app/icon.tsx` | source | page / layout / CSS | 10 | pending |
-| `src/app/layout.tsx` | source | page / layout / CSS | 72 | pending |
+| `src/app/layout.tsx` | source | page / layout / CSS | 72 | partial |
 | `src/app/manifest.ts` | source | page / layout / CSS | 10 | pending |
 | `src/app/not-found.tsx` | source | page / layout / CSS | 16 | pending |
 | `src/app/og/product/[slug]/route.tsx` | source | page / layout / CSS | 41 | pending |
 | `src/app/page.tsx` | source | page / layout / CSS | 102 | pending |
 | `src/app/privacy/page.tsx` | source | page / layout / CSS | 55 | pending |
-| `src/app/products/[slug]/loading.tsx` | source | page / layout / CSS | 8 | pending |
-| `src/app/products/[slug]/page.tsx` | source | page / layout / CSS | 54 | pending |
+| `src/app/products/[slug]/loading.tsx` | source | page / layout / CSS | 8 | partial |
+| `src/app/products/[slug]/page.tsx` | source | page / layout / CSS | 54 | partial |
 | `src/app/reset-password/page.tsx` | source | page / layout / CSS | 8 | reviewed |
 | `src/app/robots.ts` | source | page / layout / CSS | 6 | reviewed |
 | `src/app/services/[slug]/page.tsx` | source | page / layout / CSS | 75 | pending |
 | `src/app/sign-in/page.tsx` | source | page / layout / CSS | 9 | reviewed |
-| `src/app/sitemap.ts` | source | page / layout / CSS | 28 | pending |
+| `src/app/sitemap.ts` | source | page / layout / CSS | 28 | reviewed |
 | `src/app/terms/page.tsx` | source | page / layout / CSS | 19 | pending |
 | `src/app/track/page.tsx` | source | page / layout / CSS | 7 | pending |
 | `src/app/v2.css` | source | page / layout / CSS | 1253 | pending |
@@ -234,7 +234,7 @@ Status values: `pending` = not reviewed yet, `partial` = only part read, or only
 | `src/components/admin-nav.tsx` | source | React component | 2 | pending |
 | `src/components/admin-shell.tsx` | source | React component | 75 | pending |
 | `src/components/admin-ui.tsx` | source | React component | 70 | pending |
-| `src/components/analytics.tsx` | source | React component | 11 | pending |
+| `src/components/analytics.tsx` | source | React component | 11 | reviewed |
 | `src/components/announce-toast.tsx` | source | React component | 20 | pending |
 | `src/components/assistant-admin.tsx` | source | React component | 70 | pending |
 | `src/components/assistant-cards.tsx` | source | React component | 65 | pending |
@@ -287,11 +287,11 @@ Status values: `pending` = not reviewed yet, `partial` = only part read, or only
 | `src/components/locale-link.tsx` | source | React component | 12 | pending |
 | `src/components/locale.tsx` | source | React component | 83 | pending |
 | `src/components/message-reveal.tsx` | source | React component | 10 | pending |
-| `src/components/meta-pixel.tsx` | source | React component | 29 | pending |
+| `src/components/meta-pixel.tsx` | source | React component | 29 | partial |
 | `src/components/my-orders.tsx` | source | React component | 39 | pending |
 | `src/components/order-tracker.tsx` | source | React component | 43 | pending |
 | `src/components/orders-dashboard.tsx` | source | React component | 182 | pending |
-| `src/components/privacy-center.tsx` | source | React component | 109 | pending |
+| `src/components/privacy-center.tsx` | source | React component | 109 | partial |
 | `src/components/product-dashboard.tsx` | source | React component | 187 | pending |
 | `src/components/product-detail.tsx` | source | React component | 86 | pending |
 | `src/components/products-context.tsx` | source | React component | 31 | pending |
@@ -319,7 +319,7 @@ Status values: `pending` = not reviewed yet, `partial` = only part read, or only
 | `src/components/value-fan.tsx` | source | React component | 60 | pending |
 | `src/components/value-motion.ts` | source | React component | 16 | pending |
 | `src/components/view-counter.tsx` | source | React component | 14 | pending |
-| `src/lib/access.ts` | source | business logic / helper | 15 | pending |
+| `src/lib/access.ts` | source | business logic / helper | 15 | reviewed |
 | `src/lib/admin-api.ts` | source | business logic / helper | 54 | reviewed |
 | `src/lib/admin-guard.ts` | source | business logic / helper | 24 | reviewed |
 | `src/lib/admin-menu.ts` | source | business logic / helper | 46 | pending |
@@ -352,23 +352,23 @@ Status values: `pending` = not reviewed yet, `partial` = only part read, or only
 | `src/lib/categories.ts` | source | business logic / helper | 45 | pending |
 | `src/lib/company-profile-data.ts` | source | business logic / helper | 138 | pending |
 | `src/lib/company-profile.ts` | source | business logic / helper | 42 | pending |
-| `src/lib/consent.ts` | source | business logic / helper | 52 | pending |
+| `src/lib/consent.ts` | source | business logic / helper | 52 | reviewed |
 | `src/lib/content.ts` | source | business logic / helper | 52 | pending |
 | `src/lib/customer-mail.ts` | source | business logic / helper | 100 | partial |
-| `src/lib/customer-store.ts` | source | business logic / helper | 76 | pending |
+| `src/lib/customer-store.ts` | source | business logic / helper | 76 | reviewed |
 | `src/lib/db/bootstrap-owner.ts` | source | database schema/client | 16 | pending |
-| `src/lib/db/index.ts` | source | database schema/client | 25 | pending |
-| `src/lib/db/light.ts` | source | database schema/client | 11 | pending |
+| `src/lib/db/index.ts` | source | database schema/client | 25 | reviewed |
+| `src/lib/db/light.ts` | source | database schema/client | 11 | reviewed |
 | `src/lib/db/schema.ts` | source | database schema/client | 408 | partial |
 | `src/lib/delivery-fee.ts` | source | business logic / helper | 13 | pending |
 | `src/lib/dhaka-time.ts` | source | business logic / helper | 29 | pending |
-| `src/lib/discount-store.ts` | source | business logic / helper | 83 | pending |
-| `src/lib/lead-store.ts` | source | business logic / helper | 85 | pending |
+| `src/lib/discount-store.ts` | source | business logic / helper | 83 | reviewed |
+| `src/lib/lead-store.ts` | source | business logic / helper | 85 | reviewed |
 | `src/lib/locale-path.ts` | source | business logic / helper | 20 | pending |
 | `src/lib/mailer.ts` | source | business logic / helper | 19 | reviewed |
-| `src/lib/marketing.ts` | source | business logic / helper | 68 | partial |
-| `src/lib/meta-capi.ts` | source | business logic / helper | 19 | pending |
-| `src/lib/meta-pixel.ts` | source | business logic / helper | 9 | pending |
+| `src/lib/marketing.ts` | source | business logic / helper | 68 | reviewed |
+| `src/lib/meta-capi.ts` | source | business logic / helper | 19 | reviewed |
+| `src/lib/meta-pixel.ts` | source | business logic / helper | 9 | reviewed |
 | `src/lib/order-flow.ts` | source | business logic / helper | 7 | pending |
 | `src/lib/order-input.ts` | source | business logic / helper | 69 | partial |
 | `src/lib/order-notify.ts` | source | business logic / helper | 130 | pending |
@@ -387,23 +387,23 @@ Status values: `pending` = not reviewed yet, `partial` = only part read, or only
 | `src/lib/rate-limit.ts` | source | business logic / helper | 31 | reviewed |
 | `src/lib/rbac.ts` | source | business logic / helper | 165 | reviewed |
 | `src/lib/report-store.ts` | source | business logic / helper | 215 | pending |
-| `src/lib/request-locale.ts` | source | business logic / helper | 14 | pending |
+| `src/lib/request-locale.ts` | source | business logic / helper | 14 | partial |
 | `src/lib/sample-catalog.ts` | source | business logic / helper | 41 | pending |
 | `src/lib/seo-copy.ts` | source | business logic / helper | 58 | pending |
-| `src/lib/seo.ts` | source | business logic / helper | 36 | pending |
+| `src/lib/seo.ts` | source | business logic / helper | 36 | reviewed |
 | `src/lib/service-store.ts` | source | business logic / helper | 82 | pending |
 | `src/lib/site-config.ts` | source | business logic / helper | 19 | pending |
 | `src/lib/site-content-data.ts` | source | business logic / helper | 132 | pending |
 | `src/lib/site-content.ts` | source | business logic / helper | 52 | pending |
 | `src/lib/site-media.ts` | source | business logic / helper | 33 | pending |
-| `src/lib/site-url.ts` | source | business logic / helper | 6 | pending |
+| `src/lib/site-url.ts` | source | business logic / helper | 6 | reviewed |
 | `src/lib/smart-search.ts` | source | business logic / helper | 83 | pending |
 | `src/lib/store-products.ts` | source | business logic / helper | 87 | pending |
-| `src/lib/storefront-cache.ts` | source | business logic / helper | 13 | pending |
-| `src/lib/team-notes.ts` | source | business logic / helper | 38 | pending |
+| `src/lib/storefront-cache.ts` | source | business logic / helper | 13 | reviewed |
+| `src/lib/team-notes.ts` | source | business logic / helper | 38 | reviewed |
 | `src/lib/tech-logos.ts` | source | business logic / helper | 13 | pending |
 | `src/lib/text-format.ts` | source | business logic / helper | 3 | pending |
-| `src/lib/two-factor-policy.ts` | source | business logic / helper | 39 | pending |
+| `src/lib/two-factor-policy.ts` | source | business logic / helper | 39 | reviewed |
 | `src/lib/website-sections.ts` | source | business logic / helper | 47 | pending |
 | `src/proxy.ts` | source | app entry (proxy) | 22 | reviewed |
 | `tests/assistant.test.ts` | source | test | 501 | pending |
