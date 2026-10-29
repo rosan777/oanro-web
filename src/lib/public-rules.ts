@@ -8,6 +8,8 @@ import { storefrontCached } from "@/lib/storefront-cache";
 const cachedRules = storefrontCached("checkout-rules", () => getCheckoutRules(catalogDb()));
 
 /** The owner's delivery and payment rules from admin, for public trust messages. Same source as the Delivery & Returns page. */
-export const publicRules = cache(async () => process.env.DATABASE_URL ? await cachedRules().catch(() => DEFAULT_RULES) : DEFAULT_RULES);
+export const publicRules = cache(async () =>
+  process.env.DATABASE_URL ? await cachedRules().catch(() => DEFAULT_RULES) : DEFAULT_RULES,
+);
 
 export { bnDigits, dayText } from "./text-format";

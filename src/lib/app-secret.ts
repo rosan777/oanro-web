@@ -13,7 +13,9 @@ export function appSecret(developmentFallback: string): string {
   if (secret) return secret;
   if (process.env.NODE_ENV === "production" && !warned) {
     warned = true;
-    console.warn("BETTER_AUTH_SECRET is not set: using a built-in development secret. Set it before relying on unsubscribe links or the assistant's bot check.");
+    console.warn(
+      "BETTER_AUTH_SECRET is not set: using a built-in development secret. Set it before relying on unsubscribe links or the assistant's bot check.",
+    );
   }
   return developmentFallback;
 }

@@ -15,7 +15,9 @@
     "test:products": "node --import tsx --test tests/product-catalog.test.ts",
     "test": "node --import tsx --test tests/*.test.ts",
     "seed:samples": "node --import tsx scripts/seed-samples.ts",
-    "seed:jewelry-images": "node --import tsx scripts/seed-jewelry-images.ts"
+    "seed:jewelry-images": "node --import tsx scripts/seed-jewelry-images.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@ai-sdk/groq": "^4.0.71",
@@ -47,6 +49,7 @@
     "drizzle-kit": "0.31.11",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
+    "prettier": "3.9.10",
     "tailwindcss": "^4",
     "tsx": "4.23.15",
     "typescript": "^5"

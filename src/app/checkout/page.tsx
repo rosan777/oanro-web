@@ -11,8 +11,21 @@ export default async function CheckoutPage() {
   const session = await currentSession();
   if (!session) redirect("/sign-in?next=/checkout");
   const db = catalogDb();
-  const [numbers, profile, rules] = await Promise.all([getPaymentNumbers(db).catch(() => ({ bkash: "", nagad: "" })), getProfile(db, session.user.id).catch(() => null), getCheckoutRules(db).catch(() => DEFAULT_RULES)]);
-  return <main id="main-content" className="container checkout-page">
-    <CheckoutForm numbers={numbers} rules={rules} name={profile?.name || session.user.name} phone={profile?.phone ?? ""} address={profile ? fullAddress(profile) : ""} verified={session.user.emailVerified} />
-  </main>;
+  const [numbers, profile, rules] = await Promise.all([
+    getPaymentNumbers(db).catch(() => ({ bkash: "", nagad: "" })),
+    getProfile(db, session.user.id).catch(() => null),
+    getCheckoutRules(db).catch(() => DEFAULT_RULES),
+  ]);
+  return (
+    <main id="main-content" className="container checkout-page">
+      <CheckoutForm
+        numbers={numbers}
+        rules={rules}
+        name={profile?.name || session.user.name}
+        phone={profile?.phone ?? ""}
+        address={profile ? fullAddress(profile) : ""}
+        verified={session.user.emailVerified}
+      />
+    </main>
+  );
 }

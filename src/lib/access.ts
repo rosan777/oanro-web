@@ -10,6 +10,9 @@ export async function currentSession() {
   return getAuth().api.getSession({ headers: await headers() });
 }
 export async function isOwner(userId: string) {
-  const rows = await getDb().select({ id: systemOwner.userId }).from(systemOwner).where(eq(systemOwner.userId, userId));
+  const rows = await getDb()
+    .select({ id: systemOwner.userId })
+    .from(systemOwner)
+    .where(eq(systemOwner.userId, userId));
   return rows.length === 1;
 }

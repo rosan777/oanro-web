@@ -3,6 +3,7 @@
 Last updated: 2026-10-27 (Asia/Dhaka). Resume from here; do not repeat completed investigation.
 
 ## Status
+
 - Phase 1 BACKEND: DONE and tested (22 new tests, `tests/assistant.test.ts`, all pass).
 - Phase 2 chat widget + mascot: DONE (browser-checked on desktop 1024px and phone 375px; see list below)
 - Phase 3 voice: DONE in code; logic unit-tested (27 tests pass); UI exercised in the browser with FAKE SpeechRecognition/speechSynthesis only — real microphone, real Whisper and real device voices are NOT tested (no Groq key, no mic here)
@@ -12,6 +13,7 @@ Last updated: 2026-10-27 (Asia/Dhaka). Resume from here; do not repeat completed
 Running model: Claude Sonnet 5.5 (effort not observable; nothing switched). No subagents used. No API billing used.
 
 ## Environment facts
+
 - Repo `/home/rosan/oanro-web` (Linux). Shell works now. Node 24.
 - `.env.local` + `.env.local.live-backup` point DATABASE_URL at a **Neon-hosted** DB (possibly production). **Never use it.** Not read, never written.
 - Local dev DB: PGlite over a socket, tooling in `scripts/dev-db/` (own package.json; `npm install --prefix scripts/dev-db`, `node scripts/dev-db/server.mjs`, port 54329, data in git-ignored `scripts/dev-db/data`). Migrate with `DATABASE_URL=postgresql://postgres@127.0.0.1:54329/postgres node --import tsx scripts/dev-migrate.ts` (refuses non-local hosts). Currently migrated through 0018.
@@ -19,6 +21,7 @@ Running model: Claude Sonnet 5.5 (effort not observable; nothing switched). No s
 - Pre-existing failing test: `tests/rbac.test.ts` "RBAC: deny by default…" fails on the untouched repo too (seeded Manager role in migrations lacks permissions added later, e.g. banners.manage). Not caused by this work.
 
 ## Verified free-tier facts (official pages, 2026-10-27)
+
 - Groq: Services Agreement §4.2 forbids Groq training on Inputs/Outputs, no free-tier carve-out; no retention by default, but inputs/outputs may be logged up to 30 days for reliability/abuse unless Zero Data Retention is enabled in Data Controls (all customers, incl. audio). Data stored in US GCP. Liability for free services capped $5,000. Commercial use of free tier: agreement says services are for businesses/developers (not consumers); **no explicit free-tier commercial statement found — owner should confirm in console.groq.com/settings/limits + Services Agreement**.
 - Groq limits page (rate-limits doc) lists Whisper large-v3 / turbo: 20 RPM, 2K RPD, 7.2K audio-sec/hour, 28.8K audio-sec/day. Chat-model free limits are shown only in the account console (third-party sources disagree: 1,000 vs 14,400 RPD for 70B) → our caps are conservative and configurable. Daily reset time not documented. 429 carries `retry-after`.
 - Cloudflare Workers AI: Free 10,000 neurons/day, resets 00:00 UTC, exceeding fails; Cloudflare does not train on Workers AI customer content; no retention of inputs/outputs for plain inference. Commercial-use wording on free plan not found on those pages → confirm in Cloudflare terms.
@@ -26,6 +29,7 @@ Running model: Claude Sonnet 5.5 (effort not observable; nothing switched). No s
 - Free hosting candidates (NOT fully verified): Cloudflare Workers Free: 100k req/day, 10 ms CPU/request, 50 subrequests; OpenNext docs say 3 MiB compressed limit on Free while Workers limits page says 64 MiB uncompressed (conflict) → must test; Next 16 supported by @opennextjs/cloudflare. Commercial terms unverified. Self-hosted Node on an always-free VM is the alternative. Document as unverified with a test checklist; do not claim it works.
 
 ## Phase 1 — what exists (all typechecks; tests pass)
+
 - DB: `src/lib/db/schema.ts` + `drizzle/0018_assistant.sql` (additive only: assistant_setting/faq/session/log/unanswered/usage/handoff). Applied to LOCAL dev DB only. **Production migration NOT run — needs Rosan's approval.**
 - Permissions: `assistant.view`, `assistant.edit` (sensitive, in no built-in role) in `permissions.ts`; admin menu entry "Assistant".
 - `src/lib/assistant/`: types, config (env, allowlists, caps, limits), sanitize (PII redaction, links, reply cleaning, price verification, safe block parser), language, match (intents + FAQ), messages (bilingual canned text), prompt, tools (searchProducts/getProduct/getPolicy + trackedView), providers (Groq + Cloudflare via AI SDK; Cerebras/OpenRouter disabled unless `ASSISTANT_APPROVE_<ID>=true`; Gemini never for chat), store (settings, FAQ, rate-limit `consume`, atomic quota `reserveCall`/`reserveAudio`, sessions/logs, `purgeExpired`, hand-off lead dedupe, admin readers), engine (one chat turn: sanitise → idempotency → no-AI answers → AI with tool loop + fallback → verified facts → log), transcribe (Groq Whisper transcriptions endpoint), tracking (shared gate), server (wiring, origin check, session cookie, Turnstile, public config).
@@ -33,36 +37,45 @@ Running model: Claude Sonnet 5.5 (effort not observable; nothing switched). No s
 - Design decisions: non-streaming `generateText` (so fallback never double-replies; UI shows thinking state); server-held history (httpOnly cookie `oanro_asst`, DB stores only hash); client never supplies roles/tool data; model prose cannot state unverified prices; tracking creds never reach model/logs.
 
 ## Phase 2 — done
+
 Files: `src/components/assistant-{mascot,launcher,widget,cards,forms,rich-text}.tsx`, `src/app/assistant.css` (imported in layout), `AssistantLauncher` mounted in `src/app/layout.tsx` (only when `publicConfig().enabled`). Assistant is **opt-in: `ASSISTANT_ENABLED=true` required** (default off). Local preview: `.claude/launch.json` entry `oanro-dev-local-db` (own build dir `.next-local` via `NEXT_DIST_DIR`, local DB, ASSISTANT_ENABLED=true) → http://localhost:3101 (3100 was taken). Port 3000 is the user's own dev server using the Neon DB — never touched; note it hot-reloads this code but the assistant stays OFF there (env default off).
 Browser-verified (no AI keys, so no-key fallback path): panel open/close, product cards + Add to bag (localStorage cart), preview notice, rules answer, human-help block, tracking form (a fake local test order, since deleted), hand-off dedupe, rate limits (burst 4/10s, 20/10min → 429 + Retry-After), origin checks (403), cron 401, admin endpoints 403 without login, no order code/phone found in any assistant table.
 Old TODO list (kept for reference): mascot, panel, cards, forms, consent-gated recents — all implemented.
 
 ## (old) Phase 2 TODO
+
 Mascot SVG + launcher (lazy panel), panel/sheet UI, product cards (reuse ProductPhoto, addToCart, size/colour select), quick replies, tracking form, hand-off form, consent-gated recent products, a11y/focus, layout integration + CSS (avoid cookie notice, floating-help, bottom-bar), CSP `connect-src` unaffected (same-origin), Permissions-Policy `microphone=(self)`.
 
 ## Phase 3 — done (see caveat above)
+
 Files: `src/lib/assistant/{voice-core,speech}.ts`, `src/components/assistant-voice.tsx` (VoiceBar: Auto/বাংলা/English, Dictate, Conversation, pause/stop, status, one-time voice-processing notice), `next.config.ts` (Permissions-Policy microphone=(self); Turnstile allowed in CSP only when its site key env is set).
 Mock-browser checks: dictation fills the box without sending; conversation loops listen→send→speak→listen; 2 silent turns stop it with a message; Bangla page + no Bangla voice → nothing spoken (never wrong language); Pause/Stop release resources (unit-tested reducer).
 
 ## (old) Phase 3 TODO
+
 Voice hook: dictation + conversation; Auto/বাংলা/English; browser SpeechRecognition vs Groq Whisper (MediaRecorder + VAD); speechSynthesis voice matching; turn-taking, cleanup; pure state-machine tests.
 
 ## Phase 4 TODO
+
 `/admin/assistant` page(s): switches, FAQ/tone editor, conversations (filters/search), unanswered review, usage meter (Asia/Dhaka display, UTC buckets), privacy notice update, docs (`docs/assistant-setup.md`, hosting, rollback, extension points), `.env.example`.
 
 ## Phase 5 TODO
+
 Full lint/typecheck/build, existing tests, browser checks (phone + desktop), perf before/after, requirement→location→status table, final summary.
 
 ## Rules to keep
+
 No push/merge/deploy/production migration without explicit approval. Dev/test DB + synthetic data only. No secrets in logs. Do not read `.env.local`.
 
 ## Phase 4/5 — done (details and requirement table in `docs/assistant-handover.md`)
+
 - Admin: `src/app/admin/assistant/page.tsx`, `src/components/assistant-admin.tsx`; privacy notice section `#assistant` (EN+BN) in `src/app/privacy/page.tsx`; Personalisation wording updated in `privacy-center.tsx`; docs `docs/assistant-setup.md`, `.env.example`.
 - Checks run: tsc clean; eslint 0 errors (3 pre-existing warnings); `npm test` 53 pass / 1 fail (the pre-existing RBAC seed test); production build OK (separate dist dir); (the removed local smoke test) all PASS against the local server; before/after perf compare via worktree of the original commit.
 - Housekeeping: Next rewrites `tsconfig.json` when started with `NEXT_DIST_DIR`; restore with `git checkout tsconfig.json` + keep `"exclude":["node_modules",".next-local"]`. Local-only helper files: scripts/dev-*.{ts,mjs}, scripts/dev-db/, (the removed local smoke test), `.claude/launch.json`.
 - STOP POINT: nothing committed, pushed, merged, deployed or migrated in production. Awaiting Rosan's review.
 
 ## Live AI check (2026-10-28, local preview only, synthetic data)
+
 - Groq key added to git-ignored `.env.local` by the owner; Zero Data Retention switched on by the owner in the Groq console.
 - Groq retired `llama-3.3-70b-versatile` and `llama-3.1-8b-instant` (404 model_not_found on this account). Allowlist is now `openai/gpt-oss-120b` (default) and `openai/gpt-oss-20b`; `.env.example` updated. Cloudflare's model names are unchanged and NOT re-checked (no Cloudflare key).
 - Verified live with the real model: small talk, Banglish ("tumi kemon acho?"), Bangla delivery answer with correct rule values, product search tool (River Cap), typo search ("forest nitt sweter" -> Forest Knit Sweater after a prompt fix), prompt-injection refusal, off-topic refusal, human hand-off intent. Whisper endpoint reached with a synthetic tone (returns "." -> now treated as no speech).
@@ -71,10 +84,12 @@ No push/merge/deploy/production migration without explicit approval. Dev/test DB
 - Still stopped: nothing committed, pushed, merged, deployed or migrated in production.
 
 ## Deep test round (2026-10-28, local preview + local throwaway DB, real Groq model)
+
 Verified with the real model: quota (request cap and token cap stop AI calls, counters never overshoot, rules and product search still answered without AI), tool-calling on both allowlisted Groq models, injection/role/coupon/system-prompt attempts refused, order code + phone never reach the model or any table, HTML/links stripped, 30-day expiry, hashed session ids, malformed input (415/400/413/403/405), origin checks, admin routes 403 anonymously, cron 401, per-visitor daily cap (126 attempts -> blocked), phone-width sheet and rate-limit UI, no key in files/git/client bundle, build OK, 60/61 tests (RBAC seed test = old failure).
 Bugs found and fixed in this round: rule questions mis-detected ("how much is delivery", "what is your return policy", "delivery charge koto?": substring/typo matching of product words); quota fallback lacked the rules panel; a price ceiling hid a named item (model said River Cap was not in the catalogue); services question answered "we don't offer" (OANRO Studio does); Banglish answered in Bangla script/English; question and answer stored with equal timestamps so history could reach the model out of order; the visitor's own budget number was stripped from the reply; cards missing after reload now show a note; Whisper "." counts as no speech.
 Finding: ~2,100 input tokens per chat request, so the default Groq cap of 90,000 tokens/day is only ~43 chats/day. Owner should read console.groq.com -> Settings -> Limits and raise ASSISTANT_GROQ_DAILY_TOKENS/REQUESTS accordingly; the prompt could also be trimmed. History window is now 10 messages (5 turns).
 Not verified: real spoken audio through Whisper, Cloudflare backup (no key), real-device voice, mic on phones needs HTTPS.
+
 - 2026-10-28: the assistant icon is now the owner-supplied animated rocket (`public/assistant/rocket.svg`, plus `rocket-static.svg` for visitors who prefer reduced motion; both validated: shapes and animation only, no scripts or external links). Launcher is transparent (no disc); the panel header and typing indicator keep a pale disc behind it. Cached 7 days via `next.config.ts`. The icon pack's licence is unknown to us: the owner chose to use it, confirm before launch. The quick-reply chip row was removed; tracking and "Message our team" remain reachable by asking in the chat.
 - 2026-10-28: panel header now shows a small decorative city scene that follows Bangladesh time (UTC+6): night / dawn / day / dusk, a sun or moon on its arc, stars and lit windows, and sometimes rain. Rain is NOT real weather: it is a repeatable pseudo-random choice per 3-hour block (more likely June to September). Colours come only from the site palette (space #07090a, mint #3ddc97, cream #f6f5f0, forest #1f513c/#2f7a57, gold #c49a4a). Logic: `src/lib/assistant/sky.ts` (tested), drawing: `src/components/assistant-sky.tsx`. Motion stops for reduced-motion visitors (rain hidden). Text sits on a dark left-hand scrim.
 - 2026-10-28: first message shortened to "Hi! How can I help you today?" (also the canned hello); the header already introduces JUNO. Voice buttons click-tested with a stand-in microphone: click -> one permission request -> Listening; refused -> short message; the browser recogniser path starts on click and fills the box without sending. Real microphone still untested.
@@ -94,6 +109,7 @@ Not verified: real spoken audio through Whisper, Cloudflare backup (no key), rea
 - 2026-10-28: header scene got more detail (owner picked all four groups, calm pace). Lights: red aviation beacons on the three tower tips, blue/white strobes on Skytree/Tokyo Tower decks, blue Skytree outline that eases to white, ~1 in 6 lit windows red or blue, two flickering gold pagoda windows. Life: a small plane (red/green/white nav lights, ~46 s cycle, crosses in ~13 s), a helicopter (spinning rotor, red tail light, bobbing, ~74 s cycle, flies the other way), a lit train on a rail line (~52 s cycle), car lights on a road (white one way, red the other), fireworks at night/dusk (gold, mint, red bursts every 23-37 s), cherry petals on fair days. All of it respects the REAL weather: no aircraft in rain/thunder/fog, no fireworks under cloud, petals only on clear/partly-cloudy days; rain, snow, fog, lightning, cloud cover and colour shifts still come from the real weather. Reduced motion hides the moving parts; the site's Pause motion stops everything and parks vehicles off-screen (verified: 0 running animations). Chip (weather/time/date) made ~12% smaller: 97.4 x 41.3 px (was 111.8 x 47.2); text kept at the 12px minimum, time and date still share one left edge.
 
 ## Pre-push audit (2026-10-28): what a push changes on the live site
+
 - Local fake data removed: scripts/dev-seed-assistant.ts (fake products, owner, order, FAQ), dev-login.ts (fake staff) and assistant-smoke.mjs deleted; local throwaway DB wiped and rebuilt empty; stale Next product cache cleared. Nothing synthetic existed anywhere except the local test database; the live/Neon database was never read or written by this work.
 - Reverted: `src/app/api/order-status/route.ts` (live order lookup) is back to the original. `zod` pinned back to the version already in the lock file (4.6.6); no existing package version changed.
 - Bot OFF (default, ASSISTANT_ENABLED unset): no bot markup, no bot CSS (0 rules), no bot JS in page bundles, home HTML identical size (86,166 bytes), no extra database reads in the layout, all bot APIs answer 403. The bot's code and CSS are loaded by `assistant-loader.tsx` only when the flag is on.

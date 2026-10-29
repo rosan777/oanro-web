@@ -9,38 +9,67 @@ type Entry = MenuItem & { need?: Permission[]; ownerOnly?: boolean };
 
 export function menuFor(access: Access, counts: AdminCounts): MenuGroup[] {
   const groups: { label: string; items: Entry[] }[] = [
-    { label: "Daily work", items: [
-      { href: "/admin", label: "Today", count: counts.orders + counts.leads + counts.lowStock },
-      { href: "/admin/orders", label: "Orders", count: counts.orders, need: ["orders.read"] },
-      { href: "/admin/leads", label: "Inquiries", count: counts.leads, need: ["leads.read"] },
-      { href: "/admin/customers", label: "Customers", need: ["customers.read"] },
-    ] },
-    { label: "Store", items: [
-      { href: "/admin/sections", label: "Products & sections", need: [...productPermissions, "services.manage", "pulse.manage", "site.manage"] },
-      { href: "/admin/published", label: "Published products", need: [...productPermissions] },
-      { href: "/admin/services", label: "Services", need: ["services.manage", "site.manage"] },
-      { href: "/admin/campaigns", label: "Campaigns", need: ["campaigns.manage"] },
-      { href: "/admin/discounts", label: "Discount codes", need: ["discounts.manage"] },
-      { href: "/admin/pulse", label: "Global Pulse", need: ["pulse.manage", "site.manage"] },
-    ] },
-    { label: "Website", items: [
-      { href: "/admin/assistant", label: "JUNO bot · On / Off", need: ["assistant.view", "assistant.edit"] },
-      { href: "/admin/content", label: "Website content", need: ["content.manage"] },
-      { href: "/admin/company-profile", label: "Company profile", need: ["content.manage"] },
-      { href: "/admin/banners", label: "Announcement bar", need: ["banners.manage"] },
-    ] },
-    { label: "Insights", items: [
-      { href: "/admin/reports/sales", label: "Sales & stock", need: ["reports.read"] },
-      { href: "/admin/reports/profit", label: "Profit", need: ["profit.read"] },
-      { href: "/admin/activity", label: "Activity log", need: ["audit.read"] },
-    ] },
-    { label: "Settings", items: [
-      { href: "/admin/settings", label: "Payment & delivery", ownerOnly: true },
-      { href: "/admin/staff", label: "Staff & roles", need: ["staff.manage"] },
-    ] },
+    {
+      label: "Daily work",
+      items: [
+        { href: "/admin", label: "Today", count: counts.orders + counts.leads + counts.lowStock },
+        { href: "/admin/orders", label: "Orders", count: counts.orders, need: ["orders.read"] },
+        { href: "/admin/leads", label: "Inquiries", count: counts.leads, need: ["leads.read"] },
+        { href: "/admin/customers", label: "Customers", need: ["customers.read"] },
+      ],
+    },
+    {
+      label: "Store",
+      items: [
+        {
+          href: "/admin/sections",
+          label: "Products & sections",
+          need: [...productPermissions, "services.manage", "pulse.manage", "site.manage"],
+        },
+        { href: "/admin/published", label: "Published products", need: [...productPermissions] },
+        { href: "/admin/services", label: "Services", need: ["services.manage", "site.manage"] },
+        { href: "/admin/campaigns", label: "Campaigns", need: ["campaigns.manage"] },
+        { href: "/admin/discounts", label: "Discount codes", need: ["discounts.manage"] },
+        { href: "/admin/pulse", label: "Global Pulse", need: ["pulse.manage", "site.manage"] },
+      ],
+    },
+    {
+      label: "Website",
+      items: [
+        {
+          href: "/admin/assistant",
+          label: "JUNO bot · On / Off",
+          need: ["assistant.view", "assistant.edit"],
+        },
+        { href: "/admin/content", label: "Website content", need: ["content.manage"] },
+        { href: "/admin/company-profile", label: "Company profile", need: ["content.manage"] },
+        { href: "/admin/banners", label: "Announcement bar", need: ["banners.manage"] },
+      ],
+    },
+    {
+      label: "Insights",
+      items: [
+        { href: "/admin/reports/sales", label: "Sales & stock", need: ["reports.read"] },
+        { href: "/admin/reports/profit", label: "Profit", need: ["profit.read"] },
+        { href: "/admin/activity", label: "Activity log", need: ["audit.read"] },
+      ],
+    },
+    {
+      label: "Settings",
+      items: [
+        { href: "/admin/settings", label: "Payment & delivery", ownerOnly: true },
+        { href: "/admin/staff", label: "Staff & roles", need: ["staff.manage"] },
+      ],
+    },
   ];
-  const allowed = (e: Entry) => access.owner || (!e.ownerOnly && (!e.need || e.need.some(p => access.permissions.has(p))));
+  const allowed = (e: Entry) =>
+    access.owner || (!e.ownerOnly && (!e.need || e.need.some(p => access.permissions.has(p))));
   return groups
-    .map(g => ({ label: g.label, items: g.items.filter(allowed).map(({ href, label, count }) => ({ href, label, ...(count ? { count } : {}) })) }))
+    .map(g => ({
+      label: g.label,
+      items: g.items
+        .filter(allowed)
+        .map(({ href, label, count }) => ({ href, label, ...(count ? { count } : {}) })),
+    }))
     .filter(g => g.items.length > 0);
 }

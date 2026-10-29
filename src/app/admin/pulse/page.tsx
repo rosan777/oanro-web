@@ -6,5 +6,11 @@ export const dynamic = "force-dynamic";
 export default async function PulseAdminPage() {
   await requireAdminPage("pulse.manage");
   const [sections, stories] = await Promise.all([getSectionState(), getOwnerPulseStories()]);
-  return <main id="main-content" className="container auth-page"><AdminBack /><h1>Global Pulse</h1><SectionDashboard initial={sections} initialStories={stories} /></main>;
+  return (
+    <main id="main-content" className="container auth-page">
+      <AdminBack />
+      <h1>Global Pulse</h1>
+      <SectionDashboard initial={sections} initialStories={stories} />
+    </main>
+  );
 }

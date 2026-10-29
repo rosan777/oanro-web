@@ -1,7 +1,11 @@
 // Language-prefixed URLs: English lives at /path, Bangla at /bn/path. Shared by server and browser code.
 export type Locale = "en" | "bn";
 
-export function isBnPath(path: string) { return path === "/bn" || path.startsWith("/bn/") || path.startsWith("/bn?") || path.startsWith("/bn#"); }
+export function isBnPath(path: string) {
+  return (
+    path === "/bn" || path.startsWith("/bn/") || path.startsWith("/bn?") || path.startsWith("/bn#")
+  );
+}
 
 /** Removes a leading /bn so the result is the English path. */
 export function stripLocale(path: string) {

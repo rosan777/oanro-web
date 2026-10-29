@@ -34,25 +34,28 @@ export function categoryGuide(preset: CollectionPreset, name: string, locale: Lo
     heading: bn ? `${name} কেনার আগে জেনে নিন` : `Buying ${name} from OANRO`,
     paragraphs: [
       bn ? presetCopy[preset].bn : presetCopy[preset].en,
-      bn ? `OANRO অনলাইনে ${name} বিক্রি করে; বর্তমানে ডেলিভারি সারা বাংলাদেশে। পছন্দের পণ্যটি ব্যাগে যোগ করুন, চেকআউটে ঠিকানা দিন, আর ডেলিভারি ও পেমেন্টের অপশন সেখানেই দেখতে পাবেন। ডেলিভারির সময়, চার্জ ও রিটার্নের নিয়ম জানতে আমাদের ডেলিভারি ও রিটার্ন পেজ দেখুন। কোনো পণ্য নিয়ে প্রশ্ন থাকলে মেসেঞ্জার বা ইমেইলে যোগাযোগ করুন, আমরা সাধারণত এক কর্মদিবসের মধ্যে উত্তর দিই।`
-         : `OANRO sells ${name} online, with delivery currently available across Bangladesh. Add what you like to your bag, enter your address at checkout, and you will see the delivery and payment options there. For delivery times, charges and returns, see our Delivery & Returns page. If you have a question about any product, message us on Messenger or by email and we usually reply within one working day.`,
+      bn
+        ? `OANRO অনলাইনে ${name} বিক্রি করে; বর্তমানে ডেলিভারি সারা বাংলাদেশে। পছন্দের পণ্যটি ব্যাগে যোগ করুন, চেকআউটে ঠিকানা দিন, আর ডেলিভারি ও পেমেন্টের অপশন সেখানেই দেখতে পাবেন। ডেলিভারির সময়, চার্জ ও রিটার্নের নিয়ম জানতে আমাদের ডেলিভারি ও রিটার্ন পেজ দেখুন। কোনো পণ্য নিয়ে প্রশ্ন থাকলে মেসেঞ্জার বা ইমেইলে যোগাযোগ করুন, আমরা সাধারণত এক কর্মদিবসের মধ্যে উত্তর দিই।`
+        : `OANRO sells ${name} online, with delivery currently available across Bangladesh. Add what you like to your bag, enter your address at checkout, and you will see the delivery and payment options there. For delivery times, charges and returns, see our Delivery & Returns page. If you have a question about any product, message us on Messenger or by email and we usually reply within one working day.`,
     ],
   };
 }
 
 export function serviceGuide(title: string, locale: Locale): Guide {
   const bn = locale === "bn";
-  return bn ? {
-    heading: `OANRO-র সঙ্গে ${title} কীভাবে কাজ করে`,
-    paragraphs: [
-      "প্রতিটি প্রজেক্ট শুরু হয় একটি ছোট আলোচনা দিয়ে: আপনার ব্যবসা কী করে, কারা আপনার গ্রাহক, আর আপনি কী অর্জন করতে চান। এরপর আমরা একটি পরিষ্কার পরিকল্পনা দিই, যেখানে কাজের পরিধি, ধাপ ও সময় লেখা থাকে, যাতে শুরু করার আগেই সব বুঝে নিতে পারেন।",
-      "আমরা বাংলাদেশ ও বিশ্বের যেকোনো জায়গার ছোট ও নতুন ব্যবসার সঙ্গে কাজ করি, এবং বাংলা ও ইংরেজি দুই ভাষাতেই যোগাযোগ করি। আপনার প্রয়োজন জানাতে মেসেজ বা ইনকোয়ারি পাঠান, আমরা সাধারণত এক কর্মদিবসের মধ্যে উত্তর দিই।",
-    ],
-  } : {
-    heading: `How ${title} works with OANRO`,
-    paragraphs: [
-      "Every project starts with a short conversation about what your business does, who your customers are and what you want to achieve. We then give you a clear plan with the scope, the steps and the timeline written down, so you know exactly what you are getting before any work begins.",
-      "We work with small and growing businesses in Bangladesh and around the world, and communicate in both Bangla and English. Send a message or an inquiry describing what you need, and we usually reply within one working day.",
-    ],
-  };
+  return bn
+    ? {
+        heading: `OANRO-র সঙ্গে ${title} কীভাবে কাজ করে`,
+        paragraphs: [
+          "প্রতিটি প্রজেক্ট শুরু হয় একটি ছোট আলোচনা দিয়ে: আপনার ব্যবসা কী করে, কারা আপনার গ্রাহক, আর আপনি কী অর্জন করতে চান। এরপর আমরা একটি পরিষ্কার পরিকল্পনা দিই, যেখানে কাজের পরিধি, ধাপ ও সময় লেখা থাকে, যাতে শুরু করার আগেই সব বুঝে নিতে পারেন।",
+          "আমরা বাংলাদেশ ও বিশ্বের যেকোনো জায়গার ছোট ও নতুন ব্যবসার সঙ্গে কাজ করি, এবং বাংলা ও ইংরেজি দুই ভাষাতেই যোগাযোগ করি। আপনার প্রয়োজন জানাতে মেসেজ বা ইনকোয়ারি পাঠান, আমরা সাধারণত এক কর্মদিবসের মধ্যে উত্তর দিই।",
+        ],
+      }
+    : {
+        heading: `How ${title} works with OANRO`,
+        paragraphs: [
+          "Every project starts with a short conversation about what your business does, who your customers are and what you want to achieve. We then give you a clear plan with the scope, the steps and the timeline written down, so you know exactly what you are getting before any work begins.",
+          "We work with small and growing businesses in Bangladesh and around the world, and communicate in both Bangla and English. Send a message or an inquiry describing what you need, and we usually reply within one working day.",
+        ],
+      };
 }

@@ -3,6 +3,7 @@
 Owner-managed catalog in PostgreSQL, replacing the hardcoded product list.
 
 ## What changed
+
 - **Database:** migration `0003_product_catalog` adds the `product` table: bilingual text, price (BDT, integer), optional stock, sizes, specifications, optional photo, `draft` / `published` / `hidden` status, display order, and `archived_at` for soft delete. Database checks reject negative prices/stock and unknown statuses. Additive only: no existing table is changed.
 - **Admin (`/admin`):** add, edit, publish/hide, archive products; upload a photo (resized in the browser to 800px JPEG, metadata stripped, re-validated on the server); import the four demo products to edit them.
 - **Audit:** every create, update (with the list of changed fields), status change, archive and demo import writes an `audit_event` row in the same transaction.
@@ -11,17 +12,19 @@ Owner-managed catalog in PostgreSQL, replacing the hardcoded product list.
 - **Security:** same pattern as existing admin APIs — verified owner session, same-origin check, 400 KB body limit, strict input validation (`src/lib/product-input.ts`).
 
 ## Verification
-| Check | Result |
-| --- | --- |
-| TypeScript | Passed |
-| ESLint | Passed, 0 warnings |
-| Tests | 9/9 passed (`npm test`): 7 existing + 2 new in `tests/product-catalog.test.ts` |
-| Migration | Applied twice on in-memory PostgreSQL (PGlite) with no errors; DB-level checks verified |
-| Production build | **Not yet run** — needs `npm run build` on the Mac |
-| Browser test | **Not yet run** — admin flow and storefront need checking on localhost |
-| Drizzle snapshot | Hand-written; confirm with `npm run db:generate` (expected: no schema changes) |
+
+| Check            | Result                                                                                  |
+| ---------------- | --------------------------------------------------------------------------------------- |
+| TypeScript       | Passed                                                                                  |
+| ESLint           | Passed, 0 warnings                                                                      |
+| Tests            | 9/9 passed (`npm test`): 7 existing + 2 new in `tests/product-catalog.test.ts`          |
+| Migration        | Applied twice on in-memory PostgreSQL (PGlite) with no errors; DB-level checks verified |
+| Production build | **Not yet run** — needs `npm run build` on the Mac                                      |
+| Browser test     | **Not yet run** — admin flow and storefront need checking on localhost                  |
+| Drizzle snapshot | Hand-written; confirm with `npm run db:generate` (expected: no schema changes)          |
 
 ## Known limits
+
 - Archived slugs stay reserved (the slug stays unique so old links never point to a different product).
 - Home page feature stories still link to `/products/forest-knit` and `/products/studio-headphones`; archiving those products makes those links show "not found".
 - Conveyor cards show English names; Bangla product text is used on the product page.
@@ -38,9 +41,9 @@ Owner-managed catalog in PostgreSQL, replacing the hardcoded product list.
 - **Products are public only when both the product and its section are published.**
 - **Price display:** `formatPrice` no longer uses Intl currency data, fixing the hydration error (server “BDT 4,990” vs browser “4,990৳”). Now `৳4,990`, lakh grouping, Bangla digits in Bangla mode.
 
-| Check | Result |
-| --- | --- |
-| TypeScript / ESLint | Passed, 0 warnings |
-| Tests | 11/11 (`npm test`) |
-| Migration 0004 | PGlite (twice) + rehearsed on a Neon branch copy of production data: sections and product placement as expected |
-| Build / browser | Pending on the Mac |
+| Check               | Result                                                                                                          |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| TypeScript / ESLint | Passed, 0 warnings                                                                                              |
+| Tests               | 11/11 (`npm test`)                                                                                              |
+| Migration 0004      | PGlite (twice) + rehearsed on a Neon branch copy of production data: sections and product placement as expected |
+| Build / browser     | Pending on the Mac                                                                                              |

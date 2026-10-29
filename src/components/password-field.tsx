@@ -13,7 +13,10 @@ import { useLocale } from "./locale";
  * - All other input props (name, autoComplete, minLength, pattern ...) are passed through unchanged,
  *   so browser validation and password managers behave exactly as before.
  */
-type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "id"> & { label: ReactNode; hint?: ReactNode };
+type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "id"> & {
+  label: ReactNode;
+  hint?: ReactNode;
+};
 
 export function PasswordField({ label, hint, ...inputProps }: Props) {
   const { locale } = useLocale();
@@ -21,15 +24,42 @@ export function PasswordField({ label, hint, ...inputProps }: Props) {
   const [visible, setVisible] = useState(false);
   const inputId = useId();
   const hintId = `${inputId}-hint`;
-  return <div className="password-field">
-    <label htmlFor={inputId}>{label}</label>
-    <div className="password-input">
-      <input {...inputProps} id={inputId} type={visible ? "text" : "password"} aria-describedby={hint ? hintId : undefined} autoCapitalize="none" spellCheck={false} />
-      <button type="button" className="password-toggle" onClick={() => setVisible(v => !v)} aria-controls={inputId} aria-pressed={visible}
-        aria-label={visible ? (bn ? "পাসওয়ার্ড লুকান" : "Hide password") : (bn ? "পাসওয়ার্ড দেখান" : "Show password")}>
-        {visible ? <EyeOff size={20} strokeWidth={1.75} aria-hidden="true" /> : <Eye size={20} strokeWidth={1.75} aria-hidden="true" />}
-      </button>
+  return (
+    <div className="password-field">
+      <label htmlFor={inputId}>{label}</label>
+      <div className="password-input">
+        <input
+          {...inputProps}
+          id={inputId}
+          type={visible ? "text" : "password"}
+          aria-describedby={hint ? hintId : undefined}
+          autoCapitalize="none"
+          spellCheck={false}
+        />
+        <button
+          type="button"
+          className="password-toggle"
+          onClick={() => setVisible(v => !v)}
+          aria-controls={inputId}
+          aria-pressed={visible}
+          aria-label={
+            visible
+              ? bn
+                ? "পাসওয়ার্ড লুকান"
+                : "Hide password"
+              : bn
+                ? "পাসওয়ার্ড দেখান"
+                : "Show password"
+          }
+        >
+          {visible ? (
+            <EyeOff size={20} strokeWidth={1.75} aria-hidden="true" />
+          ) : (
+            <Eye size={20} strokeWidth={1.75} aria-hidden="true" />
+          )}
+        </button>
+      </div>
+      {hint ? <small id={hintId}>{hint}</small> : null}
     </div>
-    {hint ? <small id={hintId}>{hint}</small> : null}
-  </div>;
+  );
 }

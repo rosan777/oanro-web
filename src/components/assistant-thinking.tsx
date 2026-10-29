@@ -8,12 +8,23 @@ import { Rocket } from "lucide-react";
  */
 export function JunoThinking({ bn }: { bn: boolean }) {
   const status = bn ? "JUNO ভাবছে" : "Juno is thinking";
-  return <div className="asst-think" role="status" aria-label={`OANRO AI: ${status}`}>
-    <span className="asst-think-badge" aria-hidden="true"><Rocket className="asst-think-rocket" strokeWidth={1.55} /></span>
-    <span className="asst-think-copy" aria-hidden="true">
-      <span className="asst-think-brand">OANRO AI</span>
-      <span className="asst-think-status">{status}<span className="asst-think-dots"><b /><b /><b /></span></span>
-      <span className="asst-think-track" />
-    </span>
-  </div>;
+  return (
+    <div className="asst-think" role="status" aria-label={`OANRO AI: ${status}`}>
+      <span className="asst-think-badge" aria-hidden="true">
+        <Rocket className="asst-think-rocket" strokeWidth={1.55} />
+      </span>
+      <span className="asst-think-copy" aria-hidden="true">
+        <span className="asst-think-brand">OANRO AI</span>
+        <span className="asst-think-status">
+          {status}
+          <span className="asst-think-dots">
+            <b />
+            <b />
+            <b />
+          </span>
+        </span>
+        <span className="asst-think-track" />
+      </span>
+    </div>
+  );
 }
