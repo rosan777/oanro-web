@@ -21,5 +21,14 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const access = await getAccess(db, session.user.id).catch(() => null);
   if (!access || access.permissions.size === 0) return children;
   const counts = await adminCounts(db, access).catch(() => ({ orders: 0, leads: 0, lowStock: 0 }));
-  return <AdminShell menu={menuFor(access, counts)} live={storeLive()} name={session.user.name || session.user.email} role={access.owner ? "Owner · full access" : "Staff"}>{children}</AdminShell>;
+  return (
+    <AdminShell
+      menu={menuFor(access, counts)}
+      live={storeLive()}
+      name={session.user.name || session.user.email}
+      role={access.owner ? "Owner · full access" : "Staff"}
+    >
+      {children}
+    </AdminShell>
+  );
 }

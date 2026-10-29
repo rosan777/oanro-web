@@ -11,7 +11,8 @@ const meaning = {
 };
 
 export function BrandHeadline({ mark }: { mark?: ReactNode }) {
-  const { locale } = useLocale(); const bn = locale === "bn";
+  const { locale } = useLocale();
+  const bn = locale === "bn";
   const { allowed } = useMotion();
   const [active, setActive] = useState(0);
   useEffect(() => {
@@ -20,14 +21,48 @@ export function BrandHeadline({ mark }: { mark?: ReactNode }) {
     return () => window.clearInterval(timer);
   }, [allowed]);
   const words = bn ? meaning.bn : meaning.en;
-  return <>
-    <h1 className="brand-headline">
-      {/* Search keywords sit inside the H1 (Google weighs it most), styled as the small line beside the logo card. */}
-      <span className="hero-eyebrow-row">{mark}<span className="eyebrow">{bn ? "শীতের পোশাক · টেক সলিউশন · আইটি সেবা · বিশ্বজুড়ে" : "Winter clothing · Tech solutions · IT services · Worldwide"}</span></span>
-      <span className="brand-letters">{"OANRO".split("").map((ch, i) => <span key={i} className={i === active ? "is-active" : undefined}>{ch}</span>)}</span>
-      <span className="brand-tagline">{bn ? <>ভবিষ্যতের জন্য গড়া <em>একটি ব্র্যান্ড।</em></> : <>A brand built for <em>what&apos;s next.</em></>}</span>
-    </h1>
-    <p className="brand-built" aria-hidden="true">{bn ? "যার ভিত্তি" : "Built on"} <span key={`${locale}-${active}`} className="brand-word">{words[active]}</span></p>
-    <p className="sr-only">{bn ? `OANRO মানে: ${meaning.bn.join(", ")}।` : `OANRO stands for ${meaning.en.slice(0, 4).join(", ")} and ${meaning.en[4]}.`}</p>
-  </>;
+  return (
+    <>
+      <h1 className="brand-headline">
+        {/* Search keywords sit inside the H1 (Google weighs it most), styled as the small line beside the logo card. */}
+        <span className="hero-eyebrow-row">
+          {mark}
+          <span className="eyebrow">
+            {bn
+              ? "শীতের পোশাক · টেক সলিউশন · আইটি সেবা · বিশ্বজুড়ে"
+              : "Winter clothing · Tech solutions · IT services · Worldwide"}
+          </span>
+        </span>
+        <span className="brand-letters">
+          {"OANRO".split("").map((ch, i) => (
+            <span key={i} className={i === active ? "is-active" : undefined}>
+              {ch}
+            </span>
+          ))}
+        </span>
+        <span className="brand-tagline">
+          {bn ? (
+            <>
+              ভবিষ্যতের জন্য গড়া <em>একটি ব্র্যান্ড।</em>
+            </>
+          ) : (
+            <>
+              A brand built for <em>what&apos;s next.</em>
+            </>
+          )}
+        </span>
+      </h1>
+      <p className="brand-built" aria-hidden="true">
+        {bn ? "যার ভিত্তি" : "Built on"}{" "}
+        <span key={`${locale}-${active}`} className="brand-word">
+          {words[active]}
+        </span>
+      </p>
+      <p className="sr-only">
+        {bn
+          ? `OANRO মানে: ${meaning.bn.join(", ")}।`
+          : `OANRO stands for ${meaning.en.slice(0, 4).join(", ")} and ${meaning.en[4]}.`}
+      </p>
+    </>
+  );
 }

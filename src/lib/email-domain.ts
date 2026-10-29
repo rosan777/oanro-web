@@ -28,16 +28,29 @@ async function lookup(domain: string, resolver: DnsLookup): Promise<DomainVerdic
   }
   // No MX: mail falls back to the domain's own address record.
   for (const addressLookup of [() => resolver.resolve4(domain), () => resolver.resolve6(domain)]) {
-    try { if ((await addressLookup()).length > 0) return "ok"; }
-    catch (error) { if (!NOTHING_THERE.has(errorCode(error))) return "unknown"; }
+    try {
+      if ((await addressLookup()).length > 0) return "ok";
+    } catch (error) {
+      if (!NOTHING_THERE.has(errorCode(error))) return "unknown";
+    }
   }
   return "no-mail";
 }
 
-export async function checkMailDomain(domain: string, resolver: DnsLookup = dns, timeoutMs = 2500): Promise<DomainVerdict> {
+export async function checkMailDomain(
+  domain: string,
+  resolver: DnsLookup = dns,
+  timeoutMs = 2500,
+): Promise<DomainVerdict> {
   const clean = domain.trim().toLowerCase().replace(/\.$/, "");
   if (!clean.includes(".")) return "no-mail";
   let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<DomainVerdict>(resolve => { timer = setTimeout(() => resolve("unknown"), timeoutMs); });
-  try { return await Promise.race([lookup(clean, resolver), timeout]); } finally { clearTimeout(timer); }
+  const timeout = new Promise<DomainVerdict>(resolve => {
+    timer = setTimeout(() => resolve("unknown"), timeoutMs);
+  });
+  try {
+    return await Promise.race([lookup(clean, resolver), timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
 }

@@ -23,23 +23,59 @@ test("typo hint: suggests a popular domain, never rewrites valid or unusual addr
 });
 
 /** A fake DNS: every call answers from the table, or throws the given error code. */
-const fakeDns = (table: { mx?: { exchange: string; priority: number }[] | string; a?: string[] | string; aaaa?: string[] | string }): DnsLookup => {
-  const answer = <T,>(value: T[] | string | undefined) => async () => { if (typeof value === "string") throw Object.assign(new Error(value), { code: value }); if (!value) throw Object.assign(new Error("ENODATA"), { code: "ENODATA" }); return value; };
-  return { resolveMx: answer(table.mx), resolve4: answer(table.a), resolve6: answer(table.aaaa) } as unknown as DnsLookup;
+const fakeDns = (table: {
+  mx?: { exchange: string; priority: number }[] | string;
+  a?: string[] | string;
+  aaaa?: string[] | string;
+}): DnsLookup => {
+  const answer =
+    <T>(value: T[] | string | undefined) =>
+    async () => {
+      if (typeof value === "string") throw Object.assign(new Error(value), { code: value });
+      if (!value) throw Object.assign(new Error("ENODATA"), { code: "ENODATA" });
+      return value;
+    };
+  return {
+    resolveMx: answer(table.mx),
+    resolve4: answer(table.a),
+    resolve6: answer(table.aaaa),
+  } as unknown as DnsLookup;
 };
 
 test("mail domain: MX, address-record fallback, Null MX, missing domain, temporary failures", async () => {
-  assert.equal(await checkMailDomain("example.test", fakeDns({ mx: [{ exchange: "mx.example.test", priority: 10 }] })), "ok");
+  assert.equal(
+    await checkMailDomain(
+      "example.test",
+      fakeDns({ mx: [{ exchange: "mx.example.test", priority: 10 }] }),
+    ),
+    "ok",
+  );
   assert.equal(await checkMailDomain("example.test", fakeDns({ a: ["192.0.2.1"] })), "ok"); // no MX, A record fallback
   assert.equal(await checkMailDomain("example.test", fakeDns({ aaaa: ["2001:db8::1"] })), "ok");
-  assert.equal(await checkMailDomain("example.test", fakeDns({ mx: [{ exchange: "", priority: 0 }] })), "no-mail"); // Null MX as Node reports it
-  assert.equal(await checkMailDomain("example.test", fakeDns({ mx: [{ exchange: ".", priority: 0 }] })), "no-mail");
-  assert.equal(await checkMailDomain("gone.test", fakeDns({ mx: "ENOTFOUND", a: "ENOTFOUND", aaaa: "ENOTFOUND" })), "no-mail");
+  assert.equal(
+    await checkMailDomain("example.test", fakeDns({ mx: [{ exchange: "", priority: 0 }] })),
+    "no-mail",
+  ); // Null MX as Node reports it
+  assert.equal(
+    await checkMailDomain("example.test", fakeDns({ mx: [{ exchange: ".", priority: 0 }] })),
+    "no-mail",
+  );
+  assert.equal(
+    await checkMailDomain(
+      "gone.test",
+      fakeDns({ mx: "ENOTFOUND", a: "ENOTFOUND", aaaa: "ENOTFOUND" }),
+    ),
+    "no-mail",
+  );
   assert.equal(await checkMailDomain("empty.test", fakeDns({})), "no-mail"); // exists but nothing to deliver to
   assert.equal(await checkMailDomain("x.test", fakeDns({ mx: "ESERVFAIL" })), "unknown"); // temporary: never blocks
   assert.equal(await checkMailDomain("x.test", fakeDns({ mx: "ETIMEOUT" })), "unknown");
   assert.equal(await checkMailDomain("localhost", fakeDns({})), "no-mail"); // no dot
-  const slow = { resolveMx: () => new Promise(() => {}), resolve4: async () => [], resolve6: async () => [] } as unknown as DnsLookup;
+  const slow = {
+    resolveMx: () => new Promise(() => {}),
+    resolve4: async () => [],
+    resolve6: async () => [],
+  } as unknown as DnsLookup;
   assert.equal(await checkMailDomain("slow.test", slow, 30), "unknown"); // timeout
 });
 
@@ -50,12 +86,22 @@ test("sign-up hook: refuses a domain that cannot receive mail, accepts the rest,
     await migrate(db, { migrationsFolder: "drizzle" });
     const asked: string[] = [];
     const auth = createAuth(db, {
-      baseURL: "http://localhost:3000", secret: "test-only-".repeat(8), sendMail: async () => {},
-      checkEmailDomain: async domain => { asked.push(domain); return domain === "gmaill.test" ? "no-mail" : domain === "flaky.test" ? "unknown" : "ok"; },
+      baseURL: "http://localhost:3000",
+      secret: "test-only-".repeat(8),
+      sendMail: async () => {},
+      checkEmailDomain: async domain => {
+        asked.push(domain);
+        return domain === "gmaill.test" ? "no-mail" : domain === "flaky.test" ? "unknown" : "ok";
+      },
     });
-    const post = (path: string, body: object) => auth.handler(new Request(`http://localhost:3000/api/auth/${path}`, {
-      method: "POST", headers: { "Content-Type": "application/json", Origin: "http://localhost:3000" }, body: JSON.stringify(body),
-    }));
+    const post = (path: string, body: object) =>
+      auth.handler(
+        new Request(`http://localhost:3000/api/auth/${path}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Origin: "http://localhost:3000" },
+          body: JSON.stringify(body),
+        }),
+      );
     const base = { password: "Test-password-123456", name: "Customer", callbackURL: "/account" };
 
     let response = await post("sign-up/email", { ...base, email: "typo@gmaill.test" });
@@ -70,7 +116,12 @@ test("sign-up hook: refuses a domain that cannot receive mail, accepts the rest,
 
     asked.length = 0;
     await post("sign-in/email", { email: "typo@gmaill.test", password: base.password });
-    await post("request-password-reset", { email: "typo@gmaill.test", redirectTo: "/reset-password" });
+    await post("request-password-reset", {
+      email: "typo@gmaill.test",
+      redirectTo: "/reset-password",
+    });
     assert.deepEqual(asked, []); // DNS is only consulted on sign-up
-  } finally { await pg.close(); }
+  } finally {
+    await pg.close();
+  }
 });

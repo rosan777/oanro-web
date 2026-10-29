@@ -4,8 +4,10 @@ const paths = {
   approve: "M4 12.5l5 5L20 6.5",
   add: "M12 5v14M5 12h14",
   reject: "M6 6l12 12M18 6L6 18",
-  courier: "M3 7h11v9H3zM14 10h4l3 3v3h-7M7 19.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM17 19.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z",
-  route: "M5 19a2 2 0 100-4 2 2 0 000 4zM19 9a2 2 0 100-4 2 2 0 000 4zM7 17h6a3 3 0 000-6H11a3 3 0 010-6h6",
+  courier:
+    "M3 7h11v9H3zM14 10h4l3 3v3h-7M7 19.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM17 19.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z",
+  route:
+    "M5 19a2 2 0 100-4 2 2 0 000 4zM19 9a2 2 0 100-4 2 2 0 000 4zM7 17h6a3 3 0 000-6H11a3 3 0 010-6h6",
   delivered: "M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM4 7.5l8 4.5 8-4.5M12 12v9M9 15.5l2 2 4-4",
   returned: "M9 7L4 12l5 5M4 12h11a5 5 0 010 10h-2",
   edit: "M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4",
@@ -29,5 +31,21 @@ const paths = {
 } as const;
 export type ActionIconName = keyof typeof paths;
 export function ActionIcon({ name, size = 16 }: { name: ActionIconName; size?: number }) {
-  return <svg className="action-icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d={paths[name]} /></svg>;
+  return (
+    <svg
+      className="action-icon"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d={paths[name]} />
+    </svg>
+  );
 }

@@ -15,13 +15,26 @@ export function ValueFan(props: { showProducts?: boolean }) {
   void props;
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
-  const { allowed } = useMotion(); const t = useT();
+  const { allowed } = useMotion();
+  const t = useT();
   useEffect(() => {
-    const node = root.current; const scene = stage.current;
+    const node = root.current;
+    const scene = stage.current;
     if (!node || !scene) return;
     const cards = Array.from(node.querySelectorAll<HTMLElement>("[data-value-card]"));
-    const reset = () => { delete node.dataset.animated; cards.forEach(card => { card.style.removeProperty("transform"); card.style.removeProperty("--card-angle"); card.style.removeProperty("--label-opacity"); card.style.removeProperty("--card-blur"); }); };
-    if (!allowed) { reset(); return; }
+    const reset = () => {
+      delete node.dataset.animated;
+      cards.forEach(card => {
+        card.style.removeProperty("transform");
+        card.style.removeProperty("--card-angle");
+        card.style.removeProperty("--label-opacity");
+        card.style.removeProperty("--card-blur");
+      });
+    };
+    if (!allowed) {
+      reset();
+      return;
+    }
     node.dataset.animated = "true";
     let frame = 0;
     const update = () => {
@@ -39,22 +52,52 @@ export function ValueFan(props: { showProducts?: boolean }) {
       });
       frame = 0;
     };
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
     update();
-    const resize = new ResizeObserver(schedule); resize.observe(node); resize.observe(scene);
+    const resize = new ResizeObserver(schedule);
+    resize.observe(node);
+    resize.observe(scene);
     window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule); window.addEventListener("pageshow", schedule);
-    return () => { cancelAnimationFrame(frame); resize.disconnect(); window.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule); window.removeEventListener("pageshow", schedule); reset(); };
+    window.addEventListener("resize", schedule);
+    window.addEventListener("pageshow", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      resize.disconnect();
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("pageshow", schedule);
+      reset();
+    };
   }, [allowed]);
-  return <section ref={root} className={styles.section} aria-label={t("The OANRO values", "OANRO-র মূল্যবোধ")} data-motion-enabled={allowed}>
-    <div ref={stage} className={styles.stage}>
-      <div className={styles.fan} role="list">
-        {values.map((value, index) => <article data-value-card className={styles.item} role="listitem" key={value.title} style={{ "--slot": index - 1.5, "--depth": index } as CSSProperties}>
-          <div className={styles.tilt}><div className={styles.glass}>
-            <value.icon className={styles.icon} aria-hidden="true" strokeWidth={1.25} />
-          </div></div><h3>{t(value.title, value.bn)}</h3>
-        </article>)}
+  return (
+    <section
+      ref={root}
+      className={styles.section}
+      aria-label={t("The OANRO values", "OANRO-র মূল্যবোধ")}
+      data-motion-enabled={allowed}
+    >
+      <div ref={stage} className={styles.stage}>
+        <div className={styles.fan} role="list">
+          {values.map((value, index) => (
+            <article
+              data-value-card
+              className={styles.item}
+              role="listitem"
+              key={value.title}
+              style={{ "--slot": index - 1.5, "--depth": index } as CSSProperties}
+            >
+              <div className={styles.tilt}>
+                <div className={styles.glass}>
+                  <value.icon className={styles.icon} aria-hidden="true" strokeWidth={1.25} />
+                </div>
+              </div>
+              <h3>{t(value.title, value.bn)}</h3>
+            </article>
+          ))}
+        </div>
       </div>
-    </div>
-  </section>;
+    </section>
+  );
 }

@@ -9,5 +9,9 @@ export function storefrontCached<T>(key: string, load: () => Promise<T>) {
 }
 /** Call after anything a shopper could see changes (admin edits, orders, stock). Expires the cache immediately. */
 export function storefrontChanged() {
-  try { revalidateTag(STOREFRONT_TAG, { expire: 0 }); } catch { /* outside a request (tests, scripts): nothing cached */ }
+  try {
+    revalidateTag(STOREFRONT_TAG, { expire: 0 });
+  } catch {
+    /* outside a request (tests, scripts): nothing cached */
+  }
 }

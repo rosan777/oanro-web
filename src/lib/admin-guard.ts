@@ -16,9 +16,12 @@ export async function requireAdminPage(permission?: Permission | Permission[]) {
   const db = catalogDb();
   await claimInvite(db, session.user);
   const access = await getAccess(db, session.user.id);
-  const needed = permission === undefined ? null : Array.isArray(permission) ? permission : [permission];
-  if (needed ? !needed.some(p => access.permissions.has(p)) : access.permissions.size === 0) notFound();
+  const needed =
+    permission === undefined ? null : Array.isArray(permission) ? permission : [permission];
+  if (needed ? !needed.some(p => access.permissions.has(p)) : access.permissions.size === 0)
+    notFound();
   // Owner requires two-step verification for staff: send them to set it up first.
-  if (await needsTwoFactorSetup(db, session.user.id, access.owner)) redirect("/account?security=required");
+  if (await needsTwoFactorSetup(db, session.user.id, access.owner))
+    redirect("/account?security=required");
   return { session, access };
 }

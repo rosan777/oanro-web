@@ -7,8 +7,19 @@ export function ViewCounter({ slug }: { slug: string }) {
     rememberProduct(slug);
     if (!allows("analytics")) return;
     const key = `oanro-viewed:${slug}`;
-    try { if (sessionStorage.getItem(key)) return; sessionStorage.setItem(key, "1"); } catch { /* storage blocked: still count */ }
-    fetch("/api/track/view", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug }), keepalive: true, credentials: "omit" }).catch(() => {});
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch {
+      /* storage blocked: still count */
+    }
+    fetch("/api/track/view", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug }),
+      keepalive: true,
+      credentials: "omit",
+    }).catch(() => {});
   }, [slug]);
   return null;
 }

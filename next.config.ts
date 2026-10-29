@@ -2,7 +2,9 @@ import type { NextConfig } from "next";
 
 const dev = process.env.NODE_ENV !== "production";
 // Only when the optional Turnstile bot check is configured do we allow its script and frame.
-const turnstile = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? " https://challenges.cloudflare.com" : "";
+const turnstile = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  ? " https://challenges.cloudflare.com"
+  : "";
 
 // Content-Security-Policy: which places the browser may load scripts, images, videos and connections from.
 // Anything not listed is blocked, so an injected script from another site cannot run.
@@ -33,7 +35,10 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=(), payment=(), usb=(), interest-cohort=()" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(self), geolocation=(), payment=(), usb=(), interest-cohort=()",
+  },
   // preload: browsers use HTTPS for oanro.com even on the very first visit (after submitting to hstspreload.org).
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
 ];
@@ -48,7 +53,12 @@ const nextConfig: NextConfig = {
     return [
       { source: "/:path*", headers: securityHeaders },
       // The assistant icon never changes without a new file name, so browsers may keep it for a week (it loads on every page).
-      { source: "/assistant/:file*.svg", headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }] },
+      {
+        source: "/assistant/:file*.svg",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" },
+        ],
+      },
     ];
   },
 };

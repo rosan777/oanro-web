@@ -7,5 +7,8 @@ import { sql, type AnyColumn } from "drizzle-orm";
 export function withImageFlag<C extends { imageData: AnyColumn }>(cols: C) {
   const rest: Partial<C> = { ...cols };
   delete rest.imageData;
-  return { ...(rest as Omit<C, "imageData">), imageData: sql<string | null>`case when ${cols.imageData} is null then null else '1' end` };
+  return {
+    ...(rest as Omit<C, "imageData">),
+    imageData: sql<string | null>`case when ${cols.imageData} is null then null else '1' end`,
+  };
 }

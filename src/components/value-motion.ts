@@ -1,5 +1,8 @@
 const clamp = (n: number) => Math.max(0, Math.min(1, n));
-const ease = (n: number) => { const t = clamp(n); return t * t * (3 - 2 * t); };
+const ease = (n: number) => {
+  const t = clamp(n);
+  return t * t * (3 - 2 * t);
+};
 
 // Pure scroll mapping: revisiting any progress gives exactly the same pose.
 export function valuePose(progress: number, index: number, step: number) {
