@@ -60,6 +60,9 @@ export function CustomCursor() {
     ring.className = "cursor-ring";
     ring.setAttribute("aria-hidden", "true");
     document.body.appendChild(ring);
+
+    // Pointer position, and the ring's eased position that follows it (20% closer every frame).
+
     let x = -100,
       y = -100,
       rx = x,

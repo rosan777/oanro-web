@@ -140,6 +140,9 @@ const banglishWords = new Set([
   "neya",
   "rakhbo",
 ]);
+
+// Common English words, so an English sentence is not mistaken for Banglish.
+
 const englishWords = new Set([
   "the",
   "is",
@@ -199,6 +202,8 @@ export function bengaliShare(text: string) {
   }
   return bn + other ? bn / (bn + other) : 0;
 }
+
+/** "bn" when 30% or more of the letters are Bangla, "banglish" when Banglish words dominate, otherwise "en". */
 export function detectLanguage(text: string, fallback: Lang = "en"): Lang {
   const share = bengaliShare(text);
   if (share >= 0.3) return "bn"; // mixed Bangla/English speech counts as Bangla: replies keep Bangla script and keep product names

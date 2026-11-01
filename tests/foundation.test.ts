@@ -1,3 +1,5 @@
+// Foundation: migrations apply, sign-up with email verification, sessions, password reset, owner setup and audit log.
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PGlite } from "@electric-sql/pglite";

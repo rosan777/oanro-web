@@ -2,6 +2,8 @@
 import { whisper } from "./config";
 
 export type Transcript = { text: string; language: string; seconds: number };
+
+/** A failed transcription; `kind` tells the route which message and status to return. */
 export class TranscribeError extends Error {
   constructor(
     public kind: "unconfigured" | "quota" | "auth" | "failed" | "empty",
@@ -10,6 +12,9 @@ export class TranscribeError extends Error {
     super(kind);
   }
 }
+
+// Accepted recording formats, and the file extension Whisper expects for each.
+
 const mimeOk =
   /^(audio\/(webm|ogg|mp4|mpeg|mp3|wav|x-wav|x-m4a|m4a|aac|flac)|video\/(webm|mp4))(;.*)?$/i;
 export const allowedAudioType = (type: string) => mimeOk.test(type);

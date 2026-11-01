@@ -22,6 +22,9 @@ export async function POST(request: Request) {
   }
   if (typeof data.website === "string" && data.website)
     return Response.json({ ok: true }, { headers: noStore }); // bot filled the honeypot
+
+  // The IP is only used as a salted hash for the hourly limit (see hashIp in lead-store.ts).
+
   const ip =
     (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() ||
     request.headers.get("x-real-ip") ||

@@ -23,6 +23,9 @@ const filterText: Record<Filter, string> = {
   rejected: "Rejected",
   all: "All",
 };
+
+// List filters: "To deliver" means approved but not yet delivered or returned.
+
 const inDelivery = (o: AdminOrder) =>
   o.status === "paid" && o.deliveryStatus !== "delivered" && o.deliveryStatus !== "returned";
 const matches = (o: AdminOrder, f: Filter) =>
@@ -54,6 +57,7 @@ const stepStyle: Record<string, [string, ActionIconName]> = {
   returned: ["btn-danger", "returned"],
 };
 
+/** Buttons for the next allowed delivery steps (see order-flow.ts), with courier, tracking and note fields when needed. */
 function DeliveryControls({
   order,
   busy,
@@ -539,6 +543,9 @@ export function OrdersDashboard({
       setRules(data.rules);
     },
   );
+
+  // Orders matching the chosen filter and the search text, and the count shown on each filter button.
+
   const term = search.trim().toLowerCase();
   const shown = orders.filter(o => matches(o, filter) && found(o, term));
   const count = (f: Filter) => orders.filter(o => matches(o, f)).length;

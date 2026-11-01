@@ -28,6 +28,8 @@ export function FormPopup({
     dialog.current?.showModal();
     button.current?.blur();
   }
+
+  /** Plays the closing animation (skipped with reduced motion), then closes and returns focus to the button. */
   function close() {
     const d = dialog.current;
     if (!d?.open) return;

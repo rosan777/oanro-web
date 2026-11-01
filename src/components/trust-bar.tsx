@@ -25,6 +25,9 @@ export function TrustBar({
   const dhaka = dayText(rules.dhakaDays),
     outside = dayText(rules.outsideDays);
   const cod = rules.codLimit > 0;
+
+  // Automatic messages built from the delivery and payment rules (plus a preview notice while the store isn't live).
+
   const auto = [
     bn
       ? `সারা বাংলাদেশে ডেলিভারি: ঢাকায় ${bnDigits(dhaka)} দিন, ঢাকার বাইরে ${bnDigits(outside)} দিন`
@@ -54,6 +57,10 @@ export function TrustBar({
         ),
       )
     : auto;
+
+  // The rotating list; the first message is repeated at the end so the loop restarts without a jump.
+  // Rendered twice: in the bar (desktop) and in the floating card (phones and tablets).
+
   const track = (key: string) => (
     <div className="announce" style={{ ["--n" as string]: messages.length }}>
       <ul className="announce-track">

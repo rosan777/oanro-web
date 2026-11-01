@@ -37,6 +37,8 @@ export type ProductInput = {
   /** null = one stock number for the whole product (or not counted); a list = stock per colour × size. */
   variants: VariantStock[] | null;
 };
+
+/** Thrown for any invalid field; admin-api.ts turns it into a 400 response that names the field. */
 export class ProductInputError extends Error {
   readonly field: string;
   constructor(field: string) {
@@ -44,6 +46,9 @@ export class ProductInputError extends Error {
     this.field = field;
   }
 }
+
+// Field helpers shared by the parsers below.
+
 export const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 // Strip control characters other than newlines/tabs, trim, and enforce a length cap.
 function text(data: Record<string, unknown>, field: string, max: number, required = false) {
@@ -53,6 +58,8 @@ function text(data: Record<string, unknown>, field: string, max: number, require
   if (clean.length > max || (required && !clean)) throw new ProductInputError(field);
   return clean;
 }
+
+/** A whole number in range; numeric text from form fields is accepted too. */
 function int(value: unknown, field: string, min: number, max: number) {
   const n = typeof value === "string" && value.trim() !== "" ? Number(value) : value;
   if (typeof n !== "number" || !Number.isInteger(n) || n < min || n > max)
@@ -102,6 +109,8 @@ const order = (data: Record<string, unknown>) =>
   data.displayOrder === undefined || data.displayOrder === ""
     ? 0
     : int(data.displayOrder, "displayOrder", -1000, 1000);
+
+/** 1–12 sizes, from a list or comma-separated text; blanks and duplicates removed. */
 function sizes(value: unknown): string[] {
   const list = typeof value === "string" ? value.split(",") : value;
   if (!Array.isArray(list)) throw new ProductInputError("sizes");
@@ -117,6 +126,8 @@ function sizes(value: unknown): string[] {
     throw new ProductInputError("sizes");
   return clean;
 }
+
+/** Up to 12 colours, each with an English name and a #rrggbb swatch; ids must be unique. */
 function colors(value: unknown): ProductColor[] {
   if (value === undefined || value === null || value === "") return [];
   if (!Array.isArray(value) || value.length > 12) throw new ProductInputError("colors");
@@ -159,6 +170,8 @@ function variants(
   if (out.size !== wanted.size) throw new ProductInputError("variants");
   return [...out.values()];
 }
+
+/** Validates the admin product form. Throws ProductInputError for the first bad field. */
 export function parseProductInput(data: Record<string, unknown>): ProductInput {
   const slug = slugField(data),
     status = statusField(data);
@@ -232,6 +245,8 @@ export type CollectionInput = {
   descriptionBn: string;
   displayOrder: number;
 };
+
+/** Validates the admin form for a storefront section (collection). */
 export function parseCollectionInput(data: Record<string, unknown>): CollectionInput {
   const preset = data.preset ?? "general";
   if (typeof preset !== "string" || !collectionPresets.includes(preset as CollectionPreset))
@@ -263,6 +278,8 @@ export type ServiceInput = {
   detailBn: string;
   displayOrder: number;
 };
+
+/** Validates the admin form for a technology service. */
 export function parseServiceInput(data: Record<string, unknown>): ServiceInput {
   return {
     slug: slugField(data),
@@ -279,6 +296,8 @@ export function parseServiceInput(data: Record<string, unknown>): ServiceInput {
     displayOrder: order(data),
   };
 }
+
+/** URL-safe id from a name: lower case, letters and digits joined by dashes, at most 60 characters. */
 export function slugify(name: string) {
   return name
     .toLowerCase()
@@ -346,6 +365,11 @@ export type LeadInput = {
   preferredContact: (typeof leadContactMethods)[number];
   locale: "en" | "bn";
 };
+
+/**
+ * Validates a public inquiry form. Consent and at least a phone or an email are required.
+ * Privacy requests and payment questions put a short machine-readable tag in `subject`.
+ */
 export function parseLeadInput(data: Record<string, unknown>): LeadInput {
   const kind = data.kind;
   if (

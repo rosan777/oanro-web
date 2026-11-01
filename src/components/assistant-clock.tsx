@@ -8,6 +8,9 @@ export function AssistantClock({ bn, timeZone }: { bn: boolean; timeZone: string
     const timer = setInterval(() => setNow(new Date()), 10_000);
     return () => clearInterval(timer);
   }, []);
+
+  // Date formatter in the visitor's time zone (falls back to the browser default if the zone is unknown).
+
   const fmt = (o: Intl.DateTimeFormatOptions, lang = bn ? "bn-BD" : "en-US") => {
     try {
       return new Intl.DateTimeFormat(lang, { timeZone, ...o });

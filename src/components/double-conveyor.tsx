@@ -19,6 +19,9 @@ type Entry = {
   word?: string;
   icon?: typeof Globe2;
 };
+
+// Brand principle cards mixed into the rows.
+
 const principles = (t: (en: string, bn: string) => string): Entry[] => [
   {
     title: t("Bangladesh to the world", "বাংলাদেশ থেকে বিশ্বে"),
@@ -50,6 +53,7 @@ const principles = (t: (en: string, bn: string) => string): Entry[] => [
   },
 ];
 
+/** One endlessly scrolling row; direction 1 moves left, -1 moves right. Pauses on hover and after manual scrolling. */
 function Shelf({
   entries,
   direction,
@@ -169,6 +173,7 @@ function Shelf({
   );
 }
 
+/** Two scrolling rows mixing product lines, services and brand principles. Not used by any page at the moment. */
 export function DoubleConveyor({
   showProducts,
   showServices,
@@ -208,6 +213,9 @@ export function DoubleConveyor({
       }))
     : [];
   const values = principles(t);
+
+  // Each row needs at least 6 cards to loop smoothly, so short lists repeat; the two rows mix the cards differently.
+
   const fill = (items: Entry[]) =>
     Array.from({ length: Math.max(6, items.length) }, (_, index) => items[index % items.length]);
   const first = fill([...merchandise, ...work.slice(0, 2), ...values.slice(0, 2)]);

@@ -7,6 +7,8 @@ import type { StoreCampaign } from "./catalog";
 import type { CampaignInput, ProductStatus } from "./product-input";
 import { ProductStoreError, type CatalogDb } from "./product-store";
 
+// Columns copied straight from the validated form when creating or updating a campaign.
+
 const fields = [
   "slug",
   "status",
@@ -29,6 +31,8 @@ export type OwnerCampaign = Omit<CampaignInput, "startsAt" | "endsAt"> & {
   items: CampaignItem[];
   phase: "draft" | "scheduled" | "running" | "ended" | "hidden";
 };
+
+/** What the owner sees in the list: draft/hidden as set, otherwise scheduled, running or ended by date. */
 function phase(
   status: ProductStatus,
   startsAt: Date | null,
@@ -81,6 +85,8 @@ export async function listOwnerCampaigns(
     phase: phase(r.status, r.startsAt, r.endsAt, now),
   }));
 }
+
+/** Database condition for a campaign that is running right now. */
 const live = (now: Date) =>
   and(
     eq(campaign.status, "published"),

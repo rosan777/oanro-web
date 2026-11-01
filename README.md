@@ -1,5 +1,7 @@
 # OANRO — Diagram Edition, v0.2.0
 
+> **Documentation map (current).** This README describes the original v0.2.0 frontend milestone; the project has since gained a database, auth, admin, orders and the JUNO assistant. For the current layout, commands, tests and known limitations read [DEVELOPER_HANDOFF.md](DEVELOPER_HANDOFF.md). All planned and future work is in [FUTURE_UPGRADES.md](FUTURE_UPGRADES.md). Per-milestone details are in `docs/`. When a feature changes, update the handoff and the roadmap in the same change.
+
 This is the completed **frontend design milestone**, built from Rosan's diagram and the agreed green, off-white, black and gold palette. It is not yet a live commerce system. All merchandise, prices, photographs and the headphone model are demonstration content.
 
 ## Start safely on Ubuntu

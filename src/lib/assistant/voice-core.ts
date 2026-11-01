@@ -99,6 +99,11 @@ export type VadOptions = {
   maxMs?: number;
   minSpeechMs?: number;
 };
+
+/**
+ * Voice activity detection from microphone loudness samples (RMS). Reports "end" after about
+ * 1.3 s of quiet once real speech was heard, "no-speech" after 8 s of nothing, and "too-long" at 25 s.
+ */
 export function createVad(o: VadOptions) {
   const threshold = o.threshold ?? 0.03,
     endSilence = o.endSilenceMs ?? 1300,
@@ -145,6 +150,9 @@ export type ConvEvent =
   | { type: "resume" }
   | { type: "stop" };
 export type ConvEffect = "listen" | "submit" | "speak" | "halt" | "none";
+
+// Conversation mode stops after 2 silent turns or 2 failures in a row.
+
 export const MAX_SILENCES = 2,
   MAX_FAILURES = 2;
 export const convInitial: ConvState = { phase: "idle", silences: 0, failures: 0, stopReason: "" };

@@ -11,6 +11,8 @@ import type { StaffOverview } from "@/lib/rbac";
 import { useAdminCall } from "./admin-ui";
 import { formatDhaka } from "@/lib/dhaka-time";
 
+// Field names and plain explanations for the errors the staff API can return.
+
 const fieldLabel: Record<string, string> = {
   email: "Email",
   roleId: "Role",
@@ -29,6 +31,7 @@ const extra: Record<string, string> = {
   INVALID_PERMISSIONS: "Unknown permission selected.",
 };
 
+/** Staff & roles page: people with admin access, invitations, and roles with their permissions. */
 export function StaffDashboard({
   initial,
   selfId,
@@ -52,6 +55,9 @@ export function StaffDashboard({
   } | null>(null);
   const [edits, setEdits] = useState<Record<string, Permission[]>>({});
   const roleName = (id: string) => data.roles.find(r => r.id === id)?.name ?? id;
+
+  // Like call(), but swaps a known error code in the message for its plain explanation.
+
   const run = async (
     method: "POST" | "PATCH" | "DELETE",
     body: Record<string, unknown>,
@@ -68,6 +74,7 @@ export function StaffDashboard({
 
   return (
     <div className="admin-sections staff-admin">
+      {/* Staff members: role, active switch and removal (owner rules are enforced by the server too). */}
       <section>
         <h2>People with admin access</h2>
         {data.owner && (

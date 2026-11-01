@@ -83,6 +83,10 @@ async function turnstileToken(siteKey: string): Promise<string> {
   });
 }
 
+/**
+ * The JUNO chat panel: header with weather, clock and sky, the message list, product cards, the
+ * tracking and "message our team" forms, and the message bar with optional voice controls.
+ */
 export default function AssistantPanel({
   config,
   onClose,
@@ -227,6 +231,10 @@ export default function AssistantPanel({
     }
   };
 
+  /**
+   * Sends one message (or retries one with the same requestId) and adds the reply. Handles the
+   * optional bot check, rate limits, an assistant that was switched off, and network failures.
+   */
   async function send(text: string, requestId = newId()): Promise<ChatReply | null> {
     const message = text.trim();
     if (!message || busy) return null;
@@ -324,6 +332,7 @@ export default function AssistantPanel({
     }
   }
 
+  /** Clears the chat here and deletes the saved session on the server. */
   async function clearChat() {
     abort.current?.abort();
     setMsgs([]);

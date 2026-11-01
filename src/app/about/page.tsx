@@ -26,6 +26,9 @@ export default async function AboutPage() {
   const t = (en: string, b: string) => (bn ? b : en);
   const content = await getSiteContent();
   const tx = (k: TextKey) => pick(content, k, locale);
+
+  // The five values, one for each letter of "OANRO".
+
   const values = bn
     ? [
         ["নিজস্বতা", "আমরা নিজেদের মতো করে বাছাই করি আর বানাই — কপি-পেস্ট নয়।"],

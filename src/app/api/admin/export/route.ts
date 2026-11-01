@@ -30,6 +30,9 @@ export async function GET(request: Request) {
         : who.access.permissions.has("customers.read")));
   if (!who || !allowed)
     return Response.json({ error: "FORBIDDEN" }, { status: 403, headers: noStore });
+
+  // Build the rows for the requested export (orders are filtered to the payment types this person may see).
+
   const db = catalogDb();
   let rows: unknown[][];
   if (type === "orders") {

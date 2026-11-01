@@ -1,5 +1,8 @@
 "use client";
 
+// Homepage sections (the "v2" design): shop tabs, delivery checker, values, studio, hero brand block,
+// product story and the "why OANRO" grid. Styles are in app/v2.css; app/page.tsx decides which show.
+
 import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import Image from "next/image";
 import { useMotion } from "./experience";
@@ -14,7 +17,6 @@ import { PriceTag, ProductPhoto } from "./shell";
 import { useLocale } from "./locale";
 import { useFeature, useText } from "./site-content-context";
 
-/** Category tabs + product cards. Uses the live catalog; the "Web & apps" tab lists real services. */
 /** Product cards lean gently toward the pointer (desktop mouse only; skipped when motion is paused). */
 function tilt(e: MouseEvent<HTMLElement>) {
   if (
@@ -31,6 +33,7 @@ function untilt(e: MouseEvent<HTMLElement>) {
   e.currentTarget.style.removeProperty("--ry");
 }
 
+/** Category tabs + product cards. Uses the live catalog; the "Web & apps" tab lists real services. */
 export function ShopTabs({ showServices, chips }: { showServices: boolean; chips?: ReactNode }) {
   const { locale } = useLocale();
   const bn = locale === "bn";
@@ -773,6 +776,7 @@ export function ProductStory({ featuredSlug = "" }: { featuredSlug?: string }) {
   );
 }
 
+/** Embeds a YouTube (privacy-enhanced domain) or Vimeo link for the product story; other addresses show nothing. */
 function FeatureVideo({ url, title }: { url: string; title: string }) {
   let embed = "";
   try {

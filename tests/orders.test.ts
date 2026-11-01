@@ -1,3 +1,6 @@
+// Orders end to end on PGlite: checkout validation, stock reservation, payment review, delivery steps,
+// cash on delivery, colour × size stock, sale prices, refunds and the customer profile.
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PGlite } from "@electric-sql/pglite";

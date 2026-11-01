@@ -1,3 +1,5 @@
+// Uploaded image validation (validateUploadedImage).
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { validateUploadedImage } from "../src/lib/pulse-upload";

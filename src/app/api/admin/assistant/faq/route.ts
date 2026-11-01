@@ -19,6 +19,8 @@ export const POST = adminHandler("assistant.edit", async (actor, data) => {
   await saveFaq(catalogDb(), actor, parseFaq(data), data.id ? requireUuid(data.id) : undefined);
   return respond();
 });
+
+/** Delete ({ id }). */
 export const DELETE = adminHandler("assistant.edit", async (actor, data) => {
   await deleteFaq(catalogDb(), actor, requireUuid(data.id));
   return respond();

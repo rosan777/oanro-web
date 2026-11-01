@@ -1,3 +1,5 @@
+// "Resend verification email": same answer for every address, email only for unverified accounts, rate limited.
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { eq } from "drizzle-orm";

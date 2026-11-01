@@ -33,3 +33,5 @@ The test scripts are supplied for reference. They expect a local server at `http
 The historical M1 record above is preserved. New foundation tests, current build/HTTP results and explicit untested integrations are recorded in [docs/M2-FOUNDATION.md](docs/M2-FOUNDATION.md). No live database, Google OAuth, SMTP delivery, real payment or deployed M2 verification is claimed.
 
 M2.2 adds a second migration and storefront sections. See [docs/M2-STORE-SECTIONS.md](docs/M2-STORE-SECTIONS.md) for its verified scope and remaining device/editorial checks.
+
+> Update (cleanup pass): of the manual browser scripts only `tests/smoke.cjs` remains; `tests/motion.cjs` was removed earlier. Current automated checks: `npm run typecheck`, `npx eslint src`, `npm test`. See DEVELOPER_HANDOFF.md.

@@ -7,6 +7,8 @@ import type { CheckoutRules } from "@/lib/order-store";
 import { bnDigits, dayText } from "@/lib/text-format";
 
 // Home page trust strip, "How we work" steps and FAQ. Every number comes from the owner's admin rules.
+
+/** Four promises in a strip. Not used by any page at the moment (the homepage uses HomeFaq only). */
 export function TrustStrip({ rules, locale }: { rules: CheckoutRules; locale: Locale }) {
   const bn = locale === "bn";
   const n = (s: string) => (bn ? bnDigits(s) : s);
@@ -15,6 +17,9 @@ export function TrustStrip({ rules, locale }: { rules: CheckoutRules; locale: Lo
   const dhaka = n(dayText(rules.dhakaDays)),
     outside = n(dayText(rules.outsideDays)),
     ret = rules.returnDays;
+
+  // Four promises, each built from the owner's delivery, payment and returns rules.
+
   const items = [
     {
       icon: "→",
@@ -74,6 +79,7 @@ export function TrustStrip({ rules, locale }: { rules: CheckoutRules; locale: Lo
   );
 }
 
+/** "How we work": the steps from browsing to delivery. Not used by any page at the moment. */
 export function HowWeWork({ locale }: { locale: Locale }) {
   const bn = locale === "bn";
   const steps = bn
@@ -107,6 +113,7 @@ export function HowWeWork({ locale }: { locale: Locale }) {
   );
 }
 
+/** Homepage FAQ; answers quote the owner's current rules (and services, when switched on). */
 export function HomeFaq({
   rules,
   locale,

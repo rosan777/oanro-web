@@ -2,6 +2,8 @@ import { AuthPanel } from "@/components/auth-panel";
 import { Localized } from "@/components/locale";
 import Link from "@/components/locale-link";
 import { authConfigured } from "@/lib/auth";
+
+/** Opened from the password-reset email; shows the new-password form when the link carries a token. */
 export default async function ResetPage({
   searchParams,
 }: {

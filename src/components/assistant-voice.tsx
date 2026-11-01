@@ -48,6 +48,8 @@ type SR = {
   onerror: ((e: { error: string }) => void) | null;
   onend: (() => void) | null;
 };
+
+/** The browser's speech recogniser (standard or WebKit-prefixed), or null when it has none. */
 const recognitionCtor = (): (new () => SR) | null => {
   const w = window as unknown as {
     SpeechRecognition?: new () => SR;
@@ -58,6 +60,10 @@ const recognitionCtor = (): (new () => SR) | null => {
 const ACK = "oanro-asst-voice-ack",
   LANG = "oanro-asst-voice-lang";
 
+/**
+ * Voice controls in the chat's message bar: dictation (speak one message into the text box) and
+ * conversation mode (talk back and forth, replies read aloud), with a language choice.
+ */
 export default function VoiceBar({
   config,
   locale,
@@ -88,6 +94,7 @@ export default function VoiceBar({
   });
   const [hint, setHint] = useState(false);
   const [whisperBlockedUntil, setBlocked] = useState(0);
+  const autoNoticed = useRef(false);
   const run = useRef(0),
     conv = useRef<ConvState>(convInitial),
     choiceRef = useRef<VoiceLang>(choice);
@@ -112,6 +119,8 @@ export default function VoiceBar({
         : t("Allow the mic to use voice.", "ভয়েসের জন্য মাইক Allow করুন।"),
     );
   };
+
+  // The chosen voice language is kept for this browser session.
 
   const pickLang = (l: VoiceLang) => {
     setChoice(l);
@@ -173,13 +182,16 @@ export default function VoiceBar({
         );
         return { kind: "unsupported" };
       }
-      if (engine.kind === "browser" && engine.note === "auto-limited")
+      // Said once per visit: repeating it on every listening turn only adds noise.
+      if (engine.kind === "browser" && engine.note === "auto-limited" && !autoNoticed.current) {
+        autoNoticed.current = true;
         live.current.onNotice(
           t(
             `Auto-detect needs the server speech service, which isn't available now. Listening in ${engine.lang === "bn-BD" ? "Bangla" : "English"} only; choose a language above to change it.`,
             `অটো-ডিটেক্টের জন্য সার্ভারের স্পিচ সেবা লাগে, যা এখন নেই। শুধু ${engine.lang === "bn-BD" ? "বাংলা" : "ইংরেজি"} শোনা হচ্ছে; ওপরে ভাষা বেছে নিন।`,
           ),
         );
+      }
 
       if (engine.kind === "browser" && SRc) {
         return new Promise<Outcome>(resolve => {
@@ -387,6 +399,7 @@ export default function VoiceBar({
     [config.transcription, locale, whisperBlockedUntil],
   );
 
+  /** Dictation: one listening turn, then the heard text goes into the message box. Pressing again finishes early. */
   async function dictate() {
     if (mode === "dictation") {
       finishNow.current?.();
@@ -561,6 +574,9 @@ export default function VoiceBar({
       setAsking(false);
     }
   };
+
+  // Start voice after the microphone is allowed; the first time in a session also shows the short notice.
+
   const begin = async (which: "dictation" | "conversation") => {
     if (asking) return;
     if (!(await ensureMic())) return;

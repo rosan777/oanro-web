@@ -5,6 +5,8 @@ import type { CollectionPreset } from "@/lib/categories";
 // It sits under the owner's own description from admin. Keep claims factual: no prices, dates or guarantees here.
 type Guide = { heading: string; paragraphs: string[] };
 
+// One general paragraph per section type, in English and Bangla.
+
 const presetCopy: Record<CollectionPreset, { en: string; bn: string }> = {
   seasonal: {
     en: "Seasonal clothing works best when it fits the weather you actually live in. Winters can be short but sharp, especially in the early mornings, so this collection focuses on layers you can add or remove through the day: knitwear, overshirts, scarves and other warm essentials. Each product page lists the available sizes and details so you can choose with confidence.",

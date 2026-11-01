@@ -27,12 +27,18 @@ export function SecurityPanel({
   const { locale } = useLocale();
   const bn = locale === "bn";
   const router = useRouter();
+
+  // Two-step setup moves through steps: idle → password (confirm identity) → setup (scan QR, enter
+  // a code) or disable. Setup holds the secret key, QR link and backup codes while they are shown.
+
   const [on, setOn] = useState(twoFactorOn);
   const [step, setStep] = useState<"idle" | "password" | "setup" | "disable">("idle");
   const [setup, setSetup] = useState<{ key: string; uri: string; codes: string[] } | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const L = (en: string, b: string) => (bn ? b : en);
+
+  /** Runs one auth call with a shared busy flag; shows `fail` when the call returns an error. */
   async function run(fn: () => Promise<{ error?: unknown } | void>, fail: string) {
     setBusy(true);
     setMsg("");
@@ -45,6 +51,9 @@ export function SecurityPanel({
       setBusy(false);
     }
   }
+
+  // Reads one field from a submitted form (and stops the normal page submit).
+
   const field = (e: FormEvent<HTMLFormElement>, name: string) => {
     e.preventDefault();
     return String(new FormData(e.currentTarget).get(name) ?? "");
@@ -63,6 +72,7 @@ export function SecurityPanel({
           )}
         </p>
       )}
+      {/* Owner only: the switch that requires two-step verification for every staff member. */}
       {owner && (
         <div className="security-row">
           <div>

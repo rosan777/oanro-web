@@ -29,6 +29,9 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Assistant", robots: { index: false } };
 
 type Search = Record<string, string | string[] | undefined>;
+
+// URL helpers: one value per search param, a short date, and a Dhaka-day start for the date filters.
+
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 const when = (d: Date | string) => formatDhaka(d, "en", { year: true });
 const dayStart = (v: string) => {
@@ -39,6 +42,10 @@ const dayStart = (v: string) => {
   }
 };
 
+/**
+ * JUNO admin: switches and tone (assistant.edit), today's usage, FAQ answers, unanswered questions
+ * and, with assistant.view, the conversation list and one conversation (?session=).
+ */
 export default async function AssistantAdminPage({
   searchParams,
 }: {
@@ -49,6 +56,9 @@ export default async function AssistantAdminPage({
     canEdit = access.permissions.has("assistant.edit");
   const db = catalogDb();
   const sp = await searchParams;
+
+  // Conversation filters from the URL; a session id is accepted only in its exact 32-hex form.
+
   const filters = {
     q: one(sp.q),
     language: one(sp.language),
@@ -72,6 +82,9 @@ export default async function AssistantAdminPage({
         </p>
       </main>
     );
+
+  // Load each part only for people allowed to see it.
+
   const [faq, unanswered, usage] = await Promise.all([
     canEdit ? listFaq(db) : [],
     listUnanswered(db, false),
@@ -98,6 +111,8 @@ export default async function AssistantAdminPage({
       targetId: sessionId,
       reason: "opened conversation",
     });
+
+  // Usage table rows for today, the providers worth listing, and links that keep the current filters.
 
   const today = utcDay(),
     todayRows = usage.filter(u => u.day === today);

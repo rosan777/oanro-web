@@ -27,6 +27,9 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
         status: 404,
         headers: { ...headers, "Cache-Control": "no-store" },
       });
+
+    // ?feature=1 serves the featured-story image, ?color=<id> one colour's photo, otherwise the main photo.
+
     const feature = new URL(request.url).searchParams.get("feature") === "1";
     const data = feature
       ? await publishedFeaturedImage(catalogDb(), slug)
@@ -40,6 +43,9 @@ export async function GET(request: Request, context: { params: Promise<{ slug: s
         headers: { ...headers, "Cache-Control": "no-store" },
       });
     const bytes = Buffer.from(match[2], "base64");
+
+    // Re-check the stored bytes really are the claimed image type before serving them (throws otherwise).
+
     imageData(bytes, match[1]);
     return new Response(new Uint8Array(bytes), {
       headers: {

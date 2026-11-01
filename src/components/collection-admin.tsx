@@ -7,6 +7,9 @@ import type { OwnerCatalog } from "@/lib/store-products";
 import { StatusSelect, useAdminCall } from "./admin-ui";
 
 type Section = OwnerCatalog["collections"][number];
+
+// Field names used in error messages, and the form values for an existing section (numbers as text for inputs).
+
 const labels: Record<string, string> = {
   nameEn: "Section name",
   slug: "Web address",
@@ -44,6 +47,9 @@ export function CollectionSettings({ section }: { section: Section }) {
     },
   );
   const set = (patch: Partial<typeof draft>) => setDraft(d => ({ ...d, ...patch }));
+
+  // One labelled text input bound to the draft.
+
   const input = (name: keyof typeof draft, label: string, max: number, required = false) => (
     <label>
       {label}

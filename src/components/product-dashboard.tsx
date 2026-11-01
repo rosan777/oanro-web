@@ -1,4 +1,9 @@
 "use client";
+
+// Products inside one storefront section (Admin → Products & sections → a section): the list and
+// the full product form with photos, colours, stock per colour × size, Bangla text, the homepage
+// feature story and cost price. What each person can do follows their product permissions.
+
 import { useRef, useState, type FormEvent } from "react";
 import { formatPrice } from "@/lib/catalog";
 import { productCategories } from "@/lib/categories";
@@ -35,6 +40,9 @@ const fieldLabel: Record<string, string> = {
   displayOrder: "Display order",
   collectionId: "Section",
 };
+
+// Form drafts: specs as "Label: Value" lines, a blank product for this section, and a draft from a saved product.
+
 const lines = (rows: [string, string][]) => rows.map(([k, v]) => `${k}: ${v}`).join("\n");
 const blank = (collectionId: string): Draft => ({
   compareAtPrice: "",
@@ -98,6 +106,10 @@ type Options = {
   grid: Record<string, string>;
   photos: Record<string, string | null | undefined>;
 };
+
+// Colour and per-variant stock editing: sizes from the comma list, the starting options for a product,
+// and the quick colour swatches offered in the picker.
+
 const sizeList = (raw: string) => [
   ...new Set(
     raw
@@ -151,6 +163,9 @@ export function ProductDashboard({
   rights?: Rights;
 }) {
   const [costs, setCosts] = useState(initialCosts);
+
+  // Cost prices go through their own endpoint (separate permission and activity log entry).
+
   const costApi = useAdminCall<{ costs: Record<string, number | null> }>(
     "/api/admin/costs",
     { costPrice: "Cost price" },
@@ -177,10 +192,14 @@ export function ProductDashboard({
     setAll(data.products);
     setSections(data.collections);
   });
+
+  // This section, its products, and the category choices for its type.
+
   const section = sections.find(s => s.id === collectionId);
   const items = all.filter(p => p.collectionId === collectionId);
   const options = productCategories[section?.preset ?? "general"];
 
+  /** Opens the form for a new product (null) or an existing one. */
   function open(item: Item | null) {
     setEditing(
       item
@@ -198,6 +217,8 @@ export function ProductDashboard({
     setSlugTouched(Boolean(item));
     setNotice("");
   }
+
+  /** Updates the draft; the web address follows the English name until it is edited by hand. */
   function set(patch: Record<string, string>) {
     setEditing(e => {
       if (!e) return e;
@@ -206,6 +227,8 @@ export function ProductDashboard({
       return { ...e, draft };
     });
   }
+
+  /** Saves the product, then its cost price and colour photos when they changed. */
   async function save(event: FormEvent) {
     event.preventDefault();
     if (!editing) return;
@@ -276,6 +299,9 @@ export function ProductDashboard({
   }
   const setColor = (i: number, patch: Partial<ColorRow>) =>
     setOpts(o => ({ ...o, colors: o.colors.map((c, j) => (j === i ? { ...c, ...patch } : c)) }));
+
+  // Labelled input and textarea helpers bound to the draft.
+
   const field = (name: string, label: string, props: Record<string, unknown> = {}) => (
     <label>
       {label}

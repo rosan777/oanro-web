@@ -8,6 +8,7 @@ import {
   isVerified,
   json,
   loadFaq,
+  loadKnowledge,
   loadSettings,
   personalisationAllowed,
   productionTools,
@@ -39,6 +40,10 @@ export async function POST(request: Request) {
   } catch {
     return json({ error: "INVALID_INPUT" }, 400);
   }
+
+  // Check the body: a UUID request id (used to spot retries), a non-empty message, a page language,
+  // and up to 5 recently viewed product slugs.
+
   const { requestId, message, locale, recent, turnstile } = data;
   if (
     typeof requestId !== "string" ||
@@ -78,11 +83,14 @@ export async function POST(request: Request) {
     cookies.push(verifiedMark(request, session.token));
   }
   try {
+    // Run one chat turn with the real data sources; recent products are passed only with Personalisation allowed.
+
     const reply = await chat(
       {
         db: catalogDb(),
         tools: productionTools(),
         faq: await loadFaq(),
+        knowledge: await loadKnowledge(),
         settings: await loadSettings(),
         human: await humanHelp(),
         providers: aiAllowed ? providerOrder() : [],

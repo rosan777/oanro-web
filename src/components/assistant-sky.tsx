@@ -121,12 +121,18 @@ export function AssistantSky({
   condition?: Condition;
 }) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, "");
+
+  // Follow the clock (checked every minute) unless a fixed time is given, e.g. for previews.
+
   const [now, setNow] = useState(() => at ?? new Date());
   useEffect(() => {
     if (at) return;
     const timer = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(timer);
   }, [at]);
+
+  // How the weather changes the scene: rain and overcast skies hide the stars and add clouds.
+
   const scene = skyScene(now, timeZone);
   const wet = condition === "rain" || condition === "thunder",
     overcast = wet || condition === "cloudy" || condition === "fog" || condition === "snow";

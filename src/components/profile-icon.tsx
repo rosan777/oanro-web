@@ -92,6 +92,8 @@ const map: Record<ProfileIconName, LucideIcon> = {
   settings: Settings,
   check: Check,
 };
+
+/** The chosen icon, or nothing for an unknown name. */
 export function ProfileIcon({ name, size = 18 }: { name: string; size?: number }) {
   const Icon = map[name as ProfileIconName];
   return Icon ? <Icon size={size} strokeWidth={1.8} aria-hidden /> : null;

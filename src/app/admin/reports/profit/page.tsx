@@ -18,10 +18,16 @@ export default async function ProfitReportPage({
   const { access } = await requireAdminPage("profit.read");
   const range = parseRange((await searchParams).range);
   const r = await profitReport(catalogDb(), range);
+
+  // Products that sold, ranked two ways for the highlight cards, and products sold below cost.
+
   const sold = r.rows.filter(x => x.sold > 0);
   const byUnits = [...sold].sort((a, b) => b.sold - a.sold),
     byProfit = [...sold].sort((a, b) => b.profit - a.profit);
   const losses = r.rows.filter(x => x.loss);
+
+  // CSV download: one line per product, then the totals.
+
   const csv: (string | number | null)[][] = [
     [
       "Product",
@@ -74,6 +80,7 @@ export default async function ProfitReportPage({
       </header>
       <RangeTabs base="/admin/reports/profit" current={range} />
 
+      {/* Notes about missing data that makes the numbers less exact. */}
       {(r.missingCost > 0 || r.missingShipping > 0 || r.pendingCod.orders > 0) && (
         <div className="report-note" role="note">
           <ActionIcon name="alert" size={18} />
@@ -153,6 +160,7 @@ export default async function ProfitReportPage({
       </section>
 
       {access.permissions.has("costs.manage") && <FeeSetting percent={r.feePercent} />}
+      {/* Best and worst sellers by units and by profit. */}
       {sold.length > 0 && (
         <section className="highlight-grid" aria-label="Highlights">
           <div className="highlight is-good">
@@ -247,6 +255,7 @@ export default async function ProfitReportPage({
           }))}
       />
 
+      {/* Full table of every product. */}
       <section className="report-panel" aria-labelledby="detail-h">
         <div className="report-panel-head">
           <h2 id="detail-h">Every product</h2>

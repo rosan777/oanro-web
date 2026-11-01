@@ -11,6 +11,9 @@ export function BottomBar({ shop }: { shop: boolean }) {
   const { locale } = useLocale();
   const bn = locale === "bn";
   const t = (en: string, b: string) => (bn ? b : en);
+
+  // Current path without the /bn prefix, used to hide the bar on some pages and mark the active tab.
+
   const path = (usePathname() ?? "/").replace(/^\/bn(?=\/|$)/, "") || "/";
   const count = useCart().reduce((sum, item) => sum + item.quantity, 0);
   if (/^\/(admin|checkout|sign-in|reset-password)/.test(path)) return null;

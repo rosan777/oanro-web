@@ -11,6 +11,11 @@ import Link from "@/components/locale-link";
 /** Wait this long before another verification email can be requested. Matches the server limit (3 per 60 s on /send-verification-email). */
 const RESEND_COOLDOWN_SECONDS = 60;
 type Mode = "login" | "signup" | "forgot" | "reset" | "code";
+
+/**
+ * Sign-in card with five modes: sign in, create account, forgot password, set a new password
+ * (from the reset email link) and the two-step code. Google sign-in is offered when configured.
+ */
 export function AuthPanel({
   google,
   resetToken,
@@ -102,6 +107,8 @@ export function AuthPanel({
       setBusy(false);
     }
   }
+
+  /** Handles the main form for the current mode (sign in, sign up, forgot or reset). */
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -482,6 +489,8 @@ export function AuthPanel({
     </section>
   );
 }
+
+/** Sign-out button for My account. */
 export function SignOut() {
   const router = useRouter();
   const { locale } = useLocale();

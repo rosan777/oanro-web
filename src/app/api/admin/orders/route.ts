@@ -26,6 +26,7 @@ import { storefrontChanged } from "@/lib/storefront-cache";
 import { parseMoney, setRefund, setShippingCost } from "@/lib/report-store";
 export const runtime = "nodejs";
 
+/** Every admin order action answers with the fresh order list, payment numbers and rules. */
 const respond = async (access: Access) => {
   const db = catalogDb();
   const [orders, numbers, rules] = await Promise.all([
@@ -35,7 +36,10 @@ const respond = async (access: Access) => {
   ]);
   return Response.json({ orders, numbers, rules }, { headers: noStore });
 };
-/** Approve (money received) or reject (reason required; reserved stock is returned). */
+/**
+ * One action on one order: COD cash collected, next delivery step, courier charge, refund, or
+ * (with no action) approve / reject the payment (reason required; reserved stock is returned).
+ */
 export const PATCH = adminHandler("orders.manage", async (actor, data, access) => {
   // Every action names one order; COD orders need "cod.manage" too (others get NOT_FOUND, as if it didn't exist).
   const cod = access.permissions.has("cod.manage");

@@ -22,6 +22,9 @@ export function CustomerEmail({
     [body, setBody] = useState("");
   const { busy, notice, call } = useAdminCall<Result>("/api/admin/customers", labels, () => {});
   const ready = subject.trim().length >= 3 && body.trim().length >= 10;
+
+  // Send actions: one customer, a test copy to the owner, or everyone (after a confirmation prompt).
+
   const sendOne = async () => {
     if (
       await call(

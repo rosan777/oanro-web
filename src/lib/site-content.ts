@@ -1,3 +1,6 @@
+// Reading and saving Admin → Website content. The data shapes, defaults and clean-up rules live in
+// site-content-data.ts; uploaded images live in site-media.ts.
+
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
@@ -72,6 +75,8 @@ export const getSiteContentFresh = async (db: CatalogDb) => ({
   ...mergeContent(await readSaved(db)),
   media: await mediaVersions(db),
 });
+
+// Each editable part has its own clean-up function, which also rejects bad input.
 
 const cleaners = {
   text: cleanText,

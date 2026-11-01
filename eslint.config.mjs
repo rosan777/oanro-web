@@ -4,12 +4,8 @@ import nextTs from "eslint-config-next/typescript";
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores([
-    ".next/**",
-    ".next-local/**",
-    ".next-build/**",
-    "scripts/dev-db/**",
-    "next-env.d.ts",
-    "tests/**",
-  ]),
+
+  // Build output folders, the local development database scripts and the tests are not linted.
+
+  globalIgnores([".next/**", ".next-*/**", "scripts/dev-db/**", "next-env.d.ts", "tests/**"]),
 ]);

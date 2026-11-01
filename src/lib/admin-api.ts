@@ -1,3 +1,6 @@
+// Shared plumbing for every admin API route: the permission check, JSON body reading,
+// and one place that turns validation and store errors into HTTP responses.
+
 import "server-only";
 import { getAuth, authConfigured } from "./auth";
 import { readObject } from "./pulse-thumbnail";
@@ -9,6 +12,8 @@ import { catalogDb } from "./store-products";
 import type { Permission } from "./permissions";
 import { storefrontChanged } from "./storefront-cache";
 import { needsTwoFactorSetup } from "./two-factor-policy";
+
+// Response headers and an id pattern reused by all admin routes.
 
 export const noStore = { "Cache-Control": "no-store" };
 export const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -26,15 +31,26 @@ export async function authorize(
     const site = request.headers.get("sec-fetch-site");
     if (!(origin === null && readOnly && (site === "same-origin" || site === "none"))) return null;
   }
+
+  // Signed in with a verified email, pending staff invite claimed, and two-step setup done if required.
+
   const session = await getAuth().api.getSession({ headers: request.headers });
   if (!session?.user.emailVerified) return null;
   const db = catalogDb();
   await claimInvite(db, session.user);
   const access = await getAccess(db, session.user.id);
   if (await needsTwoFactorSetup(db, session.user.id, access.owner)) return null;
+
+  // Any one of the listed permissions is enough.
+
   const needed = Array.isArray(permission) ? permission : [permission];
   return needed.some(p => access.permissions.has(p)) ? { userId: session.user.id, access } : null;
 }
+
+/**
+ * Maps known errors to status codes: bad input → 400, missing → 404,
+ * not allowed → 403, any other store conflict → 409, anything unexpected → 503.
+ */
 function fail(error: unknown) {
   if (error instanceof ProductInputError)
     return Response.json(
@@ -85,6 +101,8 @@ export function adminHandler(
     }
   };
 }
+
+/** Returns the value when it is a well-formed UUID; otherwise reports the "id" field as invalid. */
 export function requireUuid(value: unknown): string {
   if (typeof value !== "string" || !uuid.test(value)) throw new ProductInputError("id");
   return value;

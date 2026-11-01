@@ -1,3 +1,5 @@
+// Small safety helpers: same-host Origin check and the app secret fallback.
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { originMatchesHost } from "../src/lib/same-host";

@@ -316,6 +316,9 @@
   color: var(--muted);
   margin-top: -0.25rem;
 }
+
+/* Today page. */
+
 .today-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -613,6 +616,9 @@ a.today-stat:hover {
     box-shadow: 0 0 0 0 transparent;
   }
 }
+
+/* Side menu groups and links. */
+
 .admin-side-group .admin-side-link {
   position: relative;
 }
@@ -1169,4 +1175,736 @@ a.today-stat:hover {
   flex-basis: 100%;
   color: #64748b;
   font-size: 0.8rem;
+}
+
+/* ==========================================================================================================
+   Admin redesign (Nov 2026). Presentation only: markup, routes and handlers are unchanged.
+   References: Shopify app design (layout + navigation: left navigation in functional groups, one clear page
+   title, content in bordered cards) and Carbon data tables (shaded header row, 44px rows, row hover, numbers
+   aligned right). One accent (the brand green), neutral surfaces, subtle borders, no decoration.
+   Everything below is scoped to .admin-shell, so the public site is not affected.
+   ========================================================================================================== */
+.admin-shell {
+  --ad-bg: #f3f4f2;
+  --ad-surface: #fff;
+  --ad-border: #dcdfdc;
+  --ad-border-strong: #c3c8c4;
+  --ad-head: #eaedea;
+  --ad-hover: #f4f7f5;
+  --ad-text: #1a201d;
+  --ad-muted: #5b645f;
+  --ad-tint: #e4eee8;
+  --ad-radius: 8px;
+  background: var(--ad-bg);
+  color: var(--ad-text);
+}
+
+/* ---- Navigation (left, light, grouped by function) ---- */
+.admin-side {
+  background: var(--ad-surface);
+  color: var(--ad-text);
+  border-right: 1px solid var(--ad-border);
+  padding: 16px 12px 20px;
+  gap: 14px;
+}
+.admin-side-brand {
+  padding: 4px 8px 8px;
+  border-bottom: 1px solid var(--ad-border);
+}
+.admin-side-logo {
+  border-color: var(--brand);
+  box-shadow:
+    inset 0 0 0 8px var(--ad-surface),
+    inset 0 0 0 12px var(--brand);
+}
+.admin-side-brand strong {
+  color: var(--ad-text);
+}
+.admin-side-brand small {
+  color: var(--brand);
+  border-color: var(--ad-border-strong);
+  background: var(--ad-tint);
+}
+.admin-side-search {
+  border-color: var(--ad-border-strong);
+  background: var(--ad-surface);
+  color: var(--ad-muted);
+}
+.admin-side-search:hover {
+  border-color: var(--brand);
+  color: var(--ad-text);
+}
+.admin-side-search kbd {
+  border-color: var(--ad-border-strong);
+  color: var(--ad-muted);
+}
+/* One accent for every group; the groups are told apart by their headings, not by colour. */
+.admin-side-group,
+.admin-side-group[data-group] {
+  --tone: var(--brand);
+  --tone-bg: var(--ad-tint);
+  gap: 1px;
+}
+.admin-side-group p {
+  padding: 4px 10px 4px;
+  font:
+    600 0.72rem var(--font-body),
+    sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ad-muted);
+}
+.admin-side-group p::before {
+  display: none;
+  animation: none;
+}
+.admin-side-link,
+.admin-side-group .admin-side-link {
+  min-height: 38px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  color: #2f3833;
+  font-size: 0.9rem;
+}
+.admin-side-group .admin-side-link::before {
+  display: none;
+}
+.admin-side-link:hover,
+.admin-side-link:focus-visible,
+.admin-side-group .admin-side-link:hover,
+.admin-side-group .admin-side-link:focus-visible {
+  background: var(--ad-hover);
+  color: var(--ad-text);
+}
+.admin-side-link.is-on,
+.admin-side-group .admin-side-link.is-on {
+  background: var(--ad-tint);
+  color: var(--brand-strong);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--brand);
+}
+.admin-side-count,
+.admin-side-group .admin-side-count {
+  background: var(--brand);
+  color: #fff;
+}
+.admin-side-store {
+  background: var(--ad-bg);
+  border-color: var(--ad-border);
+  color: var(--ad-text);
+}
+.admin-side-store small {
+  color: var(--ad-muted);
+}
+.admin-side-user > span {
+  background: var(--ad-tint);
+  color: var(--brand-strong);
+}
+.admin-side-user small {
+  color: var(--ad-muted);
+}
+/* ---- Phones and small tablets: top bar with the page name + a slide-in menu panel ----
+   Pattern: the navigation moves into the header on small screens (Shopify), opens as a modal drawer over a
+   dimmed page that closes on tap, Esc or the close button (Material), with 44-48px rows (Apple, Material). */
+.admin-mobilebar,
+.admin-side-close,
+.admin-scrim {
+  display: none;
+}
+@media (max-width: 860px) {
+  .admin-mobilebar {
+    display: flex;
+    align-items: stretch;
+    background: var(--ad-surface);
+    border-bottom: 1px solid var(--ad-border);
+  }
+  .admin-menu-toggle {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    padding: 8px 8px 8px max(16px, env(safe-area-inset-left));
+    border: 0;
+    background: transparent;
+    color: var(--ad-text);
+    font-size: 1rem;
+    font-weight: 650;
+    text-align: left;
+  }
+  .admin-menu-toggle span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .admin-mobilebar-search {
+    flex: none;
+    width: 52px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    color: var(--ad-muted);
+    margin-right: env(safe-area-inset-right);
+  }
+  .admin-side {
+    display: flex;
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 90;
+    width: min(86vw, 320px);
+    max-width: none;
+    height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: max(16px, env(safe-area-inset-top)) 12px calc(20px + env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left));
+    border-right: 1px solid var(--ad-border);
+    box-shadow: 0 0 40px rgb(0 0 0 / 0.25);
+    transform: translateX(-102%);
+    visibility: hidden;
+    transition:
+      transform 0.22s ease,
+      visibility 0s linear 0.22s;
+  }
+  .admin-side.is-open {
+    transform: none;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+  .admin-side-brand {
+    align-items: center;
+  }
+  .admin-side-brand small {
+    margin-left: 4px;
+  }
+  .admin-side-close {
+    display: grid;
+    place-items: center;
+    margin-left: auto;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ad-text);
+  }
+  .admin-side-link,
+  .admin-side-group .admin-side-link {
+    min-height: 48px;
+    font-size: 0.95rem;
+  }
+  .admin-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 85;
+    background: rgb(7 9 10 / 0.5);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-side {
+    transition: none;
+  }
+}
+
+/* ---- Page frame and title ---- */
+.admin-content {
+  max-width: 100%;
+}
+.admin-content > .container {
+  max-width: 1280px;
+}
+.admin-content > .auth-page {
+  padding-block: 24px 64px;
+}
+.admin-content h1 {
+  margin: 0 0 4px;
+  font-family: var(--font-body), sans-serif;
+  font-size: clamp(1.35rem, 2.6vw, 1.65rem);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  text-transform: none;
+  color: var(--ad-text);
+}
+/* The line right under the title is the page description. */
+.admin-content h1 + :is(p, .small-note, .admin-today-intro) {
+  max-width: 72ch;
+  margin: 0 0 20px;
+  color: var(--ad-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.admin-content h2 {
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.admin-content h3 {
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+.admin-content .small-note {
+  color: var(--ad-muted);
+}
+
+/* ---- Cards: the one container style for panels, rows and lists ---- */
+.today-panel,
+.today-stat,
+.order-card,
+.admin-section-row,
+.admin-callout,
+.pub-row,
+.permission-group,
+.ce-group,
+.cpe-section,
+.admin-card-grid > * {
+  background: var(--ad-surface);
+  border: 1px solid var(--ad-border);
+  border-radius: var(--ad-radius);
+}
+.admin-callout {
+  padding: 12px 14px;
+  border-left: 3px solid var(--brand);
+}
+a.today-stat:hover,
+.order-card:hover {
+  border-color: var(--ad-border-strong);
+}
+.today-stats {
+  gap: 12px;
+}
+.today-stat {
+  padding: 16px;
+}
+.today-stat strong {
+  font-family: var(--font-body), sans-serif;
+  font-size: 2rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.today-stat.is-alert {
+  background: #fff8ea;
+  border-color: #ecd29b;
+}
+.today-stat.is-brand {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.today-panel h2 {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--ad-border);
+}
+.today-task,
+.today-empty {
+  border-top: 1px solid var(--ad-border);
+}
+.today-panel h2 + .today-task,
+.today-panel h2 + .today-empty {
+  border-top: 0;
+}
+
+/* ---- Status tags: same shape everywhere ---- */
+.today-tag,
+.order-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font:
+    600 0.74rem var(--font-body),
+    sans-serif;
+  letter-spacing: 0;
+  line-height: 1.5;
+}
+
+/* ---- Tables (Carbon-style): shaded header, 44px rows, hover, right-aligned numbers ---- */
+.admin-content .table-scroll {
+  background: var(--ad-surface);
+  border: 1px solid var(--ad-border);
+  border-radius: var(--ad-radius);
+}
+.admin-content :is(.report-table, .disc-table, .trend-table table) {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.admin-content :is(.report-table, .disc-table, .trend-table table) :is(th, td) {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--ad-border);
+  text-align: left;
+  vertical-align: middle;
+}
+.admin-content :is(.report-table, .disc-table, .trend-table table) thead th {
+  background: var(--ad-head);
+  color: var(--ad-text);
+  font-size: 0.8rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+.admin-content :is(.report-table, .disc-table, .trend-table table) tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+.admin-content :is(.report-table, .disc-table, .trend-table table) tbody tr:hover {
+  background: var(--ad-hover);
+}
+.admin-content :is(.report-table, .disc-table) :is(.num, td.is-negative) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Lists: orders, products, sections ---- */
+.order-row {
+  min-height: 52px;
+}
+.order-row:hover,
+.order-row:focus-visible {
+  background: var(--ad-hover);
+}
+.order-card.is-open .order-row {
+  background: var(--ad-tint);
+  box-shadow: inset 3px 0 0 var(--brand);
+}
+.order-body {
+  border-top: 1px solid var(--ad-border);
+  padding-top: 14px;
+}
+.admin-order-list,
+.admin-product-list {
+  gap: 8px;
+}
+
+/* ---- Forms: one input style, labels above fields, clear primary and secondary actions ---- */
+.admin-content :where(label) {
+  font-weight: 600;
+  font-size: 0.86rem;
+}
+.admin-content
+  :where(
+    input:not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="color"]),
+    select,
+    textarea
+  ) {
+  border: 1px solid var(--ad-border-strong);
+  border-radius: 6px;
+  background: var(--ad-surface);
+  color: var(--ad-text);
+  font: inherit;
+  font-size: 0.92rem;
+}
+.admin-content :where(input, select, textarea):disabled {
+  background: var(--ad-bg);
+  color: var(--ad-muted);
+}
+.admin-content :where(input, select, textarea):focus-visible {
+  border-color: var(--brand);
+}
+.admin-content :where(.btn, .button) {
+  border-radius: 6px;
+}
+.admin-content :where(fieldset) {
+  border: 1px solid var(--ad-border);
+  border-radius: var(--ad-radius);
+  background: var(--ad-surface);
+}
+.admin-content :where(legend) {
+  padding-inline: 6px;
+  font-weight: 650;
+}
+.product-form-actions {
+  padding-top: 12px;
+  border-top: 1px solid var(--ad-border);
+}
+
+/* ---- Empty, loading and error states ---- */
+.today-empty,
+.report-empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--ad-muted);
+}
+.report-empty {
+  border: 1px dashed var(--ad-border-strong);
+  border-radius: var(--ad-radius);
+  background: var(--ad-surface);
+}
+.admin-content :is(.security-msg.is-error, .tracker-error) {
+  border-radius: 6px;
+}
+
+/* ---- Search pop-up ---- */
+.admin-search {
+  border: 1px solid var(--ad-border);
+  border-radius: 10px;
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.18);
+}
+.admin-search li button:hover,
+.admin-search li button:focus-visible,
+.admin-search li:first-child button {
+  background: var(--ad-hover);
+}
+
+/* ---- Phones and tablets: nothing wider than the screen; wide tables scroll inside their own box ---- */
+.admin-content :is(.table-scroll) {
+  max-width: 100%;
+}
+.admin-shell :is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+@media (pointer: coarse) {
+  .admin-side-link {
+    min-height: 44px;
+  }
+  .admin-content
+    :is(
+      .button,
+      .btn,
+      select,
+      input:is(
+        [type="text"],
+        [type="email"],
+        [type="search"],
+        [type="number"],
+        [type="tel"],
+        [type="url"],
+        [type="password"]
+      )
+    ) {
+    min-height: 44px;
+  }
+}
+@media (max-width: 640px) {
+  .admin-content > .auth-page {
+    padding-block: 16px 48px;
+  }
+  .admin-content :is(.report-table, .disc-table) :is(th, td) {
+    padding: 10px;
+  }
+}
+
+/* ==========================================================================================================
+   Colour by area: each menu group has its own colour, used in the menu, the breadcrumb chip, the top edge of
+   cards, table headers and the Today tiles, so people always know which part of the admin they are in.
+   Daily work = green, Store = amber, Website = teal, Insights = blue, Settings = violet.
+   ========================================================================================================== */
+.admin-shell {
+  --area: var(--brand);
+  --area-tint: var(--ad-tint);
+}
+.admin-side-group[data-group="daily-work"],
+.admin-content[data-area="daily-work"] {
+  --tone: #1d7a4e;
+  --tone-bg: #e1f1e8;
+  --area: #1d7a4e;
+  --area-tint: #e1f1e8;
+}
+.admin-side-group[data-group="store"],
+.admin-content[data-area="store"] {
+  --tone: #a35f08;
+  --tone-bg: #fbeed6;
+  --area: #a35f08;
+  --area-tint: #fbeed6;
+}
+.admin-side-group[data-group="website"],
+.admin-content[data-area="website"] {
+  --tone: #0b7285;
+  --tone-bg: #dcf1f5;
+  --area: #0b7285;
+  --area-tint: #dcf1f5;
+}
+.admin-side-group[data-group="insights"],
+.admin-content[data-area="insights"] {
+  --tone: #2754c5;
+  --tone-bg: #e3eafb;
+  --area: #2754c5;
+  --area-tint: #e3eafb;
+}
+.admin-side-group[data-group="settings"],
+.admin-content[data-area="settings"] {
+  --tone: #6a3dbd;
+  --tone-bg: #ece5f9;
+  --area: #6a3dbd;
+  --area-tint: #ece5f9;
+}
+
+/* Menu: coloured heading chip, icons, tinted active row. */
+.admin-side-group {
+  padding: 4px 0 8px;
+}
+.admin-side-group + .admin-side-group {
+  border-top: 1px solid var(--ad-border);
+  padding-top: 12px;
+}
+.admin-side-group p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--tone);
+  font-weight: 700;
+}
+.admin-side-group p::before {
+  display: block;
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--tone);
+  box-shadow: none;
+  animation: none;
+}
+.admin-side-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.admin-side-label svg {
+  flex: none;
+  color: var(--tone);
+  opacity: 0.85;
+}
+.admin-side-link:hover,
+.admin-side-group .admin-side-link:hover {
+  background: var(--tone-bg);
+}
+.admin-side-link.is-on,
+.admin-side-group .admin-side-link.is-on {
+  background: var(--tone-bg);
+  color: #111;
+  box-shadow: inset 3px 0 0 var(--tone);
+}
+.admin-side-link.is-on .admin-side-label svg {
+  opacity: 1;
+}
+.admin-side-count,
+.admin-side-group .admin-side-count {
+  background: var(--tone);
+  color: #fff;
+}
+
+/* Breadcrumb: where am I. */
+.admin-crumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 1280px;
+  margin: 0;
+  padding: 16px clamp(16px, 3vw, 32px) 0;
+  font-size: 0.82rem;
+  color: var(--ad-muted);
+}
+.admin-crumb-chip {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--area-tint);
+  color: var(--area);
+  font-weight: 700;
+}
+.admin-crumb [aria-current] {
+  color: var(--ad-text);
+  font-weight: 600;
+}
+.admin-content > .auth-page {
+  padding-top: 8px;
+}
+.admin-content h1 {
+  font-size: clamp(1.5rem, 3vw, 1.95rem);
+  font-weight: 700;
+}
+
+/* Cards and tables pick up the area colour on their top edge / header. */
+.today-panel,
+.order-card,
+.admin-content .table-scroll,
+.admin-section-row,
+.permission-group,
+.ce-group,
+.cpe-section {
+  border-top: 3px solid var(--area);
+}
+.admin-content :is(.report-table, .disc-table, .trend-table table) thead th {
+  background: var(--area-tint);
+  color: var(--ad-text);
+}
+.btn-primary,
+.admin-content .btn-primary {
+  --bg: var(--area);
+  --bd: var(--area);
+}
+.btn-primary:hover:not(:disabled),
+.admin-content .btn-primary:hover:not(:disabled) {
+  --bg: color-mix(in srgb, var(--area) 82%, #000);
+  --bd: color-mix(in srgb, var(--area) 82%, #000);
+}
+.admin-content :where(input, select, textarea):focus-visible {
+  border-color: var(--area);
+}
+
+/* Today tiles: one colour per kind of work, with an icon-sized number. */
+.today-stat {
+  border-top: 4px solid var(--ad-border-strong);
+  padding: 18px;
+}
+.today-stat strong {
+  font-size: 2.4rem;
+}
+a.today-stat[href="/admin/orders"] {
+  border-top-color: #c07a10;
+}
+a.today-stat[href="/admin/leads"] {
+  border-top-color: #2754c5;
+}
+a.today-stat[href*="/admin/reports"],
+a.today-stat[href="/admin/sections"] {
+  border-top-color: #c0392b;
+}
+.today-stat.is-brand {
+  border-top-color: #0f3a28;
+}
+.today-stat.is-alert strong {
+  color: #8a4b00;
+}
+.today-tag.is-payment {
+  background: #fbeed6;
+  color: #7a4b00;
+}
+.today-tag.is-inquiry {
+  background: #e3eafb;
+  color: #1e3a8a;
+}
+.today-tag.is-stock {
+  background: #fbe0dd;
+  color: #8a1c1c;
+}
+@media (max-width: 860px) {
+  .admin-crumb {
+    padding-top: 12px;
+  }
+}
+
+/* Activity log: owner-only delete controls. */
+.activity-delete-all {
+  display: grid;
+  gap: 10px;
+  max-width: 520px;
+  margin: 12px 0;
+  padding: 14px;
+  border: 1px solid #f4b9b2;
+  border-radius: var(--ad-radius);
+  background: #fef3f2;
+}
+.activity-delete-all label {
+  display: grid;
+  gap: 6px;
+}
+.activity-list li {
+  position: relative;
+}
+.activity-delete {
+  justify-self: start;
 }

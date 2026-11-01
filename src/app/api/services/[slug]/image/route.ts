@@ -26,6 +26,9 @@ export async function GET(_request: Request, context: { params: Promise<{ slug: 
         headers: { ...headers, "Cache-Control": "no-store" },
       });
     const bytes = Buffer.from(match[2], "base64");
+
+    // Re-check the stored bytes really are the claimed image type before serving them (throws otherwise).
+
     imageData(bytes, match[1]);
     return new Response(new Uint8Array(bytes), {
       headers: {

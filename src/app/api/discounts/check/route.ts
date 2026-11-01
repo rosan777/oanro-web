@@ -8,6 +8,9 @@ const noStore = { "Cache-Control": "no-store" };
 /** Checkout preview: is this code usable for this subtotal, and how much does it take off? The order itself re-checks. */
 export async function POST(request: Request) {
   const data = (await request.json().catch(() => ({}))) as { code?: unknown; items?: unknown };
+
+  // Keep only well-formed bag lines (at most 50).
+
   const items = Array.isArray(data.items)
     ? data.items
         .slice(0, 50)

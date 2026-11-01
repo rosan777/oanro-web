@@ -22,6 +22,8 @@ export async function mediaVersions(db: CatalogDb): Promise<Partial<Record<Media
     rows.map(r => [r.key.replace("site.media.", ""), String(new Date(r.at).getTime())]),
   );
 }
+
+/** The stored image as a data URL, or null when none was uploaded. */
 export async function readMedia(db: CatalogDb, key: MediaKey) {
   const [row] = await db
     .select({ value: storeSetting.value })

@@ -1,6 +1,7 @@
 import { parseBlocks, type Piece } from "@/lib/assistant/sanitize";
 import Link from "./locale-link";
 
+/** One line's pieces as plain text, bold text or internal links. */
 const render = (pieces: Piece[]) =>
   pieces.map((p, i) =>
     p.type === "bold" ? (

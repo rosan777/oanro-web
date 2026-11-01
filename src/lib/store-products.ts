@@ -1,3 +1,6 @@
+// What the storefront shows: products, services, sections and campaigns, with the demo fallback,
+// the shared cache and per-request de-duplication. Also the owner-side loaders for admin pages.
+
 import "server-only";
 import { cache } from "react";
 import { getDb } from "./db";
@@ -29,6 +32,8 @@ import {
 import { getSectionState } from "./website-sections";
 import { listActiveCampaigns, listOwnerCampaigns, type OwnerCampaign } from "./campaign-store";
 import type { StoreCampaign } from "./catalog";
+
+// The app database typed as CatalogDb, the type the store modules and tests share.
 
 export const catalogDb = () => getDb() as unknown as CatalogDb;
 function missingSchema(error: unknown) {
@@ -85,6 +90,9 @@ async function loadStoreCollections(): Promise<StoreCollection[]> {
     c => c.id === "seasonal" || (c.id === "caps" ? sections.caps : sections["tech-items"]),
   );
 }
+
+// Admin loaders: "ready" is false when the database cannot be read, so pages can show a notice.
+
 export type OwnerCatalog = {
   ready: boolean;
   managed: boolean;

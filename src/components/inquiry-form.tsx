@@ -24,6 +24,9 @@ export function InquiryForm({
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState("");
   const [topic, setTopic] = useState("");
+
+  // What to tell the visitor when the server reports a particular field as invalid.
+
   const fieldText: Record<string, [string, string]> = {
     phone: [
       "Enter a phone number we can reach (or an email).",

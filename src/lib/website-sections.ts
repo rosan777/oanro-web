@@ -1,3 +1,6 @@
+// Homepage section switches (Admin → Sections) and the Global Pulse news stories.
+// Both are cached with the rest of the storefront.
+
 import "server-only";
 import { cache } from "react";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
@@ -72,6 +75,8 @@ const cachedPulse = storefrontCached("pulse", async () =>
       .limit(20)
   ).map(r => ({ ...r, publishedAt: r.publishedAt?.toISOString() ?? null })),
 );
+
+/** Visible, rights-confirmed stories for the public page; thumbnails are served through our own API. */
 export async function getApprovedPulseStories() {
   if (!process.env.DATABASE_URL) return [];
   try {
@@ -85,6 +90,8 @@ export async function getApprovedPulseStories() {
     return [];
   }
 }
+
+/** Every story, including hidden and archived ones, for the admin list. */
 export async function getOwnerPulseStories() {
   if (!process.env.DATABASE_URL) return [];
   try {

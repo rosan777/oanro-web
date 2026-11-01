@@ -33,6 +33,8 @@ export const permissions = [
   "assistant.edit",
 ] as const;
 export type Permission = (typeof permissions)[number];
+
+/** Name and explanation of each permission, shown on the Staff & roles page. */
 export const permissionInfo: Record<Permission, { label: string; detail: string }> = {
   "products.manage": {
     label: "Products & sections (full)",
@@ -246,6 +248,8 @@ export function canProduct(
   if (has("products.manage")) return true;
   return what === "manage" ? false : has(`products.${what}` as Permission);
 }
+
+/** The permissions that give some access to products or sections. */
 export const productPermissions: Permission[] = [
   "products.manage",
   "products.draft",

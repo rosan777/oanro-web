@@ -1,9 +1,17 @@
+// Server helpers for Global Pulse stories and admin uploads: safe download of a news page's preview
+// image, image checks, signed preview tokens and size-limited JSON body reading.
+// The download is locked to public HTTPS hosts and public IPv4 addresses so it cannot reach internal services.
+
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { lookup } from "node:dns/promises";
 import { request } from "node:https";
 import { isIP } from "node:net";
 
+// Largest stored image: 192 KB.
+
 const MAX_IMAGE = 192 * 1024;
+
+/** A plain public HTTPS address: no login details, no port, no raw IP and no local-only domain names. */
 export function publicUrl(value: unknown): value is string {
   if (typeof value !== "string" || value.length > 1600) return false;
   try {
@@ -22,6 +30,8 @@ export function publicUrl(value: unknown): value is string {
   }
 }
 // Deliberately IPv4-only; IPv6-only publishers use the normal OANRO fallback.
+
+/** False for private, loopback, link-local, multicast and documentation address ranges. */
 export function publicIPv4(address: string) {
   if (isIP(address) !== 4) return false;
   const [a, b, c] = address.split(".").map(Number);
@@ -38,6 +48,8 @@ export function publicIPv4(address: string) {
     (a === 203 && b === 0 && c === 113)
   );
 }
+
+/** Fetches a public URL with a byte limit, following at most 3 redirects (each one checked again). */
 async function download(
   raw: string,
   limit: number,
@@ -116,6 +128,8 @@ async function download(
     return download(new URL(response.location, url).href, limit, signal, hops + 1);
   return { ...response, url: url.href };
 }
+
+/** Decodes the HTML entities that can appear inside meta tag attributes. */
 function decode(value: string) {
   return value.replace(/&(?:amp|quot|apos|lt|gt|#\d+|#x[0-9a-f]+);/gi, entity => {
     const known: Record<string, string> = {
@@ -131,6 +145,8 @@ function decode(value: string) {
     return n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : "";
   });
 }
+
+/** The page's share image from its meta tags (Open Graph first, then Twitter), if it is a public URL. */
 export function metadataImage(html: string, base: string): string | null {
   const candidates = new Map<string, string>();
   for (const tag of html.match(/<meta\b[^>]*>/gi) ?? []) {
@@ -151,6 +167,8 @@ export function metadataImage(html: string, base: string): string | null {
   }
   return null;
 }
+
+/** Checks the file really is the claimed PNG, JPEG or WebP (by its first bytes) and small enough; returns a data URL. */
 export function imageData(bytes: Buffer, type: string) {
   const png = bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
   const jpeg = bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
@@ -168,6 +186,8 @@ export function imageData(bytes: Buffer, type: string) {
     throw new Error("IMAGE_NOT_ALLOWED");
   return `data:${type};base64,${bytes.toString("base64")}`;
 }
+
+/** Finds and downloads a news page's preview image within 10 seconds; null when the page has none. */
 export async function discoverThumbnail(url: string) {
   const signal = AbortSignal.timeout(10000);
   const work = async () => {
@@ -186,6 +206,11 @@ export async function discoverThumbnail(url: string) {
     }),
   ]);
 }
+
+/**
+ * Signed token holding a previewed thumbnail for 10 minutes, so saving the story later can reuse
+ * the image without downloading it again. readPreview() checks the signature, owner, URL and expiry.
+ */
 export function signPreview(owner: string, url: string, image: string, secret: string) {
   const payload = Buffer.from(
     JSON.stringify({ owner, url, image, expires: Date.now() + 10 * 60 * 1000 }),
@@ -211,6 +236,8 @@ export function readPreview(token: unknown, owner: string, url: string, secret: 
     throw new Error("INVALID_PREVIEW");
   return data.image;
 }
+
+/** Reads a JSON object request body, refusing bodies over maxBytes before parsing them. */
 export async function readObject(
   request: Request,
   maxBytes = 400000,

@@ -16,6 +16,7 @@ import {
 import type { Bi } from "@/lib/content";
 import { ProfileIcon } from "./profile-icon";
 
+/** Immutable list helpers: move one entry to a new index, or replace the entry at an index. */
 const moved = <T,>(list: T[], from: number, to: number) => {
   const c = [...list];
   const [x] = c.splice(from, 1);
@@ -24,6 +25,7 @@ const moved = <T,>(list: T[], from: number, to: number) => {
 };
 const at = <T,>(list: T[], i: number, v: T) => list.map((x, k) => (k === i ? v : x));
 
+/** Paired English and Bangla text fields (single line or multi-line). */
 function BiInput({
   label,
   value,
@@ -64,6 +66,8 @@ function BiInput({
     </div>
   );
 }
+
+/** Up / down / remove buttons for one entry in a list. */
 function Tools({
   i,
   n,
@@ -129,6 +133,7 @@ const uses = (k: SectionKind) => ({
           : "Title",
 });
 
+/** Editor for one item (icon, title, text, list, logo), showing only the fields its section kind uses. */
 function ItemEditor({
   it,
   kind,
@@ -196,6 +201,7 @@ function ItemEditor({
   );
 }
 
+/** Editor for one group: its title and items. */
 function GroupEditor({
   g,
   kind,
@@ -255,6 +261,7 @@ function GroupEditor({
   );
 }
 
+/** Editor for one section: kind settings, headings, texts and its groups. */
 function SectionEditor({
   s,
   onChange,
@@ -366,12 +373,16 @@ export function CompanyProfileEditor({ initial }: { initial: CompanyProfile }) {
   const [msg, setMsg] = useState("");
   const [newKind, setNewKind] = useState<SectionKind>("cards");
   const [open, setOpen] = useState<string | null>(null);
+
+  // Unsaved changes exist when the draft differs from what was last saved.
+
   const dirty = JSON.stringify(draft) !== JSON.stringify(saved);
   const setSections = (sections: ProfileSection[]) => {
     setDraft({ sections });
     setMsg("");
   };
 
+  /** Saves the whole profile, or resets it to the default after confirmation. */
   async function save(reset = false) {
     if (
       reset &&

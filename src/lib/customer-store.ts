@@ -1,3 +1,6 @@
+// Admin data for customers: the list, one customer's details, account deletion and the total count.
+// "Customer" means a signed-up user who is not staff or the owner and whose account was not deleted.
+
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { and, count, desc, eq, ilike, notExists, or, sql, type SQL } from "drizzle-orm";
@@ -21,6 +24,9 @@ const spentSql =
   sql<number>`coalesce(sum(case when ${shopOrder.status} = 'paid' then ${shopOrder.total} + case when ${shopOrder.codCollectedAt} is not null then ${shopOrder.codDue} else 0 end else 0 end), 0)`.mapWith(
     Number,
   );
+
+// Deleted accounts keep their row with an address on this reserved domain; filters below use it.
+
 export const DELETED_DOMAIN = "deleted.invalid";
 const notStaff = () =>
   and(
@@ -48,6 +54,8 @@ export async function listCustomers(
   const where: SQL[] = [notStaff()!, notDeleted()];
   const q = (opts.q ?? "").trim().slice(0, 60);
   if (q) {
+    // Escape % and _ so the search text is matched literally.
+
     const like = `%${q.replace(/[%_\\]/g, m => `\\${m}`)}%`;
     where.push(
       or(ilike(user.name, like), ilike(user.email, like), ilike(customerProfile.phone, like))!,
@@ -75,6 +83,9 @@ export async function listCustomers(
     .orderBy(desc(user.createdAt))
     .limit(opts.limit ?? 50)
     .offset(opts.offset ?? 0);
+
+  // Total matching customers, for paging.
+
   const [total] = await db
     .select({ n: count() })
     .from(user)
@@ -120,6 +131,9 @@ export async function getCustomer(db: CatalogDb, id: string) {
     .where(eq(shopOrder.userId, id))
     .orderBy(desc(shopOrder.createdAt))
     .limit(100);
+
+  // Inquiries are linked by email address only, so deleted accounts have none.
+
   const inquiries = u.email.endsWith("@" + DELETED_DOMAIN)
     ? []
     : await db
@@ -170,6 +184,9 @@ export async function deleteCustomer(
   if (!c) throw new ProductStoreError("NOT_FOUND");
   if (c.deleted) throw new ProductStoreError("ALREADY_DELETED");
   if (c.blockers.length) throw new ProductStoreError(`ACTIVE_ORDERS:${c.blockers.join(",")}`);
+
+  // Kept before the rename below, to find this customer's inquiries afterwards.
+
   const oldEmail = c.user.email;
   await db.transaction(async tx => {
     await tx

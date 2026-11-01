@@ -22,6 +22,7 @@ const kindText: Record<InboxLead["kind"], string> = {
 };
 const when = (iso: string) => formatDhaka(iso, "en", { year: true });
 
+/** Inquiry inbox: filter by status, change status, assign to a team member and add notes (needs leads.manage). */
 export function LeadInbox({
   initial,
   people,
@@ -39,6 +40,9 @@ export function LeadInbox({
     { note: "Note" },
     d => setLeads(d.leads),
   );
+
+  // "open" hides inquiries that are won, lost or closed.
+
   const shown = leads.filter(l =>
     filter === "all"
       ? true

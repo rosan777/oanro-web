@@ -207,6 +207,9 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   position: relative;
   z-index: 2;
 }
+
+/* Header sky scene (day, night, weather). */
+
 .asst-sky {
   position: absolute;
   inset: 0;
@@ -499,6 +502,9 @@ body:has(dialog.privacy-center[open]) .asst-panel {
 .asst-drift {
   transform: translateX(120px);
 }
+
+/* Birds gliding across the sky, then the sky animations. */
+
 .asst-glide {
   transform: translateX(-20px);
 }
@@ -1238,6 +1244,9 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   gap: 0.7rem;
   scroll-behavior: auto;
 }
+
+/* Chat messages. */
+
 .asst-msg {
   max-width: 92%;
   padding: 0.55rem 0.8rem;
@@ -1561,6 +1570,9 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   gap: 0.45rem;
   margin-top: 0.45rem;
 }
+
+/* Product cards in the chat. */
+
 .asst-card {
   display: grid;
   grid-template-columns: 52px 1fr;

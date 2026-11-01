@@ -1,9 +1,13 @@
+// The app's single authentication instance, built from environment variables.
+// Sign-in exists only when OANRO_AUTH_ENABLED is "true" and every required variable is set.
+
 import "server-only";
 import nodemailer from "nodemailer";
 import { createAuth } from "./auth-factory";
 import { getDb } from "./db";
 import { checkMailDomain } from "./email-domain";
 
+/** True when sign-in is switched on and every variable it needs is present. */
 export function authConfigured() {
   return (
     process.env.OANRO_AUTH_ENABLED === "true" &&
@@ -16,10 +20,16 @@ export function authConfigured() {
     )
   );
 }
+
+// Created on first use and then reused for the life of the server process.
+
 let instance: ReturnType<typeof createAuth> | undefined;
 export function getAuth() {
   if (!authConfigured()) throw new Error("Authentication is not configured");
   if (instance) return instance;
+
+  // Refuse unsafe setups: production must use HTTPS and the secret must be long enough.
+
   const baseURL = new URL(process.env.BETTER_AUTH_URL!);
   if (process.env.NODE_ENV === "production" && baseURL.protocol !== "https:")
     throw new Error("HTTPS required");

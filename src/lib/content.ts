@@ -9,6 +9,8 @@ export type Guide = {
   sections: { heading: Bi; body: Bi }[];
 };
 
+// Buying and care guides (each has its own page under /guides).
+
 export const guides: Guide[] = [
   {
     slug: "winter-clothing-care",
@@ -139,6 +141,8 @@ export const guides: Guide[] = [
   },
 ];
 
+// Default Studio packages (the owner can edit them in Admin → Website content).
+
 export const studioPackages: { name: Bi; for: Bi; includes: Bi[] }[] = [
   {
     name: { en: "Starter website", bn: "স্টার্টার ওয়েবসাইট" },
@@ -174,6 +178,8 @@ export const studioPackages: { name: Bi; for: Bi; includes: Bi[] }[] = [
     ],
   },
 ];
+
+// Default service FAQ (also editable in Admin → Website content).
 
 export const serviceFaq: { q: Bi; a: Bi }[] = [
   {

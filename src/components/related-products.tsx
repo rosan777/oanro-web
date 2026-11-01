@@ -9,6 +9,7 @@ import { type Product } from "@/lib/catalog";
 import { PriceTag, ProductPhoto } from "./shell";
 import { useLocale } from "./locale";
 
+/** One-tap "Add to bag" for products with a single size; opens the bag after adding. */
 function QuickAdd({ product, bn }: { product: Product; bn: boolean }) {
   const [added, setAdded] = useState(false);
   if (product.inStock === false)
@@ -42,6 +43,7 @@ function QuickAdd({ product, bn }: { product: Product; bn: boolean }) {
   );
 }
 
+/** A titled row of product cards that animates in the first time it scrolls into view. */
 function Shelf({ title, items, bn }: { title: string; items: Product[]; bn: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const [play, setPlay] = useState(false);
@@ -116,6 +118,7 @@ function Shelf({ title, items, bn }: { title: string; items: Product[]; bn: bool
   );
 }
 
+/** The two shelves under a product page: same section first, then everything else. */
 export function RelatedProducts({
   same,
   others,

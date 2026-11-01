@@ -23,6 +23,9 @@ export default async function CustomersPage({
     listCustomers(catalogDb(), { q, limit: PAGE, offset: (page - 1) * PAGE }),
     access.owner ? audienceCount(catalogDb()).catch(() => 0) : 0,
   ]);
+
+  // Link to another page of results, keeping the search.
+
   const link = (p: number) =>
     `/admin/customers?${new URLSearchParams({ ...(q ? { q } : {}), page: String(p) })}`;
   return (

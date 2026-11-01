@@ -15,6 +15,8 @@ import {
 import { ProductInputError } from "./product-input";
 import { ProductStoreError, type CatalogDb } from "./product-store";
 
+// Report periods, the default low-stock level, and time constants (Dhaka is UTC+6).
+
 export const reportRanges = ["today", "7d", "30d", "90d", "365d", "all"] as const;
 export type ReportRange = (typeof reportRanges)[number];
 export const DEFAULT_LOW_STOCK = 5;
@@ -26,6 +28,8 @@ const days: Record<Exclude<ReportRange, "all" | "today">, number> = {
   "90d": 90,
   "365d": 365,
 };
+
+/** A known range from the URL, otherwise the last 30 days. */
 export const parseRange = (value: unknown): ReportRange =>
   reportRanges.includes(value as ReportRange) ? (value as ReportRange) : "30d";
 
@@ -40,8 +44,12 @@ export function rangeBounds(range: ReportRange, now = new Date()) {
       : new Date(now.getTime() - span);
   return { from, prevFrom: new Date(from.getTime() - span) };
 }
+
+/** Chart bucket label in Dhaka time: "YYYY-MM-DD", or "YYYY-MM" for monthly charts. */
 const dhakaKey = (d: Date, monthly: boolean) =>
   new Date(d.getTime() + DHAKA).toISOString().slice(0, monthly ? 7 : 10);
+
+/** Every day (or month) from the range start, or the first order for "all", up to today, for the trend chart. */
 function bucketKeys(from: Date | null, earliest: Date | null, now: Date, monthly: boolean) {
   const start = from ?? earliest ?? now,
     keys: string[] = [];
@@ -82,6 +90,11 @@ type Order = {
   codDue: number;
   refund: number;
 };
+
+/**
+ * Loads everything both reports need for a range in one go: products, sections, orders in the
+ * current and previous period (with their lines), pending orders and the payment fee.
+ */
 async function load(db: CatalogDb, range: ReportRange) {
   const now = new Date(),
     { from, prevFrom } = rangeBounds(range, now);
@@ -223,6 +236,9 @@ async function load(db: CatalogDb, range: ReportRange) {
   };
 }
 type Data = Awaited<ReturnType<typeof load>>;
+
+// Small helpers shared by the sales and profit reports.
+
 const sum = <T>(rows: T[], f: (r: T) => number) => rows.reduce((a, r) => a + f(r), 0);
 const linesOf = (d: Data, orders: Order[]) => {
   const ids = new Set(orders.filter(o => o.counted).map(o => o.id));
@@ -247,6 +263,8 @@ export type SalesRow = {
 };
 export type TrendPoint = { key: string; revenue: number; profit?: number; orders: number };
 export type SalesReport = Awaited<ReturnType<typeof salesReport>>;
+
+/** Units sold, returned and reserved plus revenue per product, with totals and the trend chart. */
 export async function salesReport(db: CatalogDb, range: ReportRange) {
   const d = await load(db, range);
   const sold = linesOf(d, d.current),
@@ -387,6 +405,8 @@ export type ProfitRow = {
   loss: boolean;
 };
 export type ProfitReport = Awaited<ReturnType<typeof profitReport>>;
+
+/** Revenue, costs and net profit for a set of orders (used for the current and the previous period). */
 function money(d: Data, orders: Order[], approved: Order[]) {
   const lines = linesOf(d, orders);
   const costOf = (l: Line) =>
@@ -415,6 +435,8 @@ function money(d: Data, orders: Order[], approved: Order[]) {
     net: revenue - productCost - shipping + delivery - fees - refunds,
   };
 }
+
+/** Profit per product and in total, compared with the previous period. Guard with "profit.read". */
 export async function profitReport(db: CatalogDb, range: ReportRange) {
   const d = await load(db, range);
   const cur = money(d, d.current, d.approvedCurrent),
@@ -489,6 +511,8 @@ export async function listProductCosts(db: CatalogDb): Promise<Record<string, nu
     .where(isNull(product.archivedAt));
   return Object.fromEntries(rows.map(r => [r.id, r.cost]));
 }
+
+/** A whole taka amount from a form (0 to 10,000,000), or null when left empty. */
 export function parseMoney(value: unknown, field: string): number | null {
   if (value === null || value === "" || value === undefined) return null;
   const n = typeof value === "string" ? Number(value) : value;
@@ -519,6 +543,8 @@ export async function setProductCost(
     });
   });
 }
+
+/** Records what the courier really charged for an approved order (null clears it), and logs it. */
 export async function setShippingCost(
   db: CatalogDb,
   actorId: string,

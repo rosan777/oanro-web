@@ -55,6 +55,10 @@ export async function POST(request: Request) {
     /^\/[A-Za-z0-9\-_/.%]{0,120}$/.test(data.page.split("?")[0].split("#")[0])
       ? data.page.split("?")[0].split("#")[0]
       : "";
+
+  // Build the message for the team: what the visitor typed, optionally the last three chat questions
+  // (redacted), and where it was sent from.
+
   const lang = data.locale === "bn" ? "Bangla" : "English";
   let message = typed;
   if (data.includeSummary === true && !session.isNew) {

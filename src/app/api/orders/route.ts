@@ -28,6 +28,8 @@ export async function POST(request: Request) {
   if (!session.user.emailVerified)
     return Response.json({ error: "EMAIL_NOT_VERIFIED" }, { status: 403, headers: noStore });
   try {
+    // Validate the form and the optional payment screenshot, then place the order.
+
     const data = await readObject(request, 400000);
     const input = parseOrderInput(data);
     const screenshot =
@@ -72,6 +74,8 @@ export async function POST(request: Request) {
         { status: 400, headers: noStore },
       );
     if (error instanceof ProductStoreError) {
+      // Store errors look like "OUT_OF_STOCK:<slug>:<left>:<color>:<size>"; split them into fields the checkout can show.
+
       const [kind, slug, available, color, size] = error.message.split(":");
       return Response.json(
         {

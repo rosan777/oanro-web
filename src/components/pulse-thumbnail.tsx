@@ -1,6 +1,10 @@
 "use client";
 import { useState } from "react";
 
+/**
+ * A Global Pulse story's thumbnail: only an inline image or our own thumbnail route is shown;
+ * anything else, or an image that fails to load, shows the OANRO word instead.
+ */
 export function PulseThumbnail({
   source,
   onLoaded,

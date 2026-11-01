@@ -1,3 +1,5 @@
+// Brand logos for the technology services pages, read from the simple-icons package on the server.
+
 import "server-only";
 import * as simpleIcons from "simple-icons";
 
@@ -9,6 +11,9 @@ export function techLogo(slug: string): { path: string; color: string } | null {
   const icon = all["si" + slug.charAt(0).toUpperCase() + slug.slice(1)];
   if (!icon?.path) return null;
   const v = parseInt(icon.hex, 16);
+
+  // Perceived brightness of the brand colour; above 215 (of 255) the logo would vanish on white.
+
   const light = ((v >> 16) & 255) * 0.3 + ((v >> 8) & 255) * 0.59 + (v & 255) * 0.11 > 215;
   return { path: icon.path, color: light ? "#07090a" : `#${icon.hex}` };
 }

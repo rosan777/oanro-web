@@ -1,9 +1,13 @@
+// Product page view counts, one row per product per day, used for the "popular" list and reports.
+
 import "server-only";
 import { and, desc, eq, gte, isNull, sql } from "drizzle-orm";
 import { product, productCollection, productViewDaily } from "./db/schema";
 import { storefrontCached } from "./storefront-cache";
 import type { CatalogDb } from "./product-store";
 import { catalogDb } from "./store-products";
+
+// Calendar day in Bangladesh time (UTC+6) as YYYY-MM-DD, so days change at local midnight.
 
 const dhakaDay = (d = new Date()) =>
   new Date(d.getTime() + 6 * 3_600_000).toISOString().slice(0, 10);

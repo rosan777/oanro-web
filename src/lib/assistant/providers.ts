@@ -10,6 +10,8 @@ export type Resolved = { model: LanguageModel; modelId: string };
 
 /** Alternatives stay off until the owner verifies their terms and sets ASSISTANT_APPROVE_<ID>=true. Gemini is never available for visitor chat. */
 const approved = (id: ProviderId) => env[`ASSISTANT_APPROVE_${id.toUpperCase()}`] === "true";
+
+/** True when the provider may receive visitor text and its keys are set. */
 export function providerConfigured(id: ProviderId): boolean {
   if (
     !providerSpecs[id].customerContent &&
@@ -63,6 +65,8 @@ export function resolveModel(id: ProviderId): Resolved | null {
 
 // ---- Failure classification and a per-instance cooldown so an unhealthy provider is skipped quickly ----
 export type Failure = { kind: "quota" | "auth" | "outage" | "bad"; retryAfter: number };
+
+/** Turns a provider error into a failure kind and how many seconds to skip that provider. */
 export function classify(error: unknown): Failure {
   if (APICallError.isInstance(error)) {
     const status = error.statusCode ?? 0;
@@ -77,6 +81,8 @@ export function classify(error: unknown): Failure {
 }
 const cooldown = new Map<ProviderId, number>();
 export const isHealthy = (id: ProviderId, now = Date.now()) => (cooldown.get(id) ?? 0) <= now;
+
+/** Puts the provider on cooldown for the failure's retry time (kept in memory, per server instance). */
 export function markFailure(id: ProviderId, f: Failure, now = Date.now()) {
   if (f.retryAfter > 0) cooldown.set(id, now + f.retryAfter * 1000);
 }

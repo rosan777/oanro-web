@@ -25,6 +25,8 @@ export function AnnounceToast({
       clearTimeout(hide);
     };
   }, []);
+
+  /** Hides the card and remembers it for the rest of the visit. */
   function close() {
     setOpen(false);
     try {

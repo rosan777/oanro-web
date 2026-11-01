@@ -37,6 +37,7 @@ async function lookup(domain: string, resolver: DnsLookup): Promise<DomainVerdic
   return "no-mail";
 }
 
+/** Runs the DNS check with a time limit (2.5 s by default); a timeout counts as "unknown". */
 export async function checkMailDomain(
   domain: string,
   resolver: DnsLookup = dns,

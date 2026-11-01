@@ -14,6 +14,7 @@ const Scene = dynamic(() => import("./scene"), {
   loading: () => <div className="scene-loading" />,
 });
 
+/** "The OANRO standard" panel with three short promises. Not used by any page at the moment. */
 export function StandardPanel() {
   const t = useT();
   const lines = [
@@ -53,6 +54,11 @@ export function StandardPanel() {
 }
 
 export { ValueFan } from "./value-fan";
+
+/**
+ * A titled row of cards that scrolls itself slowly in a loop, with arrow buttons to move by hand.
+ * children(duplicate) is called twice: the second copy fills the loop and is hidden from keyboard and screen readers.
+ */
 export function Conveyor({
   id,
   title,
@@ -182,6 +188,8 @@ export function Conveyor({
     </section>
   );
 }
+
+/** The technology services as a scrolling row. Not used by any page at the moment. */
 export function ServiceConveyor() {
   const services = useServices();
   const { locale } = useLocale();
@@ -241,6 +249,7 @@ export function ServiceConveyor() {
   );
 }
 
+/** Older homepage feature sections (campaign, headphone story, highlights, 3D model). Not used by any page at the moment. */
 export function FeatureStory() {
   return (
     <>

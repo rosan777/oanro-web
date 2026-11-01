@@ -1,3 +1,5 @@
+// Discount code format, amount maths and eligibility rules (pure functions, no database).
+
 import test from "node:test";
 import assert from "node:assert/strict";
 import { discountAmount, parseDiscountCode } from "../src/lib/order-input";

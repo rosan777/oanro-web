@@ -8,6 +8,8 @@ import { PriceTag, ProductPhoto } from "./shell";
 import { useProducts } from "./products-context";
 import { useLocale } from "./locale";
 
+// Placeholder ideas shown in an empty Caps or Tech section.
+
 const capIdeas = [
   ["Baseball caps", "বেসবল ক্যাপ"],
   ["Snapback caps", "স্ন্যাপব্যাক ক্যাপ"],
@@ -22,6 +24,7 @@ const techIdeas = [
   ["Keyboards", "কিবোর্ড"],
 ];
 
+/** A product card in a scrolling row. Copies made for the endless loop (duplicate) are skipped by keyboard focus. */
 export function ProductCard({
   product,
   index,

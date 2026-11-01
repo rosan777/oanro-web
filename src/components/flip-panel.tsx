@@ -4,6 +4,7 @@ import { useMotion } from "./experience";
 import styles from "./conveyor-effects.module.css";
 import { Localized } from "./locale";
 
+/** A card that slowly flips to show the OANRO title and detail on its back (motion only when allowed). */
 export function FlipPanel({
   children,
   title,

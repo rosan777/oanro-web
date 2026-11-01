@@ -31,6 +31,7 @@ const Scene = dynamic(() => import("./scene"), {
   ),
 });
 
+/** Embeds a YouTube (privacy-enhanced domain) or Vimeo link; any other address shows nothing. */
 function ProductVideo({
   url,
   title,
@@ -78,6 +79,10 @@ function ProductVideo({
   );
 }
 
+/**
+ * The product page: photos and extra views, name and price, colour and size choice, add to bag,
+ * delivery details, size guide, matching items and related products.
+ */
 export default function ProductDetail({
   product,
   rules,
@@ -92,6 +97,9 @@ export default function ProductDetail({
 }) {
   const { locale } = useLocale();
   const bn = locale === "bn";
+
+  // Product texts in the page language (Bangla when the owner wrote it).
+
   const copy =
     bn && product.bn
       ? [
@@ -109,6 +117,9 @@ export default function ProductDetail({
     string,
     [string, string][],
   ];
+
+  // The view tabs: product photo always; close-up and film when uploaded; demo-only views for two sample products.
+
   const knit = product.slug === "forest-knit";
   const headphones = product.slug === "studio-headphones";
   const views = [
@@ -168,6 +179,9 @@ export default function ProductDetail({
   };
   const picked = colors.find(c => c.id === color);
   const soldOut = variantSoldOut(product, size, color);
+
+  // Picking a colour shows the main photo and, if the current size is sold out in that colour, moves to one that is available.
+
   const pickColor = (id: string) => {
     setColor(id);
     setView("Product");

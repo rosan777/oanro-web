@@ -1,6 +1,9 @@
 import type { ProviderId } from "./types";
 // Runtime configuration for the assistant. Secrets stay in server environment variables; nothing here is sent to the browser.
 const env = process.env;
+
+// Read an environment value as a boolean or a bounded whole number, falling back to the default.
+
 const bool = (v: string | undefined, d: boolean) =>
   v === undefined || v === "" ? d : v === "true" || v === "1";
 const int = (v: string | undefined, d: number, min: number, max: number) => {
@@ -10,6 +13,8 @@ const int = (v: string | undefined, d: number, min: number, max: number) => {
 
 /** Optional emergency stop. Normally the saved admin switch controls visibility; an explicit false still disables this deployment. */
 export const assistantEnvEnabled = () => bool(env.ASSISTANT_ENABLED, true);
+
+/** Cloudflare Turnstile keys for the optional bot check (empty when not configured). */
 export const turnstile = () => ({
   secret: env.TURNSTILE_SECRET_KEY ?? "",
   siteKey: env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "",
@@ -29,6 +34,8 @@ export type ProviderSpec = {
   /** Reset window of the provider's free quota, shown honestly in admin. */
   resetNote: string;
 };
+
+/** Every provider the code knows about, with its allowed models and our own daily caps. */
 export const providerSpecs: Record<ProviderId, ProviderSpec> = {
   groq: {
     id: "groq",
@@ -92,6 +99,8 @@ export function modelFor(id: ProviderId): string {
   const wanted = env[`ASSISTANT_${id.toUpperCase()}_MODEL`];
   return wanted && spec.models.includes(wanted) ? wanted : spec.defaultModel;
 }
+
+/** Daily request and token caps, overridable per provider with ASSISTANT_<ID>_DAILY_REQUESTS / _TOKENS. */
 export const dailyCaps = (id: ProviderId) => ({
   requests: int(
     env[`ASSISTANT_${id.toUpperCase()}_DAILY_REQUESTS`],
@@ -113,6 +122,8 @@ export function providerOrder(): ProviderId[] {
     .map(s => s.trim()) as ProviderId[];
   return [...new Set(raw)].filter(id => knownProviders.includes(id) && id !== "gemini");
 }
+
+/** Rate limits and size limits for chat and voice; most can be tuned with ASSISTANT_* variables. */
 export const limits = {
   chatPerWindow: int(env.ASSISTANT_CHAT_PER_WINDOW, 20, 1, 500),
   windowMinutes: int(env.ASSISTANT_CHAT_WINDOW_MINUTES, 10, 1, 1440),

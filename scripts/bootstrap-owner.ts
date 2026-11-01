@@ -1,3 +1,6 @@
+// One-time setup: makes a verified user the site owner.
+// Usage: npm run owner:bootstrap -- VERIFIED_USER_ID "reason". The logic is in src/lib/db/bootstrap-owner.ts.
+
 import { loadEnvConfig } from "@next/env";
 import { Pool } from "pg";
 import { bootstrapOwner } from "../src/lib/db/bootstrap-owner";

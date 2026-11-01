@@ -1,3 +1,7 @@
+// Manual browser smoke check (not part of npm test). Needs Playwright, which is not a project
+// dependency, and a running site on http://127.0.0.1:3100. Checks layout at several widths for
+// horizontal overflow and saves screenshots to /tmp/oanro-checks.
+
 const { chromium } = require("playwright");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");

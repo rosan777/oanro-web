@@ -8,6 +8,9 @@ import { PhotoPicker, StatusSelect, statusLabel, useAdminCall } from "./admin-ui
 
 type Pick = { id: string; name: string; section: string; status: ProductStatus };
 type Draft = Record<string, string> & { status: ProductStatus };
+
+// Field names for error messages, and the badge text and colour for each campaign phase.
+
 const fieldLabel: Record<string, string> = {
   slug: "Web address",
   nameEn: "Campaign name",
@@ -51,6 +54,7 @@ const toDraft = (c: OwnerCampaign): Draft => ({
   displayOrder: String(c.displayOrder),
 });
 
+/** Admin campaigns: create and edit, pick and order the products in each campaign, change status, archive. */
 export function CampaignDashboard({
   initial,
   products,
@@ -86,6 +90,9 @@ export function CampaignDashboard({
     setSlugTouched(Boolean(c));
     setNotice("");
   }
+
+  // Updates the draft; the web address follows the English name until it is edited by hand.
+
   const set = (patch: Record<string, string>) =>
     setEditing(e => {
       if (!e) return e;
@@ -118,6 +125,9 @@ export function CampaignDashboard({
       />
     </label>
   );
+
+  // Moves a product up or down in the campaign's product list.
+
   const move = (index: number, delta: number) =>
     setPicking(p => {
       if (!p) return p;

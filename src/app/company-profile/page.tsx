@@ -7,6 +7,8 @@ import { getSiteContent } from "@/lib/site-content";
 import { alternatesFor, requestLocale } from "@/lib/request-locale";
 import { absoluteUrl, DEFAULT_OG_IMAGE } from "@/lib/seo";
 
+// Search title and description in both languages.
+
 const copy = {
   en: {
     title: "Company Profile | Software, AI, Cloud & IT Services",
@@ -40,6 +42,9 @@ export default async function CompanyProfilePage() {
   const { locale } = await requestLocale();
   const [profile, content] = await Promise.all([getCompanyProfile(), getSiteContent()]);
   const email = content.contact.email || "support@oanro.com";
+
+  // Service names from the "services" section, listed in the structured data for search engines.
+
   const services =
     profile.sections
       .find(s => s.id === "services")

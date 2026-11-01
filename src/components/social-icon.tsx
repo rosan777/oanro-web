@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import type { Social, SocialPlatform } from "@/lib/site-content-data";
 
+// Built-in icon and display name for each supported platform.
+
 const icons: Record<SocialPlatform, LucideIcon> = {
   facebook: Facebook,
   instagram: Instagram,

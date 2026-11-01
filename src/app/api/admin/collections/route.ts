@@ -23,6 +23,8 @@ const sectionId = (value: unknown) => {
   if (typeof value !== "string" || !idPattern.test(value)) throw new ProductInputError("id");
   return value;
 };
+
+/** Create a section. */
 export const POST = adminHandler("products.manage", async (ownerId, data) => {
   await createCollection(catalogDb(), ownerId, parseCollectionInput(data));
   return respond();
@@ -48,6 +50,8 @@ export const PATCH = adminHandler(
     return respond();
   },
 );
+
+/** Archive a custom section ({ id }); see archiveCollection for the rules. */
 export const DELETE = adminHandler("products.manage", async (ownerId, data) => {
   await archiveCollection(catalogDb(), ownerId, sectionId(data.id));
   return respond();

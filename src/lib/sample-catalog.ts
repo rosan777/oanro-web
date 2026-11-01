@@ -21,6 +21,9 @@ type Sample = {
   specsEn: string;
   outOfStock?: boolean;
 };
+
+// The sample products themselves; sizes and specs use the same text format as the admin form.
+
 export const sampleProducts: Sample[] = [
   {
     slug: "classic-baseball-cap",

@@ -1,5 +1,8 @@
 "use client";
 
+// The site frame shared by every page: the header (menus, search, bag), the footer, and the
+// product photo and price pieces used across the store.
+
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "@/components/locale-link";
@@ -30,6 +33,7 @@ import { SocialLinks } from "./social-icon";
 import { mediaUrl } from "@/lib/site-content-data";
 import { LanguageSwitch, Localized, RegionPicker, useLocale } from "./locale";
 
+/** A product picture: the owner's photo when there is one, otherwise the matching area of the sample sprite. */
 export function ProductPhoto({
   position,
   label,
@@ -94,6 +98,7 @@ export function PriceTag({
   );
 }
 
+/** Site header: logo, main menu with drop-down panels, language switch, search dialog and bag dialog. */
 export function Header({ config }: { config: SiteConfig }) {
   const { locale } = useLocale();
   const bn = locale === "bn";
@@ -104,6 +109,9 @@ export function Header({ config }: { config: SiteConfig }) {
   const [query, setQuery] = useState("");
   const searchDialog = useRef<HTMLDialogElement>(null);
   const cartDialog = useRef<HTMLDialogElement>(null);
+
+  // Other components open the bag with the "oanro-open-bag" event (for example after adding a product).
+
   useEffect(() => {
     const open = () => cartDialog.current?.showModal();
     window.addEventListener("oanro-open-bag", open);
@@ -185,6 +193,9 @@ export function Header({ config }: { config: SiteConfig }) {
     setMega(null);
     setMobile(false);
   };
+
+  // Top menu groups, depending on which parts of the site are switched on.
+
   const groups = [
     ...(config.products ? ["Products"] : []),
     ...(config.services ? ["Services"] : []),
@@ -358,6 +369,7 @@ export function Header({ config }: { config: SiteConfig }) {
         ))}
       </header>
 
+      {/* Search dialog. */}
       <dialog
         ref={searchDialog}
         className="search-dialog"
@@ -465,6 +477,8 @@ export function Header({ config }: { config: SiteConfig }) {
           </div>
         </div>
       </dialog>
+
+      {/* Bag dialog. */}
       <dialog
         ref={cartDialog}
         className="cart-dialog"
@@ -601,6 +615,7 @@ export function Header({ config }: { config: SiteConfig }) {
   );
 }
 
+/** Site footer: newsletter sign-up, link columns, social links, language/region picker and legal links. */
 export function Footer({ config }: { config: SiteConfig }) {
   const { locale } = useLocale();
   const bn = locale === "bn";

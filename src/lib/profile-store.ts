@@ -26,6 +26,8 @@ const empty = {
   permanentAddress: "",
   company: "",
 };
+
+/** One line of text: control characters and repeated spaces become single spaces. */
 function text(value: unknown, field: string, max: number, min = 0) {
   if (value == null) value = "";
   if (typeof value !== "string") throw new ProductInputError(field);
@@ -36,6 +38,8 @@ function text(value: unknown, field: string, max: number, min = 0) {
   if (clean.length > max || clean.length < min) throw new ProductInputError(field);
   return clean;
 }
+
+/** Validates the "My account" details form. Phones must be Bangladeshi mobiles; the postcode is 4 digits. */
 export function parseProfile(data: Record<string, unknown>): Profile {
   const optionalPhone = (v: unknown, f: string) =>
     v == null || v === "" ? "" : normalizePhone(v, f);

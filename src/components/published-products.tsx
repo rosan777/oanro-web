@@ -17,6 +17,8 @@ export type PublishedRow = {
   hasImage: boolean;
   updatedAt: string;
 };
+
+/** Stock state for the row colour and the counters: out, low (at or below the alert level) or in stock. */
 const state = (r: PublishedRow) =>
   r.stock === 0
     ? "out"
@@ -37,6 +39,9 @@ export function PublishedProducts({
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
   const [q, setQ] = useState("");
+
+  // Saves one product's stock (null = unlimited) and clears that row's unsaved input.
+
   const save = async (r: PublishedRow, stock: number | null) => {
     setBusy(r.id);
     setMsg("");
@@ -60,6 +65,9 @@ export function PublishedProducts({
       `Saved: ${r.name} — ${stock === null ? "unlimited stock" : stock === 0 ? "out of stock" : `${stock} in stock`}.`,
     );
   };
+
+  // Search filter and the counters above the list.
+
   const shown = rows.filter(
     r => !q || `${r.name} ${r.section} ${r.slug}`.toLowerCase().includes(q.toLowerCase()),
   );

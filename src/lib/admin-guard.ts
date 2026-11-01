@@ -1,3 +1,5 @@
+// Access check used at the top of every admin page (the page-side twin of authorize() in admin-api.ts).
+
 import "server-only";
 import { notFound, redirect } from "next/navigation";
 import { currentSession } from "./access";
@@ -16,6 +18,9 @@ export async function requireAdminPage(permission?: Permission | Permission[]) {
   const db = catalogDb();
   await claimInvite(db, session.user);
   const access = await getAccess(db, session.user.id);
+
+  // No permission given: any admin access at all is enough. Otherwise any one of the listed permissions.
+
   const needed =
     permission === undefined ? null : Array.isArray(permission) ? permission : [permission];
   if (needed ? !needed.some(p => access.permissions.has(p)) : access.permissions.size === 0)

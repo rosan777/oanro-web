@@ -4,6 +4,8 @@ import { catalogDb } from "@/lib/store-products";
 import { AdminBack } from "@/components/admin-nav";
 import { LeadInbox } from "@/components/lead-inbox";
 export const dynamic = "force-dynamic";
+
+/** Inquiry inbox. A missing table (migration not run) shows a notice instead of an error. */
 export default async function LeadsPage() {
   const { access } = await requireAdminPage("leads.read");
   let data: {

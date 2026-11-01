@@ -15,6 +15,7 @@ import {
 } from "@/components/report-charts";
 export const dynamic = "force-dynamic";
 
+/** Stock label and colour for a product row. */
 const stockText = (stock: number | null, low: number) =>
   stock === null
     ? ["Not counted", "muted"]
@@ -31,6 +32,9 @@ export default async function SalesReportPage({
   await requireAdminPage("reports.read");
   const range = parseRange((await searchParams).range);
   const r = await salesReport(catalogDb(), range);
+
+  // Rows for the CSV download (one line per product).
+
   const all = r.sections.flatMap(s => s.rows.map(row => ({ ...row, section: s.name })));
   const csv: (string | number | null)[][] = [
     [
@@ -70,6 +74,7 @@ export default async function SalesReportPage({
       </header>
       <RangeTabs base="/admin/reports/sales" current={range} />
 
+      {/* Summary cards, compared with the previous period. */}
       <section className="stat-grid" aria-label="Summary">
         <StatCard
           icon="coin"
@@ -109,6 +114,7 @@ export default async function SalesReportPage({
         />
       </section>
 
+      {/* Products that are out of stock or at their alert level. */}
       {r.restock.length > 0 && (
         <section className="report-panel is-alert" aria-labelledby="restock-h">
           <h2 id="restock-h">
@@ -167,6 +173,7 @@ export default async function SalesReportPage({
           }))}
       />
 
+      {/* One table per section, then the services table. */}
       {r.sections.map(s => (
         <section key={s.id} className="report-panel" aria-labelledby={`sec-${s.id}`}>
           <div className="report-panel-head">

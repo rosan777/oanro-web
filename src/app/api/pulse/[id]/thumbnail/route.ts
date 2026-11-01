@@ -4,6 +4,8 @@ import { pulseStory } from "@/lib/db/schema";
 import { imageData } from "@/lib/pulse-thumbnail";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/** Public thumbnail of a visible, rights-confirmed Global Pulse story; 404 for anything else. */
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
   const headers = {

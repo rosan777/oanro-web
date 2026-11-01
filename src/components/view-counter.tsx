@@ -6,6 +6,9 @@ export function ViewCounter({ slug }: { slug: string }) {
   useEffect(() => {
     rememberProduct(slug);
     if (!allows("analytics")) return;
+
+    // Count each product at most once per browser tab session.
+
     const key = `oanro-viewed:${slug}`;
     try {
       if (sessionStorage.getItem(key)) return;

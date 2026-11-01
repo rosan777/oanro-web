@@ -10,6 +10,9 @@ export default async function ContentPage() {
     getSiteContentFresh(catalogDb()),
     getOwnerCatalog(),
   ]);
+
+  // Published products marked as eligible for the featured story, for the "featured product" picker.
+
   const sections = Object.fromEntries(catalog.collections.map(c => [c.id, c.nameEn]));
   const products = catalog.products
     .filter(p => p.status === "published" && p.featuredEligible)

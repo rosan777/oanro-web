@@ -1,3 +1,7 @@
+/* Styles for flip-panel.tsx (cards that slowly flip to show a branded back face) and the
+   unused double-conveyor.tsx rows.
+   Motion runs only when the panel has data-allowed="true" (see useMotion in experience.tsx). */
+
 .flip {
   width: 100%;
   perspective: 1200px;
@@ -30,7 +34,7 @@
 .back span {
   font-size: 0.75rem;
   letter-spacing: 0.2em;
-  color: var(--accent);
+  color: #d9b56a; /* lighter gold: 4.7:1 on the green card (WCAG AA for small text) */
 }
 .back strong {
   font-size: 1.55rem;

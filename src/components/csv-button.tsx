@@ -11,6 +11,8 @@ export function CsvButton({
   label?: string;
 }) {
   function download() {
+    // Quote cells that need it, and prefix ' to cells starting with = + - @ so spreadsheets never run them as formulas.
+
     const cell = (v: string | number | null) => {
       if (typeof v === "number") return String(v);
       const s = v === null ? "" : String(v);

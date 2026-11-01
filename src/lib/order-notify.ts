@@ -19,11 +19,15 @@ import type { CatalogDb } from "./product-store";
 
 // Order emails. Customers get both English and Bangla in one message (we don't store a language per order).
 // Staff alerts go to the owner and active staff whose role can approve payments (COD ones also need "cod.manage").
+
+// Small text helpers: HTML escaping, Bangla digits and taka formatting.
+
 const esc = (s: string) =>
   s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 const bn = (s: string) => s.replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[Number(d)]);
 const tk = (n: number) => formatPrice(n);
 
+/** The order fields the emails need, the customer's account email and the item lines. */
 async function loadOrder(db: CatalogDb, id: string) {
   const [o] = await db
     .select({
@@ -67,6 +71,8 @@ const itemLines = (o: Order) =>
     .map(i => `• ${i.name} (${i.size}) × ${i.quantity} — ${tk(i.unitPrice * i.quantity)}`)
     .join("\n");
 const method = (o: Order) => (o.method === "bkash" ? "bKash" : "Nagad");
+
+/** Simple inline-styled HTML email (email apps ignore stylesheets); all text is escaped. */
 export function layout(title: string, paragraphs: string[], cta?: { label: string; href: string }) {
   return `<div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:0 auto;color:#151515">
 <div style="background:#1f513c;color:#fff;padding:16px 20px;font-weight:700;letter-spacing:.04em">OANRO</div>
@@ -76,6 +82,7 @@ ${cta ? `<p style="margin:18px 0 4px"><a href="${cta.href}" style="background:#1
 </div><p style="font-size:12px;color:#686862;padding:10px 20px">This is an automatic message from OANRO. Never share your bKash/Nagad PIN with anyone, including us.</p></div>`;
 }
 
+/** The owner plus active staff with "orders.manage" (and "cod.manage" for cash-on-delivery orders). */
 async function staffEmails(db: CatalogDb, cod: boolean) {
   const [owner] = await db
     .select({ email: user.email })
@@ -133,6 +140,9 @@ export async function notifyCustomer(db: CatalogDb, orderId: string, event: Cust
   const cod = o.paymentType === "cod";
   const due = cod ? `\nPlease keep ${tk(o.codDue)} in cash ready for the delivery person.` : "";
   const dueBn = cod ? `\nডেলিভারি ম্যানের জন্য নগদ ${bn(tk(o.codDue))} প্রস্তুত রাখুন।` : "";
+
+  // Subject, English text and Bangla text for each event.
+
   const copy: Record<CustomerEvent, [string, string, string]> = {
     paid: [
       `Payment confirmed for order ${o.code}`,
@@ -234,6 +244,8 @@ export async function sendStaffInvite(
     }),
   );
 }
+
+// Inquiry types in English and Bangla, for the assignment email.
 
 const LEAD_KIND: Record<string, [string, string]> = {
   product: ["Product question", "পণ্য নিয়ে প্রশ্ন"],
