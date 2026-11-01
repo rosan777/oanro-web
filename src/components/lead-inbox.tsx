@@ -22,14 +22,17 @@ const kindText: Record<InboxLead["kind"], string> = {
 };
 const when = (iso: string) => formatDhaka(iso, "en", { year: true });
 
-/** Inquiry inbox: filter by status, change status, assign to a team member and add notes (needs leads.manage). */
+/** Inquiry inbox: filter by status, change status, assign to a team member, add notes and reply by email (needs leads.manage). */
 export function LeadInbox({
   initial,
   people,
+  signoff,
   canManage,
 }: {
   initial: InboxLead[];
   people: { id: string; name: string }[];
+  /** The team's saved sign-off for email replies. */
+  signoff: string;
   canManage: boolean;
 }) {
   const [leads, setLeads] = useState(initial);
@@ -239,6 +242,7 @@ export function LeadInbox({
                   </form>
                 )}
               </div>
+              {canManage && <LeadReplyForm lead={l} signoff={signoff} onSent={setLeads} />}
             </details>
           </li>
         ))}
@@ -247,5 +251,120 @@ export function LeadInbox({
         {notice}
       </p>
     </section>
+  );
+}
+
+/** Starting subject and greeting for a reply, in the language the customer wrote in. */
+function replyDefaults(l: InboxLead) {
+  const bn = l.locale === "bn";
+  const about = (l.kind === "product" || l.kind === "service" || l.kind === "restock") && l.subject;
+  return {
+    subject: bn
+      ? about
+        ? `Re: ${l.subject} সম্পর্কে আপনার জিজ্ঞাসা`
+        : "Re: OANRO-তে আপনার বার্তা"
+      : about
+        ? `Re: Your inquiry about ${l.subject}`
+        : "Re: Your message to OANRO",
+    greeting: bn ? `প্রিয় ${l.name},` : `Dear ${l.name},`,
+  };
+}
+
+/** "Reply by email": subject, greeting, message and sign-off, sent to the customer from support@oanro.com. */
+function LeadReplyForm({
+  lead,
+  signoff,
+  onSent,
+}: {
+  lead: InboxLead;
+  signoff: string;
+  onSent: (leads: InboxLead[]) => void;
+}) {
+  const start = replyDefaults(lead);
+  const [subject, setSubject] = useState(start.subject),
+    [greeting, setGreeting] = useState(start.greeting),
+    [body, setBody] = useState(""),
+    [closing, setClosing] = useState(signoff);
+  const { busy, notice, call } = useAdminCall<{ leads: InboxLead[] }>(
+    "/api/admin/leads",
+    { subject: "Subject", greeting: "Greeting", body: "Message", signoff: "Sign-off" },
+    d => onSent(d.leads),
+  );
+  if (!lead.email)
+    return (
+      <p className="lead-reply-none">
+        No email address on this inquiry. Reply by phone
+        {lead.preferredContact === "whatsapp" ? " or WhatsApp" : ""}.
+      </p>
+    );
+  const ready = subject.trim().length >= 3 && body.trim().length >= 10;
+  const id = (f: string) => `reply-${f}-${lead.id}`;
+  return (
+    <details className="lead-reply">
+      <summary>Reply by email</summary>
+      <form
+        onSubmit={async e => {
+          e.preventDefault();
+          if (!window.confirm(`Send this email to ${lead.email}?`)) return;
+          if (
+            await call(
+              "PATCH",
+              { id: lead.id, reply: { subject, greeting, body, signoff: closing } },
+              `Email sent to ${lead.email}. A copy is saved in the notes above.`,
+            )
+          )
+            setBody("");
+        }}
+      >
+        <p className="lead-reply-route">
+          From <strong>support@oanro.com</strong> to <strong>{lead.email}</strong>. When the
+          customer answers, it arrives in the support@oanro.com inbox.
+        </p>
+        <label htmlFor={id("subject")}>Subject</label>
+        <input
+          id={id("subject")}
+          value={subject}
+          onChange={e => setSubject(e.target.value)}
+          maxLength={150}
+          disabled={busy}
+        />
+        <label htmlFor={id("greeting")}>Greeting</label>
+        <input
+          id={id("greeting")}
+          value={greeting}
+          onChange={e => setGreeting(e.target.value)}
+          maxLength={120}
+          disabled={busy}
+        />
+        <label htmlFor={id("body")}>Message</label>
+        <textarea
+          id={id("body")}
+          rows={6}
+          maxLength={5000}
+          value={body}
+          onChange={e => setBody(e.target.value)}
+          placeholder="Write your answer to the customer (at least 10 letters)."
+          disabled={busy}
+        />
+        <label htmlFor={id("signoff")}>Sign-off</label>
+        <textarea
+          id={id("signoff")}
+          rows={3}
+          maxLength={300}
+          value={closing}
+          onChange={e => setClosing(e.target.value)}
+          disabled={busy}
+        />
+        <small>The sign-off you send with is remembered for the next reply.</small>
+        <button type="submit" className="btn btn-primary" disabled={busy || !ready}>
+          {busy ? "Sending…" : "Send email"}
+        </button>
+        {notice && (
+          <p role="status" aria-live="polite">
+            {notice}
+          </p>
+        )}
+      </form>
+    </details>
   );
 }

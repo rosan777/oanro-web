@@ -1,5 +1,6 @@
 import { requireAdminPage } from "@/lib/admin-guard";
 import { assignableUsers, listLeads } from "@/lib/lead-store";
+import { getReplySignoff } from "@/lib/lead-reply";
 import { catalogDb } from "@/lib/store-products";
 import { AdminBack } from "@/components/admin-nav";
 import { LeadInbox } from "@/components/lead-inbox";
@@ -11,10 +12,15 @@ export default async function LeadsPage() {
   let data: {
     leads: Awaited<ReturnType<typeof listLeads>>;
     people: { id: string; name: string }[];
+    signoff: string;
   } | null = null;
   try {
     const db = catalogDb();
-    data = { leads: await listLeads(db), people: await assignableUsers(db) };
+    data = {
+      leads: await listLeads(db),
+      people: await assignableUsers(db),
+      signoff: await getReplySignoff(db),
+    };
   } catch {
     data = null;
   }
@@ -30,6 +36,7 @@ export default async function LeadsPage() {
         <LeadInbox
           initial={data.leads}
           people={data.people}
+          signoff={data.signoff}
           canManage={access.permissions.has("leads.manage")}
         />
       ) : (

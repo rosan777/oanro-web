@@ -1583,6 +1583,55 @@ svg {
   background: var(--background);
   color: inherit;
 }
+/* Notes keep their line breaks (a saved email reply has several paragraphs). */
+.lead-notes p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* "Reply by email" under the notes: closed until opened, full width on phones. */
+.lead-reply {
+  margin-top: 0.8rem;
+  border: 1px solid var(--line);
+  padding: 0.6rem 0.8rem;
+}
+.lead-reply summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.lead-reply form {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+}
+.lead-reply label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.3rem;
+}
+.lead-reply input,
+.lead-reply textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  font: inherit;
+  background: var(--background);
+  color: inherit;
+}
+.lead-reply small,
+.lead-reply-route,
+.lead-reply-none {
+  color: var(--muted);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+.lead-reply-none {
+  margin-top: 0.8rem;
+}
+.lead-reply button {
+  justify-self: start;
+  margin-top: 0.4rem;
+}
 .legal-page {
   max-width: 760px;
   padding-block: 3rem 4rem;
