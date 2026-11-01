@@ -32,6 +32,9 @@ const errorText: Record<string, string> = {
   EMAIL_FAILED:
     "The test email could not be sent. Check SMTP_URL and AUTH_EMAIL_FROM in .env.local, then restart the server.",
   NOT_ALLOWED: "Your role doesn't allow this. Ask the owner for the right permission.",
+  NO_EMAIL: "This customer left no email address. Reply by phone or WhatsApp instead.",
+  REPLY_NOT_SENT:
+    "The email could not be sent, so nothing was saved. Try again in a minute; if it keeps failing, check the mail settings (SMTP_URL, AUTH_EMAIL_FROM) on Vercel.",
   NOT_DRAFT: "Only drafts can be edited with your role. Ask someone to hide or unpublish it first.",
   COURIER_REQUIRED: "Choose or type the courier name.",
   INVALID_STEP:

@@ -9,11 +9,14 @@ import {
 } from "@/lib/lead-store";
 import { catalogDb } from "@/lib/store-products";
 import { notifyLeadAssigned } from "@/lib/order-notify";
+import { cleanReply, replyToLead } from "@/lib/lead-reply";
+import { sendMail } from "@/lib/mailer";
 export const runtime = "nodejs";
 
 const respond = async () =>
   Response.json({ leads: await listLeads(catalogDb()) }, { headers: noStore });
-// Status ({ id, status }), assignment ({ id, assignedTo }) or a note ({ id, note }). Requires leads.manage.
+// Status ({ id, status }), assignment ({ id, assignedTo }), a note ({ id, note }) or an email reply
+// ({ id, reply: { subject, greeting, body, signoff } }). Requires leads.manage.
 export const PATCH = adminHandler("leads.manage", async (actor, data) => {
   const id = requireUuid(data.id);
   if ("status" in data) {
@@ -35,6 +38,10 @@ export const PATCH = adminHandler("leads.manage", async (actor, data) => {
   } else if ("note" in data) {
     if (typeof data.note !== "string") throw new ProductInputError("note");
     await addLeadNote(catalogDb(), actor, id, data.note);
+  } else if ("reply" in data) {
+    await replyToLead(catalogDb(), actor, id, cleanReply(data.reply), (to, subject, text, html) =>
+      sendMail(to, subject, text, html),
+    );
   } else throw new ProductInputError("action");
   return respond();
 });
