@@ -1,5 +1,9 @@
+// Server-side purchase events for Meta ads (Conversions API).
+
 import "server-only";
 import { createHash } from "node:crypto";
+
+// Meta matches customers by SHA-256 of the trimmed, lower-cased value.
 
 const sha = (v: string) => createHash("sha256").update(v.trim().toLowerCase()).digest("hex");
 /** Bangladesh mobile in the international form Meta expects (8801XXXXXXXXX), digits only. */
@@ -49,6 +53,9 @@ export async function sendPurchase(o: {
       },
     ],
   };
+
+  // Sent with a 5 second timeout; a failure is ignored so it can never block an order.
+
   await fetch(
     `https://graph.facebook.com/v21.0/${o.pixelId}/events?access_token=${encodeURIComponent(token)}`,
     {

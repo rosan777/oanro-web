@@ -18,6 +18,8 @@ export const runtime = "nodejs";
 
 const respond = async () =>
   Response.json({ services: await listOwnerServices(catalogDb()) }, { headers: noStore });
+
+/** Create a service, or copy in the demo services ({ action: "import-demo" }). */
 export const POST = adminHandler("services.manage", async (ownerId, data) => {
   if (data.action === "import-demo") {
     await importDemoServices(catalogDb(), ownerId);
@@ -31,6 +33,8 @@ export const POST = adminHandler("services.manage", async (ownerId, data) => {
   );
   return respond();
 });
+
+/** Full edit, or a quick status change ({ id, status } only). */
 export const PATCH = adminHandler("services.manage", async (ownerId, data) => {
   const id = requireUuid(data.id);
   if (Object.keys(data).length === 2 && "status" in data) {
@@ -41,6 +45,8 @@ export const PATCH = adminHandler("services.manage", async (ownerId, data) => {
     await updateService(catalogDb(), ownerId, id, parseServiceInput(data), photoField(data.image));
   return respond();
 });
+
+/** Archive a service ({ id }). */
 export const DELETE = adminHandler("services.manage", async (ownerId, data) => {
   await archiveService(catalogDb(), ownerId, requireUuid(data.id));
   return respond();

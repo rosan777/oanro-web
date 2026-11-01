@@ -51,6 +51,8 @@ function statusAllowed(access: Access, target: ProductStatus, current?: ProductS
   if (target === "hidden") return can(access, "hide");
   return current === "published" ? can(access, "hide") : can(access, "draft");
 }
+
+/** The product's status right now (permission rules depend on it). */
 async function currentStatus(id: string) {
   const [row] = await catalogDb()
     .select({ status: product.status })

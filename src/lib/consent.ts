@@ -17,6 +17,7 @@ const RECENT_KEY = "oanro-recent-products";
 export const CONSENT_EVENT = "oanro-consent-change";
 export const OPEN_PRIVACY_EVENT = "oanro-open-privacy";
 
+/** The saved choice, or null when there is none, it is unreadable, or it is older than six months. */
 export function readConsent(): Consent | null {
   try {
     const raw = localStorage.getItem(KEY);
@@ -29,6 +30,7 @@ export function readConsent(): Consent | null {
   }
 }
 
+/** Saves the choice in localStorage and the cookie, then tells the page (CONSENT_EVENT) so open components update. */
 export function saveConsent(choice: ConsentChoice): Consent {
   const c: Consent = { v: 1, ...choice, at: new Date().toISOString() };
   try {

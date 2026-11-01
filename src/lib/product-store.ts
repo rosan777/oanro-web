@@ -25,8 +25,14 @@ import {
   type VariantStock,
 } from "./product-input";
 
+/** Any Drizzle PostgreSQL database with this schema: node-postgres in the app, PGlite in tests. */
 export type CatalogDb = PgDatabase<PgQueryResultHKT, typeof schema>;
+
+/** A refused store operation; the message is a short code such as "NOT_FOUND" or "SLUG_TAKEN". */
 export class ProductStoreError extends Error {}
+
+// Product columns that come straight from the validated admin form.
+
 const fields = [
   "slug",
   "status",
@@ -62,6 +68,8 @@ export type OwnerProduct = ProductInput & {
   updatedAt: string;
   colorImages: string[];
 };
+
+/** Per-variant stock and which colours have their own photo, for a set of products. */
 async function variantsFor(db: CatalogDb, ids: string[]) {
   if (!ids.length) return { variants: [], images: [] };
   const [variants, images] = await Promise.all([
@@ -77,6 +85,8 @@ async function variantsFor(db: CatalogDb, ids: string[]) {
   ]);
   return { variants, images };
 }
+
+/** Every product that is not archived, with the extra fields the admin editor needs. */
 export async function listOwnerProducts(db: CatalogDb): Promise<OwnerProduct[]> {
   const rows = await db
     .select(withImageFlag(getTableColumns(product)))
@@ -130,6 +140,8 @@ export async function hasManagedCatalog(db: CatalogDb) {
   const [row] = await db.select({ n: count() }).from(product);
   return Number(row?.n ?? 0) > 0;
 }
+
+/** Published products in published sections, in the public shape (stock counts reduced to availability). */
 export async function listStorefrontProducts(db: CatalogDb): Promise<Product[]> {
   // Products are public only when both the product and its section are published.
   const rows = (
@@ -226,6 +238,9 @@ export async function publishedColorImage(db: CatalogDb, slug: string, color: st
     .limit(1);
   return row?.image ?? null;
 }
+
+// Image lookups for public image routes: only published products in published sections.
+
 export async function publishedProductImage(db: CatalogDb, slug: string) {
   const [row] = await db
     .select({ image: product.imageData })
@@ -260,6 +275,8 @@ export async function publishedFeaturedImage(db: CatalogDb, slug: string) {
     .limit(1);
   return row?.image ?? null;
 }
+
+/** True when another product already uses this slug (archived ones included, so old links never change owner). */
 async function slugTaken(db: CatalogDb, slug: string, exceptId?: string) {
   const [row] = await db
     .select({ id: product.id })
@@ -268,6 +285,8 @@ async function slugTaken(db: CatalogDb, slug: string, exceptId?: string) {
     .limit(1);
   return Boolean(row && row.id !== exceptId);
 }
+
+/** Refuses a section id that does not exist or was archived. */
 async function requireCollection(db: CatalogDb, id: string) {
   const [row] = await db
     .select({ id: productCollection.id })
@@ -276,6 +295,8 @@ async function requireCollection(db: CatalogDb, id: string) {
     .limit(1);
   if (!row) throw new ProductStoreError("COLLECTION_NOT_FOUND");
 }
+
+/** Adds a product with its per-variant stock and photos, and logs it. */
 export async function createProduct(
   db: CatalogDb,
   actorId: string,
@@ -404,6 +425,8 @@ export async function setProductStock(
     });
   });
 }
+
+/** Draft, published or hidden, logged. */
 export async function setProductStatus(
   db: CatalogDb,
   actorId: string,
@@ -526,6 +549,9 @@ export async function importDemoCatalog(db: CatalogDb, actorId: string) {
 }
 
 // ---- Sections (product collections) ----
+
+// Sections (collections): the storefront rows that group products.
+
 export const builtInCollections = ["seasonal", "caps", "tech"];
 export type OwnerCollection = CollectionInput & {
   id: string;
@@ -533,6 +559,8 @@ export type OwnerCollection = CollectionInput & {
   productCount: number;
   publishedCount: number;
 };
+
+/** Every section that is not archived, for the admin. */
 export async function listOwnerCollections(db: CatalogDb): Promise<OwnerCollection[]> {
   const rows = await db
     .select()
@@ -561,6 +589,8 @@ export async function listOwnerCollections(db: CatalogDb): Promise<OwnerCollecti
     publishedCount: Number(counts.find(c => c.id === r.id && c.status === "published")?.n ?? 0),
   }));
 }
+
+/** Published sections in display order, in the public shape. */
 export async function listStorefrontCollections(db: CatalogDb): Promise<StoreCollection[]> {
   const rows = await db
     .select()

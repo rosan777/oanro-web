@@ -5,6 +5,8 @@ import { formatPrice } from "@/lib/catalog";
 import { ActionIcon, type ActionIconName } from "./action-icon";
 
 export const fmtCount = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+/** Percent change with one decimal; null when there was nothing before to compare with. */
 const pct = (now: number, before: number) =>
   before === 0
     ? now === 0
@@ -152,12 +154,18 @@ export function TrendChart({
   showProfit?: boolean;
 }) {
   if (points.length < 2) return null;
+
+  // Fixed drawing size (the SVG scales to fit), padding, and the value range (always including 0).
+
   const W = 640,
     H = 200,
     P = { l: 8, r: 8, t: 14, b: 26 };
   const values = points.flatMap(p => (showProfit ? [p.revenue, p.profit ?? 0] : [p.revenue]));
   const max = Math.max(1, ...values),
     min = Math.min(0, ...values);
+
+  // Map a point's index and value to SVG coordinates, and build the path for one line.
+
   const x = (i: number) => P.l + (i * (W - P.l - P.r)) / (points.length - 1);
   const y = (v: number) => P.t + ((max - v) * (H - P.t - P.b)) / (max - min);
   const line = (f: (p: (typeof points)[number]) => number) =>

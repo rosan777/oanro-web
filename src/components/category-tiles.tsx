@@ -6,6 +6,7 @@ import { ProductPhoto } from "./shell";
 import { useLocale } from "./locale";
 
 // "Shop by category": one tile per product section, linking to its keyword category page.
+// Not used by any page at the moment.
 export function CategoryTiles() {
   const { locale } = useLocale();
   const bn = locale === "bn";

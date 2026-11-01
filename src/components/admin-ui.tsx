@@ -1,4 +1,8 @@
 "use client";
+
+// Small building blocks shared by the admin screens: status labels and picker, category picker,
+// photo picker, and useAdminCall for sending changes.
+
 import { useState } from "react";
 import { resizePhoto } from "@/lib/photo-resize";
 import { productStatuses, type ProductStatus } from "@/lib/product-input";

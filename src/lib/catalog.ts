@@ -1,3 +1,6 @@
+// Storefront types shared by server and browser code, the built-in demo catalog, price formatting
+// and small helpers for colour × size variants. Pure: no database or server imports.
+
 export type ProductCopy = {
   name: string;
   category: string;
@@ -188,6 +191,9 @@ export const products: Product[] = [
     },
   },
 ];
+
+// Demo technology services, shown until the owner adds services in the database.
+
 export const services: Service[] = [
   {
     slug: "web",
@@ -233,6 +239,9 @@ export function formatPrice(value: number, locale: "en" | "bn" = "en") {
   const text = `${value < 0 ? "-" : ""}৳${grouped}`;
   return locale === "bn" ? text.replace(/\d/g, d => bnDigits[Number(d)]) : text;
 }
+
+// In-page anchor for a section: the three original sections keep their old ids, others get "collection-<slug>".
+
 export const collectionAnchor = (slug: string) =>
   (({ seasonal: "products", caps: "caps", tech: "tech-items" }) as Record<string, string>)[slug] ??
   `collection-${slug}`;

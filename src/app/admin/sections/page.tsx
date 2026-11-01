@@ -9,6 +9,7 @@ import { getOwnerPulseStories, getSectionState } from "@/lib/website-sections";
 import { presetLabel } from "@/lib/categories";
 import { productPermissions } from "@/lib/permissions";
 
+/** One section card: a link to its editor, plus an optional ON/OFF switch underneath. */
 function Card({
   href,
   label,
@@ -48,6 +49,9 @@ export default async function SectionsPage() {
     getOwnerPulseStories(),
     getSectionState(),
   ]);
+
+  // How many sections customers can see right now (product sections plus Services and Global Pulse).
+
   const liveCount =
     catalog.collections.filter(c => c.status === "published").length +
     (sections.services ? 1 : 0) +

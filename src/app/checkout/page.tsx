@@ -7,6 +7,8 @@ import { CheckoutForm } from "@/components/checkout-form";
 import { fullAddress, getProfile } from "@/lib/profile-store";
 export const metadata: Metadata = { title: "Checkout", robots: { index: false } };
 export const dynamic = "force-dynamic";
+
+/** Checkout for signed-in shoppers, prefilled from their saved profile. Falls back to safe defaults if the database is slow. */
 export default async function CheckoutPage() {
   const session = await currentSession();
   if (!session) redirect("/sign-in?next=/checkout");

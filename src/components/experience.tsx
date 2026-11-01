@@ -1,5 +1,8 @@
 "use client";
 
+// Site-wide motion control: the "Pause motion" switch, the visitor's reduced-motion setting,
+// the optional logo intro, and the scroll-in Reveal effect.
+
 import {
   createContext,
   useContext,
@@ -11,6 +14,9 @@ import {
 } from "react";
 import Image from "next/image";
 import { Localized } from "./locale";
+
+// The reduced-motion media query, read through useSyncExternalStore so components update when it changes.
+// On the server motion counts as reduced, so the first render never animates.
 
 const MotionContext = createContext({ paused: false, toggle: () => {} });
 const query = "(prefers-reduced-motion: reduce)";
@@ -25,6 +31,8 @@ function preference() {
 function serverPreference() {
   return true;
 }
+
+/** allowed is true only when the visitor has not paused motion and has not asked for reduced motion. */
 export function useMotion() {
   const context = useContext(MotionContext);
   const reduced = useSyncExternalStore(subscribe, preference, serverPreference);
@@ -53,6 +61,7 @@ export function MotionToggle() {
   );
 }
 
+/** One-second logo intro, once per browser session (skipped with reduced motion or blocked storage). */
 export function Intro() {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -104,6 +113,7 @@ export function Intro() {
   );
 }
 
+/** Fades its content in the first time it scrolls into view. */
 export function Reveal({ children, className = "" }: { children: ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const { allowed } = useMotion();

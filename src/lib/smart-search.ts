@@ -48,14 +48,21 @@ const groups: string[][] = [
   ["web", "website", "ওয়েব", "ওয়েবসাইট"],
   ["app", "apps", "mobile", "অ্যাপ"],
 ];
+
+// Each word points to its whole synonym group.
+
 const synonyms = new Map<string, string[]>();
 for (const g of groups) for (const w of g) synonyms.set(w, g);
+
+/** Lower-cased words of a text; works for Bangla as well as English letters and digits. */
 export const words = (s: string) =>
   s
     .toLowerCase()
     .normalize("NFC")
     .split(/[^\p{L}\p{M}\p{N}]+/u)
     .filter(w => w.length > 0);
+
+/** Edit distance between two words, stopping early (returns max + 1) once it is clearly above max. */
 function distance(a: string, b: string, max: number) {
   if (Math.abs(a.length - b.length) > max) return max + 1;
   let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
@@ -107,6 +114,8 @@ export function scoreFields(query: string, fields: Field[]) {
   // Every matched word counts; matching all words of the query gets a clear bonus.
   return matched ? total + (matched === qs.length ? 2 : 0) + matched : 0;
 }
+
+/** The items that match the query at all, best match first. */
 export function rank<T>(query: string, items: T[], fields: (item: T) => Field[]) {
   return items
     .map(item => ({ item, score: scoreFields(query, fields(item)) }))

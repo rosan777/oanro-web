@@ -1,3 +1,5 @@
+// Storefront search: typo-tolerant ranking and same-kind suggestions when nothing matches.
+
 import test from "node:test";
 import assert from "node:assert/strict";
 import { intents, rank, related } from "../src/lib/smart-search";

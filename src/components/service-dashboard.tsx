@@ -8,6 +8,9 @@ import { CategoryPicker, PhotoPicker, StatusSelect, statusLabel, useAdminCall } 
 
 type Item = OwnerServices["services"][number];
 type Draft = Record<string, string> & { status: ProductStatus };
+
+// Form setup: field names for error messages, an empty draft for a new service, and a draft from a saved one.
+
 const fieldLabel: Record<string, string> = {
   slug: "Web address",
   titleEn: "Title",
@@ -48,6 +51,7 @@ const toDraft = (s: Item): Draft => ({
   displayOrder: String(s.displayOrder),
 });
 
+/** Admin list of technology services with a create/edit form, status changes and archiving. */
 export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
   const [items, setItems] = useState(initial.services);
   const [managed, setManaged] = useState(initial.managed);
@@ -66,6 +70,8 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
       setManaged(true);
     },
   );
+
+  /** Opens the form for a new service (null) or an existing one. */
   function open(item: Item | null) {
     setEditing(
       item
@@ -76,6 +82,8 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
     setSlugTouched(Boolean(item));
     setNotice("");
   }
+
+  /** Updates the draft; the web address follows the English title until it is edited by hand. */
   function set(patch: Record<string, string>) {
     setEditing(e => {
       if (!e) return e;
@@ -108,6 +116,9 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
     )
       setEditing(null);
   }
+
+  // Labelled input and textarea helpers bound to the draft.
+
   const field = (name: string, label: string, props: Record<string, unknown> = {}) => (
     <label>
       {label}

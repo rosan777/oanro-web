@@ -67,6 +67,9 @@ const zones: Record<string, [string, number, number]> = {
   "America/Sao_Paulo": ["São Paulo", -23.55, -46.63],
   "America/Mexico_City": ["Mexico City", 19.43, -99.13],
 };
+
+// Time zones shown in Fahrenheit when the place comes from the time zone table.
+
 const usZones = new Set([
   "America/New_York",
   "America/Chicago",
@@ -167,6 +170,8 @@ const cache = new Map<
 >();
 const MIN_MS = 15 * 60_000,
   MAX_MS = 60 * 60_000;
+
+/** Current weather from MET Norway for a place, cached 15–60 minutes per location; null on failure. */
 export async function weatherFor(
   place: Place,
   contact: string,

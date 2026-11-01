@@ -9,6 +9,9 @@ import {
 } from "./content";
 
 export type TextKey = keyof typeof textFields;
+
+// Every editable text: its admin group and label, and the English and Bangla defaults.
+
 export const textFields = {
   "hero.eyebrow": {
     group: "Homepage — hero",
@@ -160,6 +163,22 @@ export const textFields = {
 >;
 
 export type FeatureKey = keyof typeof featureFields;
+
+/** Switches that start off for a new or never-saved site. */
+const offByDefault: FeatureKey[] = [
+  "intro",
+  "categoryTiles",
+  "trustStrip",
+  "doubleConveyor",
+  "serviceConveyor",
+  "standardPanel",
+  "valueFan",
+  "featureStory",
+  "howWeWork",
+];
+
+// On/off switches for page sections and features.
+
 export const featureFields = {
   shopTabs: { group: "Homepage", label: "Shop tabs and product cards" },
   promiseStrip: { group: "Homepage", label: "Moving promise strip (delivery, bKash, Nagad…)" },
@@ -174,6 +193,32 @@ export const featureFields = {
   studioDevices: { group: "Homepage", label: "Studio — one site on three screens" },
   contact: { group: "Homepage", label: "Contact box" },
   faq: { group: "Homepage", label: "Questions, answered" },
+  categoryTiles: { group: "Extra homepage sections", label: "Shop by category tiles" },
+  trustStrip: {
+    group: "Extra homepage sections",
+    label: "Four promises strip (delivery, payment, returns, support)",
+  },
+  doubleConveyor: {
+    group: "Extra homepage sections",
+    label: "Two scrolling rows: products, services and principles",
+  },
+  serviceConveyor: {
+    group: "Extra homepage sections",
+    label: "Technology services in a scrolling row",
+  },
+  standardPanel: { group: "Extra homepage sections", label: "“The OANRO standard” panel" },
+  valueFan: {
+    group: "Extra homepage sections",
+    label: "Four value cards that fan out while scrolling",
+  },
+  featureStory: {
+    group: "Extra homepage sections",
+    label: "Older feature story (campaign photo, headphone story, highlights, 3D model)",
+  },
+  howWeWork: {
+    group: "Extra homepage sections",
+    label: "How we work: steps from first chat to delivery",
+  },
   buyBox: {
     group: "Product pages",
     label: "Price with delivery, delivery dates and return promise",
@@ -206,6 +251,11 @@ export const featureFields = {
       "Meta (Facebook/Instagram) Pixel — needs a Pixel ID; loads only for visitors who allow analytics",
   },
   merchantFeed: { group: "Marketing", label: "Google Shopping product feed (/feed/google.xml)" },
+  googleAnalytics: {
+    group: "Marketing",
+    label:
+      "Google Analytics — needs a Measurement ID in the server settings; loads only for visitors who allow analytics",
+  },
 } satisfies Record<string, { group: string; label: string }>;
 
 export type Package = { name: Bi; for: Bi; includes: Bi[] };
@@ -262,14 +312,18 @@ export const emptyContact = (): Contact => ({
   pulseWhere: "everywhere",
 });
 
+/** Built-in content used until the owner saves changes. */
 export function defaultContent(): SiteContent {
   return {
     text: Object.fromEntries(
       Object.entries(textFields).map(([k, f]) => [k, { en: f.en, bn: f.bn }]),
     ) as Record<TextKey, Bi>,
-    // Everything starts on, except the logo intro (it was off on the live site before this switch existed).
+    // Everything starts on, except the logo intro and the extra homepage sections: they were never on the
+    // live site, so they stay hidden until the owner switches them on.
     features: {
-      ...Object.fromEntries(Object.keys(featureFields).map(k => [k, k !== "intro"])),
+      ...Object.fromEntries(
+        Object.keys(featureFields).map(k => [k, !offByDefault.includes(k as FeatureKey)]),
+      ),
       featuredProductSlug: "",
     } as FeatureSettings,
     guides: defaultGuides,
@@ -293,6 +347,8 @@ const bi = (v: unknown, max: number): Bi | null => {
   const en = str(o?.en, max);
   return en ? { en, bn: str(o?.bn, max) || en } : null;
 };
+
+/** Clean-up functions for each editable part: unknown keys dropped, lengths limited. */
 export const cleanText = (v: unknown) =>
   Object.fromEntries(
     Object.keys(textFields).flatMap(k => {
@@ -361,6 +417,9 @@ export const cleanGuides = (v: unknown): Guide[] =>
         ]
       : [];
   });
+
+// Contact field helpers: only https links, and small inline icon images.
+
 const httpsUrl = (v: unknown) => {
   const u = str(v, 300);
   try {
@@ -421,5 +480,7 @@ export function mergeContent(
     media: {},
   };
 }
+
+/** One text in the page language; empty Bangla falls back to English. */
 export const pick = (c: SiteContent, key: TextKey, locale: "en" | "bn") =>
   c.text[key][locale] || c.text[key].en;

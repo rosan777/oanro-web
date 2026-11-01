@@ -20,6 +20,7 @@ export function absoluteUrl(path: string) {
   return `${siteUrl()}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+/** schema.org Organization data for Google, built from the owner's contact settings. */
 export function organizationJsonLd(contact: {
   email: string;
   phone: string;

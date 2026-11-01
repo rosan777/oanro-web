@@ -14,6 +14,9 @@ export function CollectionBrowser({ items }: { items: Product[] }) {
   const { locale } = useLocale();
   const bn = locale === "bn";
   const t = (en: string, b: string) => (bn ? b : en);
+
+  // Filter choices built from the products shown: sizes (generic ones left out), colours and the top price.
+
   const sizes = useMemo(
     () =>
       [...new Set(items.flatMap(p => p.sizes))].filter(s => s && !/^(standard|one size)$/i.test(s)),
@@ -34,6 +37,9 @@ export function CollectionBrowser({ items }: { items: Product[] }) {
   const [size, setSize] = useState<string | null>(null);
   const [color, setColor] = useState<string | null>(null);
   const [max, setMax] = useState(top);
+
+  // Products that pass every active filter, in the chosen order.
+
   const shown = useMemo(() => {
     const list = items.filter(
       p =>
@@ -53,6 +59,9 @@ export function CollectionBrowser({ items }: { items: Product[] }) {
     setColor(null);
     setMax(top);
   };
+
+  // With one product, or filters switched off in admin, show the plain grid.
+
   if (items.length < 2 || !filtersOn)
     return (
       <div className="category-grid">

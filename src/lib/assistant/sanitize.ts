@@ -2,6 +2,9 @@
 // Automatic detection can never be perfect (names and addresses are not caught); the UI says so and tracking/contact details
 // are collected only in dedicated forms, never in chat.
 const bnDigit = (s: string) => s.replace(/[০-৯]/g, d => String("০১২৩৪৫৬৭৮৯".indexOf(d)));
+
+// Words that suggest a password, PIN, OTP, card or account number (English and Bangla).
+
 const sensitiveWord =
   /(pass\s*word|passcode|\bpin\b|\botp\b|\bcvv\b|\bcvc\b|card\s*(no|number)|account\s*(no|number)|secret|পাসওয়ার্ড|পিন\b|ওটিপি|কার্ড\s*নম্বর|একাউন্ট\s*নম্বর|অ্যাকাউন্ট\s*নম্বর|nid\b|passport|পাসপোর্ট)/i;
 
@@ -37,6 +40,8 @@ export function sanitizeForModel(input: string, max = 600): string {
 // ---- Links: only internal storefront paths are ever clickable in assistant text. External destinations are server-configured.
 const internalPath =
   /^\/(bn\/)?(products\/[a-z0-9-]{1,60}|delivery-returns|contact|track|privacy|terms|about|guides|company-profile|services(\/[a-z0-9-]{1,60})?)?(#[a-z0-9-]{1,40})?$/;
+
+/** The path when it is one of the storefront pages above, otherwise null. */
 export function safeInternalPath(href: string): string | null {
   const h = href.trim();
   if (!h.startsWith("/") || h.startsWith("//") || h.includes("\\") || /[\u0000-\u001f<>"']/.test(h))
@@ -84,6 +89,8 @@ export function amountsIn(text: string): number[] {
 // A number the visitor wrote themselves may be repeated back only as their own budget or request, never as a claim about our prices.
 const budgetTalk =
   /\b(?:budget|within|under|below|up to|upto|around|about|range|asked|said|mentioned|wanted|looking)\b|বাজেট|মধ্যে|moddhe/i;
+
+/** Drops every sentence that mentions an amount not in `allowed` (except the visitor's own budget). */
 export function stripUnverifiedAmounts(
   text: string,
   allowed: Set<number>,
@@ -101,11 +108,11 @@ export function stripUnverifiedAmounts(
   return { text: kept.join(" ").trim(), removed };
 }
 
-/** Model output → plain text with a small safe Markdown subset (**bold**, "- " lists, [label](/internal-path)). No HTML survives. */
 /** Prices are always Bangladeshi Taka. If a model writes another currency sign before a number ("₦120", "$5"), show ৳ instead. */
 export function fixCurrency(text: string): string {
   return text.replace(/(?:\b(?:USD|NGN|INR|BDT|Rs)\b\.?|[$€£¥₹₦₩₽₺])\s?(?=\d)/gi, "৳");
 }
+/** Model output → plain text with a small safe Markdown subset (**bold**, "- " lists, [label](/internal-path)). No HTML survives. */
 export function cleanReply(raw: string, max = 1200): string {
   let s = raw
     .replace(/<[^>]*>/g, "")
@@ -139,6 +146,8 @@ export type Piece =
   | { type: "bold"; text: string }
   | { type: "link"; text: string; href: string };
 export type Block = { type: "p"; pieces: Piece[] } | { type: "ul"; items: Piece[][] };
+
+/** Splits one line into plain text, **bold** and safe internal links. */
 function pieces(line: string): Piece[] {
   const out: Piece[] = [];
   const re = /\*\*([^*]{1,200})\*\*|\[([^\]]{1,80})\]\(([^)\s]{1,200})\)/g;

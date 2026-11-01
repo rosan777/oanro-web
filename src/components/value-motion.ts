@@ -1,3 +1,7 @@
+// Keep a number between 0 and 1, and a smooth start-and-stop curve.
+
+// Scroll animation maths for the four value cards (used by value-fan.tsx).
+
 const clamp = (n: number) => Math.max(0, Math.min(1, n));
 const ease = (n: number) => {
   const t = clamp(n);

@@ -9,7 +9,9 @@ import { clientIp } from "../rate-limit";
 import { storeLive } from "../seo";
 import { contactLinks, getSiteContent } from "../site-content";
 import { getSiteConfig } from "../site-config";
-import { getStoreProducts, catalogDb } from "../store-products";
+import { getStoreProducts, getStoreServices, catalogDb } from "../store-products";
+import { getCompanyProfile } from "../company-profile";
+import { buildKnowledge, type KnowledgeEntry } from "./knowledge";
 import { storefrontCached } from "../storefront-cache";
 import { assistantEnvEnabled, turnstile, whisper } from "./config";
 import { providerConfigured } from "./providers";
@@ -51,6 +53,9 @@ export const loadFaq = async (): Promise<Faq[]> =>
         .catch(() => [])
     : [];
 
+// Shop state the assistant must be honest about: checkout is open only when the store is live,
+// sign-in works and at least one payment number is set.
+
 const checkoutOpen = async () => {
   if (!storeLive() || !authConfigured() || !hasDatabase()) return false;
   const n = await getPaymentNumbers(catalogDb()).catch(() => ({ bkash: "", nagad: "" }));
@@ -75,6 +80,8 @@ export const storeMode = async (): Promise<StoreMode> => {
           },
   };
 };
+
+/** The real data sources behind the assistant's tools (tests pass their own). */
 export const productionTools = (): ToolContext => ({
   products: async () => (getSiteConfig().products ? await getStoreProducts() : []),
   rules: async () =>
@@ -92,17 +99,46 @@ export const productionTools = (): ToolContext => ({
 });
 export { publicRules };
 
+/** Verified facts about OANRO (company, shop, Studio, services, contact) built from the same content the pages show. Empty when it cannot be read. */
+export async function loadKnowledge(): Promise<KnowledgeEntry[]> {
+  try {
+    const [site, profile, services, products] = await Promise.all([
+      getSiteContent(),
+      getCompanyProfile(),
+      getStoreServices(),
+      getSiteConfig().products ? getStoreProducts() : Promise.resolve([]),
+    ]);
+    return buildKnowledge({
+      site,
+      profile,
+      services,
+      categories: [...new Set(products.map(p => p.category).filter(Boolean))],
+      contact: {
+        email: site.contact.email,
+        phone: site.contact.phone,
+        whatsapp: Boolean(site.contact.whatsapp),
+        messenger: false,
+      },
+      live: storeLive(),
+    });
+  } catch {
+    return [];
+  }
+}
+
 /** Contact options for "Talk to a person": only the owner's configured destinations, on known hosts. */
 export async function humanHelp(): Promise<HumanHelp> {
   const links = contactLinks(await getSiteContent());
   return {
     contactUrl: "/contact",
     whatsapp: safeContactUrl(links.whatsapp),
-    messenger: safeContactUrl(links.messenger),
+    messenger: "", // JUNO does not offer Messenger (it opens Facebook); the owner can re-enable it here later
     email:
       links.email && /^[^\s@<>"]+@[^\s@<>"]+$/.test(links.email) ? `mailto:${links.email}` : "",
   };
 }
+
+/** What the chat widget may show; contains no keys or secrets. */
 export async function publicConfig(): Promise<PublicAssistantConfig> {
   const s = await loadSettings(),
     ts = turnstile();
@@ -134,6 +170,8 @@ export function sameOrigin(request: Request): boolean {
 }
 export const json = (body: unknown, status = 200, extra: HeadersInit = {}) =>
   Response.json(body, { status, headers: { ...noStore, ...extra } });
+
+/** The raw request body, or null when it is missing or larger than max bytes. */
 export async function readBytes(request: Request, max: number): Promise<Uint8Array | null> {
   const declared = Number(request.headers.get("content-length"));
   if (Number.isFinite(declared) && declared > max) return null;
@@ -177,6 +215,8 @@ const secure = (request: Request) =>
   new URL(request.url).protocol === "https:";
 const cookieHeader = (request: Request, name: string, value: string, maxAge?: number) =>
   `${name}=${encodeURIComponent(value)}; Path=/api/assistant; HttpOnly; SameSite=Lax${secure(request) ? "; Secure" : ""}${maxAge !== undefined ? `; Max-Age=${maxAge}` : ""}`;
+
+/** The chat session from the cookie, or a new random one (with the cookie to set) when there is none. */
 export function sessionFrom(request: Request): {
   sessionId: string;
   token: string;
@@ -194,6 +234,9 @@ export function sessionFrom(request: Request): {
     cookies: [cookieHeader(request, COOKIE, token)],
   };
 }
+
+// The "verified" cookie is a signature of the session token, set after the bot check passes.
+
 export const clearCookies = (request: Request) => [
   cookieHeader(request, COOKIE, "", 0),
   cookieHeader(request, OK, "", 0),

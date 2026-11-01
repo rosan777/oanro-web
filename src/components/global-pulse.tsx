@@ -15,6 +15,8 @@ export type PulseStory = {
   publishedAt?: string | null;
   thumbnailUrl?: string | null;
 };
+
+/** The Global Pulse news strip: a horizontal row of story links that scrolls itself slowly. */
 export function GlobalPulse({
   stories,
   autoScroll = true,
@@ -30,6 +32,10 @@ export function GlobalPulse({
   const { allowed } = useMotion();
   const idleUntil = useRef(0);
   const touching = useRef(false);
+
+  // Auto-scroll while the strip is on screen. It pauses while the visitor hovers, touches, focuses a
+  // story with the keyboard, or has just scrolled it by hand, and when the tab is hidden.
+
   useEffect(() => {
     const node = track.current;
     const group = first.current;
@@ -68,6 +74,9 @@ export function GlobalPulse({
     };
   }, [allowed, autoScroll, speed, stories.length]);
   if (!stories.length) return null;
+
+  // The stories are rendered twice side by side so the scroll can wrap around without a jump.
+
   const render = (copy: boolean) =>
     stories.map(story => (
       <a

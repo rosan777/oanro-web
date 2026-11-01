@@ -26,6 +26,9 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   );
   if (!match) return new Response(null, { status: 404, headers });
   const bytes = Buffer.from(match[2], "base64");
+
+  // Re-check the stored bytes really are the claimed image type before serving them (throws otherwise).
+
   imageData(bytes, match[1]);
   return new Response(new Uint8Array(bytes), {
     headers: { ...headers, "Content-Type": match[1], "Content-Length": String(bytes.length) },

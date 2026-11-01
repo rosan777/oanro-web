@@ -15,6 +15,9 @@ export function BrandHeadline({ mark }: { mark?: ReactNode }) {
   const bn = locale === "bn";
   const { allowed } = useMotion();
   const [active, setActive] = useState(0);
+
+  // Move the highlight to the next letter every 2.4 s (only when motion is allowed).
+
   useEffect(() => {
     if (!allowed) return;
     const timer = window.setInterval(() => setActive(i => (i + 1) % 5), 2400);

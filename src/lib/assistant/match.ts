@@ -24,6 +24,8 @@ function lev(a: string, b: string, max: number) {
 export const near = (word: string, key: string) =>
   word === key ||
   (key.length >= 4 && lev(word, key, key.length >= 8 ? 2 : 1) <= (key.length >= 8 ? 2 : 1));
+
+/** Lower-cased words, keeping apostrophes ("what's"). */
 const tokens = (text: string) =>
   text
     .toLowerCase()
@@ -39,6 +41,9 @@ const has = (text: string, list: string[]) => {
     w => t.includes(w) || (/^[a-z]{6,}$/.test(w) && ws.some(x => x.length >= 5 && near(x, w))),
   );
 };
+
+// Phrases (English, Bangla and Banglish) that mean "let me talk to a person" or "where is my order".
+
 const humanWords = [
   "talk to a person",
   "talk to someone",
@@ -130,6 +135,9 @@ export function detectIntent(text: string): Intent {
 
 export type SmallTalk =
   "greeting" | "thanks" | "bye" | "howareyou" | "about" | "day" | "robot" | "ack" | null;
+
+// Small-talk patterns. Each must match the whole message, optionally followed by a friendly word ("hi bhai").
+
 const filler =
   "(?:\\s+(?:there|oanro|bhai|vai|apu|sir|madam|friend|everyone|team|আপু|ভাই|ভাইয়া))*";
 const greet = new RegExp(
@@ -251,6 +259,8 @@ export const wantsBrowse = (text: string) =>
     text,
   );
 
+// Words that carry no meaning for product search (English, Banglish and Bangla).
+
 const stop = new Set([
   "what",
   "is",
@@ -303,6 +313,8 @@ const stop = new Set([
   "এটা",
   "ও",
 ]);
+
+/** The meaningful words of a message, for product search and FAQ matching. */
 export const content = (s: string) => words(s).filter(w => !stop.has(w));
 /** Best enabled FAQ entry when the match is confident: most question words matched and a clear lead over the runner-up. */
 export function matchFaq(

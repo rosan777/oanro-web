@@ -3,6 +3,8 @@ import type { Condition, Weather } from "@/lib/assistant/weather";
 
 /** Small animated weather icon (sun, moon, clouds, rain, storm, snow, fog) in the site palette. Motion stops with reduced motion. */
 export function WeatherIcon({ condition, night }: { condition: Condition; night: boolean }) {
+  // Reusable SVG pieces: a cloud, a sun with rays, and a crescent moon.
+
   const cloud = (
     <path
       className="wx-cloud"
@@ -80,6 +82,8 @@ export function WeatherIcon({ condition, night }: { condition: Condition; night:
     </svg>
   );
 }
+
+// Spoken names of each condition, for the screen-reader label.
 
 const names: Record<Condition, [string, string]> = {
   clear: ["clear", "পরিষ্কার"],

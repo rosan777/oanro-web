@@ -5,10 +5,11 @@ import { auditEvent, websiteSection } from "@/lib/db/schema";
 import { sectionCodes } from "@/lib/website-sections";
 import { storefrontChanged } from "@/lib/storefront-cache";
 export const runtime = "nodejs";
+
+/** Turn one homepage section on or off ({ code, enabled }). Needs site.manage; logged in the activity log. */
 export async function PATCH(request: Request) {
   const actor = await authorize(request, "site.manage");
   if (!actor) return Response.json({ error: "FORBIDDEN" }, { status: 403 });
-  storefrontChanged();
   const session = { user: { id: actor.userId } };
   if (Number(request.headers.get("content-length") || 0) > 4096)
     return Response.json({ error: "INVALID_INPUT" }, { status: 413 });
@@ -28,6 +29,8 @@ export async function PATCH(request: Request) {
   )
     return Response.json({ error: "INVALID_INPUT" }, { status: 400 });
   try {
+    // Save the switch and its log entry together.
+
     const db = getDb();
     await db.transaction(async tx => {
       await tx
@@ -53,6 +56,7 @@ export async function PATCH(request: Request) {
         reason: data.enabled ? "enabled" : "disabled",
       });
     });
+    storefrontChanged();
     return Response.json(
       { code: data.code, enabled: data.enabled },
       { headers: { "Cache-Control": "no-store" } },

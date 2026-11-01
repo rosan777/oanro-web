@@ -1,4 +1,9 @@
 "use client";
+
+// Checkout: order summary with delivery area and discount code, then three steps — choose how to
+// pay, send money by bKash/Nagad, and enter the Transaction ID and delivery details.
+// Prices are re-checked on the server when the order is placed (see createOrder in order-store.ts).
+
 import { areaLabel, chargeFor, type DeliveryArea } from "@/lib/delivery-fee";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "@/components/locale-link";
@@ -15,6 +20,9 @@ import { useLocale } from "./locale";
 
 type Method = "bkash" | "nagad";
 const methodName: Record<Method, string> = { bkash: "bKash", nagad: "Nagad" };
+
+// Messages for the error codes the order and discount APIs return.
+
 const errorText = (bn: boolean): Record<string, string> => ({
   DISCOUNT_INVALID: bn ? "এই ডিসকাউন্ট কোডটি সঠিক নয়।" : "This discount code isn't valid.",
   DISCOUNT_EXPIRED: bn ? "এই কোডের মেয়াদ শেষ।" : "This code has expired.",
@@ -52,6 +60,9 @@ const errorText = (bn: boolean): Record<string, string> => ({
     ? "এই পরিমাণের অর্ডারে ক্যাশ অন ডেলিভারি নেই। bKash বা Nagad-এ পুরো টাকা দিন।"
     : "Cash on delivery isn't available for this amount. Pay the full amount by bKash or Nagad.",
 });
+
+// Messages for form fields the server reports as invalid.
+
 const fieldText = (bn: boolean): Record<string, string> => ({
   trxId: bn
     ? "Transaction ID সঠিক নয় (৬–২০ অক্ষর/সংখ্যা)।"
@@ -70,6 +81,7 @@ const fieldText = (bn: boolean): Record<string, string> => ({
     : "Something is wrong with your bag. Refresh and try again.",
 });
 
+/** The checkout form; the props come from the server (payment numbers, rules, saved profile). */
 export function CheckoutForm({
   numbers,
   rules,
@@ -97,6 +109,9 @@ export function CheckoutForm({
   const router = useRouter();
   const cart = useCart();
   const products = useProducts();
+
+  // Bag lines that still match a live product with an available size and colour.
+
   const lines = useMemo(
     () =>
       cart.flatMap(item => {
@@ -118,10 +133,13 @@ export function CheckoutForm({
     null,
   );
   const [codeMsg, setCodeMsg] = useState("");
-  const off = discount && discount.base === subtotal ? discount.amount : 0;
+  const discountOff = discount && discount.base === subtotal ? discount.amount : 0;
   // Delivery area decides the charge (owner sets both in admin). Must be chosen before ordering.
   const [area, setArea] = useState<DeliveryArea | null>(null);
   const started = useRef(false);
+
+  // Tell the Meta Pixel (if allowed) that checkout started, once per visit to this page.
+
   useEffect(() => {
     if (started.current || !lines.length) return;
     started.current = true;
@@ -132,8 +150,10 @@ export function CheckoutForm({
     });
   }, [lines, subtotal]);
   const fee = area ? chargeFor(rules, area) : 0;
-  const payNow = cod ? fee : subtotal - off + fee,
-    payLater = cod ? subtotal - off : 0;
+  const payNow = cod ? fee : subtotal - discountOff + fee,
+    payLater = cod ? subtotal - discountOff : 0;
+
+  /** Checks the typed discount code against the current bag with the server. */
   async function applyCode() {
     setCodeMsg("");
     const res = await fetch("/api/discounts/check", {
@@ -228,6 +248,7 @@ export function CheckoutForm({
       </section>
     );
 
+  /** Validates the choices, places the order, and turns server errors into clear messages. */
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!area) {
@@ -262,7 +283,7 @@ export function CheckoutForm({
           expectedTotal: subtotal,
           deliveryArea: area,
           adConsent: allows("analytics"),
-          discountCode: off ? discount!.code : "",
+          discountCode: discountOff ? discount!.code : "",
           trxId: form.get("trxId"),
           payerNumber: form.get("payerNumber"),
           name: form.get("name"),
@@ -308,7 +329,7 @@ export function CheckoutForm({
         track(
           "Purchase",
           {
-            value: subtotal - off + fee,
+            value: subtotal - discountOff + fee,
             content_ids: lines.map(l => l.item.slug),
             content_type: "product",
             num_items: lines.reduce((n, l) => n + l.item.quantity, 0),
@@ -342,6 +363,7 @@ export function CheckoutForm({
   const payTo = method ? numbers[method] : "";
   return (
     <form className="checkout-grid" onSubmit={submit}>
+      {/* Left: the order summary, delivery area, discount code and totals. */}
       <section className="checkout-summary" aria-labelledby="summary-title">
         <h1 id="summary-title">{bn ? "চেকআউট" : "Checkout"}</h1>
         <ul>
@@ -409,15 +431,15 @@ export function CheckoutForm({
             </p>
           )}
         </div>
-        {off > 0 && (
+        {discountOff > 0 && (
           <p className="checkout-line is-discount">
             <span>{bn ? `ছাড় (${discount!.code})` : `Discount (${discount!.code})`}</span>
-            <span>−{formatPrice(off, locale)}</span>
+            <span>−{formatPrice(discountOff, locale)}</span>
           </p>
         )}
         <p className="checkout-total">
           <span>{bn ? "মোট" : "Total"}</span>
-          <strong>{formatPrice(subtotal - off + fee, locale)}</strong>
+          <strong>{formatPrice(subtotal - discountOff + fee, locale)}</strong>
         </p>
         {cod && (
           <div className="checkout-split" role="status">
@@ -454,6 +476,7 @@ export function CheckoutForm({
           )}
         </small>
       </section>
+      {/* Right: the three payment steps. */}
       <section className="checkout-pay" aria-labelledby="pay-title">
         {!verified && (
           <p className="checkout-warning" role="alert">
@@ -771,29 +794,6 @@ export function CheckoutForm({
                   </div>
                 );
               })()}
-            {/* Digital Commerce Guidelines 2021: prior consent before collecting personal data. */}
-            <label className="consent-check">
-              <input type="checkbox" name="consent" required />
-              <span>
-                {bn ? (
-                  <>
-                    আমি OANRO-র{" "}
-                    <Link href="/privacy" target="_blank">
-                      প্রাইভেসি নোটিশ
-                    </Link>{" "}
-                    পড়েছি এবং আমার তথ্য ব্যবহারে সম্মতি দিচ্ছি।
-                  </>
-                ) : (
-                  <>
-                    I have read the{" "}
-                    <Link href="/privacy" target="_blank">
-                      Privacy notice
-                    </Link>{" "}
-                    and agree to OANRO using my details for this purpose.
-                  </>
-                )}
-              </span>
-            </label>
             {/* Digital Commerce Guidelines 2021: prior consent before collecting personal data. */}
             <label className="consent-check">
               <input type="checkbox" name="consent" required />

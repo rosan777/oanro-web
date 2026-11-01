@@ -7,6 +7,8 @@ import { AdminBack } from "@/components/admin-nav";
 import { CollectionSettings } from "@/components/collection-admin";
 import { ProductDashboard } from "@/components/product-dashboard";
 export const dynamic = "force-dynamic";
+
+/** One storefront section: its settings (full product rights only) and its products, limited to what this person may do. */
 export default async function SectionPage({ params }: { params: Promise<{ id: string }> }) {
   const { access } = await requireAdminPage(productPermissions);
   const has = (x: Parameters<typeof access.permissions.has>[0]) => access.permissions.has(x);

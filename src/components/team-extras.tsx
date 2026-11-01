@@ -19,6 +19,9 @@ export function OrderExtras({ orderId }: { orderId: string }) {
       .then(setData)
       .catch(() => null);
   }, [orderId]);
+
+  // Adds or removes one label; the server answers with the updated labels.
+
   const change = async (label: string, add: boolean) => {
     setBusy(true);
     const res = await fetch("/api/admin/order-extras", {

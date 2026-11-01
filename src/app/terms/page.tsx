@@ -14,6 +14,9 @@ export async function generateMetadata(): Promise<Metadata> {
         description: "The terms for using the OANRO website, product information and inquiries.",
       };
 }
+
+// The terms, section by section: [heading, paragraphs] in English and in Bangla.
+
 const sections: LegalSection[] = [
   {
     en: [

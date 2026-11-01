@@ -1,5 +1,5 @@
 // Owner emails to customers: one customer, or everyone at once. Server-only.
-// Every email carries an unsubscribe link; people who unsubscribe are skipped by "email everyone".
+// "Email everyone" messages carry an unsubscribe link; people who unsubscribe are skipped by it.
 import "server-only";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { and, eq, notExists, sql } from "drizzle-orm";
@@ -10,11 +10,15 @@ import { siteUrl } from "./site-url";
 import { ProductStoreError, type CatalogDb } from "./product-store";
 import { appSecret } from "./app-secret";
 
+// Unsubscribed addresses are kept as one JSON list in store_setting.
+
 const OPT_OUT_KEY = "mail.unsubscribed";
 /** Most emails sent in one go (keeps within the request time limit and the mail provider's sending limits). */
 export const BROADCAST_LIMIT = 200;
 
 export class MailInputError extends Error {}
+
+/** Subject 3–150 characters and message 10–5000 characters, trimmed. */
 export function cleanMessage(data: Record<string, unknown>) {
   const subject = typeof data.subject === "string" ? data.subject.trim() : "";
   const body = typeof data.body === "string" ? data.body.trim() : "";
@@ -22,6 +26,8 @@ export function cleanMessage(data: Record<string, unknown>) {
   if (body.length < 10 || body.length > 5000) throw new MailInputError("body");
   return { subject, body };
 }
+
+// Unsubscribe links carry a signature of the email address, so nobody can unsubscribe someone else.
 
 const sign = (email: string) =>
   createHmac("sha256", appSecret("oanro-dev"))
@@ -81,6 +87,7 @@ export async function audienceCount(db: CatalogDb) {
   return (await audience(db)).length;
 }
 
+/** Builds the plain-text and HTML versions; bulk emails get the unsubscribe footer. */
 function compose(name: string, email: string, subject: string, body: string, bulk: boolean) {
   const hello = name ? `Hi ${name},` : "Hi,";
   const foot = bulk

@@ -22,6 +22,9 @@ export default async function AccountPage() {
   const db = catalogDb();
   // Accept a pending staff invite on the first visit after sign-in, so the "Staff workspace" button appears here.
   await claimInvite(db, session.user).catch(() => false);
+
+  // Security card state: does this person sign in with a password, and is two-step verification on?
+
   const [cred] = await db
     .select({ id: account.id })
     .from(account)
@@ -33,6 +36,9 @@ export default async function AccountPage() {
     .where(eq(user.id, session.user.id))
     .limit(1);
   const security = { hasPassword: Boolean(cred), twoFactorOn: Boolean(me?.on) };
+
+  // Everything else on the page; orders and profile fall back to empty if the database is slow.
+
   const [access, orders, profile, requireStaff2fa] = await Promise.all([
     getAccess(db, session.user.id),
     listMyOrders(db, session.user.id).catch(() => []),

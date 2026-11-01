@@ -24,6 +24,9 @@ type Order = {
   items: { name: string; size: string; quantity: number }[];
   events: { stage: string; note: string; at: string }[];
 };
+
+// Payment status labels in English and Bangla.
+
 const label = {
   pending: ["Waiting for payment check", "পেমেন্ট যাচাই চলছে"],
   paid: ["Payment successful", "পেমেন্ট সফল"],
@@ -51,6 +54,8 @@ function Progress({ order, bn }: { order: Order; bn: boolean }) {
     </ol>
   );
 }
+
+/** The customer's orders on My account, with progress, courier details and the full timeline. */
 export function MyOrders({ orders }: { orders: Order[] }) {
   const { locale } = useLocale();
   const bn = locale === "bn";

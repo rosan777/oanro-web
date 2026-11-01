@@ -16,6 +16,7 @@ import Link from "@/components/locale-link";
 // Category page for a product section, at a keyword URL: the section's slug from admin (e.g. /winter-clothing).
 type Props = { params: Promise<{ collection: string }> };
 
+/** The published section with this slug and its products; null when products are off or the slug is unknown. */
 async function load(slug: string) {
   if (!getSiteConfig().products) return null;
   const [collections, products] = await Promise.all([getStoreCollections(), getStoreProducts()]);
@@ -27,6 +28,7 @@ async function load(slug: string) {
   };
 }
 
+/** Section name and texts in the page language (Bangla only when the owner wrote it). */
 function copyFor(
   collection: NonNullable<Awaited<ReturnType<typeof load>>>["collection"],
   bn: boolean,
@@ -83,6 +85,9 @@ export default async function CategoryPage({ params }: Props) {
   const copy = copyFor(collection, bn);
   const guide = categoryGuide(collection.preset, copy.name, locale);
   const pageUrl = absoluteUrl(localePath(`/${collection.slug}`, locale));
+
+  // Structured data for search engines: the breadcrumb and the list of products on this page.
+
   const breadcrumb = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",

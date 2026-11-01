@@ -3,6 +3,11 @@ import { Eye, EyeOff } from "lucide-react";
 import { useId, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { useLocale } from "./locale";
 
+type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "id"> & {
+  label: ReactNode;
+  hint?: ReactNode;
+};
+
 /**
  * Password input with a Show/Hide eye icon inside the field (eye = hidden now, tap to show; crossed eye = visible now, tap to hide).
  *
@@ -13,11 +18,6 @@ import { useLocale } from "./locale";
  * - All other input props (name, autoComplete, minLength, pattern ...) are passed through unchanged,
  *   so browser validation and password managers behave exactly as before.
  */
-type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "id"> & {
-  label: ReactNode;
-  hint?: ReactNode;
-};
-
 export function PasswordField({ label, hint, ...inputProps }: Props) {
   const { locale } = useLocale();
   const bn = locale === "bn";

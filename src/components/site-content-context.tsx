@@ -9,6 +9,8 @@ import {
 } from "@/lib/site-content-data";
 import { useLocale } from "./locale";
 
+// Falls back to the built-in content when a component renders outside the provider.
+
 const Ctx = createContext<SiteContent>(defaultContent());
 /** Website content edited in the admin, available to every browser component. */
 export function SiteContentProvider({

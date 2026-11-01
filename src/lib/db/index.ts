@@ -1,3 +1,5 @@
+// The app's database connection (node-postgres + Drizzle). Tests use PGlite instead and never import this file.
+
 import "server-only";
 import { setDefaultAutoSelectFamily } from "node:net";
 import { Pool } from "pg";
@@ -14,6 +16,8 @@ setDefaultAutoSelectFamily(false);
 export function databaseUrl(raw = process.env.DATABASE_URL ?? "") {
   return raw.replace(/([?&]sslmode=)(prefer|require|verify-ca)\b/, "$1verify-full");
 }
+
+// One pool per server process, kept on globalThis so development hot reloads do not open new pools.
 
 const shared = globalThis as typeof globalThis & { oanroPool?: Pool };
 export function getDb() {

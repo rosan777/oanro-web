@@ -53,6 +53,8 @@ export function hashText(text: string) {
   }
   return h >>> 0;
 }
+
+/** Sky look for the chat header at a moment: dawn, day, dusk or night, by local time. */
 export function skyScene(date: Date, timeZone = "Asia/Dhaka"): SkyScene {
   const { hour, minute } = localParts(date, timeZone),
     f = hour + minute / 60;

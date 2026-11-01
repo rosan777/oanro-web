@@ -19,6 +19,8 @@ export type ToolContext = {
   faq?: () => Promise<{ question: string; answer: string }[]>;
 };
 
+// Input schemas the model's tool calls must match exactly (unknown keys are refused).
+
 export const searchInput = z
   .object({
     query: z.string().trim().max(80).describe("What the shopper wants, in their own words"),
@@ -37,6 +39,7 @@ export const policyTopics = [
 ] as const;
 export const policyInput = z.object({ topic: z.enum(policyTopics) }).strict();
 
+/** Searchable text of a product, with names weighted most. */
 const fields = (p: Product): Field[] => [
   { text: p.name, weight: 3 },
   { text: p.bn?.name ?? "", weight: 3 },
@@ -47,6 +50,7 @@ const fields = (p: Product): Field[] => [
   { text: p.colors?.map(c => `${c.name} ${c.bn}`).join(" ") ?? "", weight: 1 },
 ];
 
+/** The product card the chat shows; marked as a preview while the store is not live. */
 export function toCard(p: Product, mode: StoreMode): ProductCard {
   return {
     slug: p.slug,
@@ -66,6 +70,8 @@ export function toCard(p: Product, mode: StoreMode): ProductCard {
     preview: !mode.live,
   };
 }
+
+/** Whether a product belongs to the asked section; "jewelry" also matches by category or name words. */
 const inSection = (p: Product, section?: string) =>
   !section ||
   p.collectionId === section ||
@@ -73,6 +79,7 @@ const inSection = (p: Product, section?: string) =>
   (section === "jewelry" &&
     /jewel|ring|necklace|earring|bangle|anklet|pendant/i.test(`${p.category} ${p.name}`));
 
+/** Tool: up to 5 matching products, with a note when only near matches were found. */
 export async function searchProducts(
   raw: unknown,
   ctx: ToolContext,
@@ -104,6 +111,8 @@ export async function searchProducts(
   hits = [...hits.filter(p => p.inStock !== false), ...hits.filter(p => p.inStock === false)];
   return { cards: hits.slice(0, 5).map(p => toCard(p, mode)), total: hits.length, note };
 }
+
+/** Tool: one product's card plus a short description and specs. */
 export async function getProduct(
   raw: unknown,
   ctx: ToolContext,
@@ -120,6 +129,8 @@ export async function getProduct(
     : { card: null };
 }
 const bnNum = (s: string) => s.replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[Number(d)]);
+
+/** Tool: the current delivery, payment, returns, COD or tracking rules, in English and Bangla. */
 export async function getPolicy(
   raw: unknown,
   ctx: ToolContext,

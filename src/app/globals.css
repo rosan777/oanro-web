@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Base stylesheet for the whole site: Tailwind, colour tokens, the original storefront design,
+   account and admin screens, checkout, reports and shared components. The newer homepage design
+   lives in v2.css, the assistant in assistant.css, the admin shell in admin/admin.css and the
+   company profile in company-profile/company-profile.css. */
+
 :root {
   --background: #f7f7f4;
   --foreground: #151515;
@@ -524,6 +529,9 @@ svg {
   font-size: 0.72rem;
   margin-top: 1.2rem;
 }
+
+/* Values section. */
+
 .value-section {
   padding: 1.5rem 0 2rem;
 }
@@ -999,6 +1007,9 @@ svg {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
+/* Global Pulse news strip. */
+
 .pulse-section {
   border-block: 1px solid var(--line);
   background: var(--surface);
@@ -1178,6 +1189,9 @@ svg {
   object-fit: cover;
   border: 1px solid var(--line);
 }
+
+/* Admin product list and forms. */
+
 .admin-product-list {
   list-style: none;
   padding: 0;
@@ -1264,6 +1278,9 @@ svg {
   padding-top: 0.7rem;
   flex-wrap: wrap;
 }
+
+/* ON/OFF switches on admin cards. */
+
 .switch-badge {
   font-weight: 800;
   font-size: 1.05rem;
@@ -1437,6 +1454,9 @@ svg {
   display: grid;
   gap: 0.5rem;
 }
+
+/* Inquiry form. */
+
 .inquiry-form {
   display: grid;
   gap: 0.9rem;
@@ -1960,6 +1980,8 @@ dialog::backdrop {
   margin-top: 2rem;
 }
 
+/* Animations. */
+
 @keyframes enter {
   from {
     opacity: 0;
@@ -2448,6 +2470,9 @@ html:has([data-motion="paused"]) {
   }
 }
 /* M2 account pages; existing storefront rules remain independent. */
+
+/* Sign-in, account and admin page layout. */
+
 .auth-page {
   padding-block: 64px;
   min-height: 60vh;
@@ -2883,6 +2908,9 @@ dialog.message-pop.is-closing::backdrop {
   width: 100%;
   margin-top: 1rem;
 }
+
+/* Checkout page. */
+
 .checkout-page {
   padding-block: 2.5rem 4rem;
 }
@@ -2935,6 +2963,9 @@ dialog.message-pop.is-closing::backdrop {
   gap: 0.8rem;
   flex-wrap: wrap;
 }
+
+/* Payment method choices at checkout. */
+
 .pay-method {
   --pc: #e2136e;
   --pc-dark: #b80f59;
@@ -3111,6 +3142,9 @@ dialog.message-pop.is-closing::backdrop {
   display: grid;
   gap: 0.8rem;
 }
+
+/* Order cards on My account. */
+
 .order-card {
   border: 1px solid var(--line);
   border-left-width: 5px;
@@ -3380,6 +3414,9 @@ dialog.message-pop.is-closing::backdrop {
   gap: 0.6rem;
   flex-wrap: wrap;
 }
+
+/* Profile cards (My account and the admin customer page). */
+
 .profile-card {
   border: 1px solid var(--line);
   background: var(--surface);
@@ -3592,6 +3629,9 @@ dialog.message-pop.is-closing::backdrop {
   gap: 1.25rem;
   padding-bottom: 3rem;
 }
+
+/* Admin reports: page header and summary cards. */
+
 .report-head {
   display: flex;
   flex-wrap: wrap;
@@ -3713,6 +3753,9 @@ dialog.message-pop.is-closing::backdrop {
   font-size: 0.76rem;
   color: var(--muted);
 }
+
+/* Report highlights. */
+
 .highlight-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -3778,6 +3821,9 @@ dialog.message-pop.is-closing::backdrop {
   margin: 0;
   min-width: 0;
 }
+
+/* Report panels and bar lists. */
+
 .report-panel h2 {
   display: flex;
   align-items: center;
@@ -3919,6 +3965,9 @@ figcaption {
     grid-row: 2;
   }
 }
+
+/* Trend chart. */
+
 .trend-chart svg {
   width: 100%;
   height: 200px;
@@ -4034,6 +4083,9 @@ i.is-nagad {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Report tables. */
+
 .report-table {
   width: 100%;
   border-collapse: collapse;
@@ -4185,6 +4237,9 @@ i.is-nagad {
   padding-top: 2.5rem;
   border-top: 1px solid var(--line);
 }
+
+/* Related product shelves under a product. */
+
 .shelf {
   display: grid;
   gap: 1rem;
@@ -4602,6 +4657,9 @@ i.is-cod {
   display: grid;
   gap: 1rem;
 }
+
+/* Activity log. */
+
 .activity-filters {
   display: flex;
   flex-wrap: wrap;
@@ -4811,6 +4869,9 @@ i.is-cod {
   gap: 0.6rem;
   flex-wrap: wrap;
 }
+
+/* Admin customer page. */
+
 .customer-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -4922,6 +4983,9 @@ i.is-cod {
   padding: 0.1rem 0.4rem;
   letter-spacing: 0.02em;
 }
+
+/* Colour choice on product pages. */
+
 .color-selector {
   border: 0;
   padding: 0;
@@ -5371,6 +5435,9 @@ h2 {
 .site-footer .brand {
   color: #ffffff;
 }
+
+/* Footer columns. */
+
 .footer-grid {
   display: grid;
   grid-template-columns: 2fr repeat(3, minmax(0, 1fr));
@@ -5424,6 +5491,9 @@ h2 {
   flex-wrap: wrap;
   padding-block: 1.2rem 1.6rem;
 }
+
+/* Payment method chips. */
+
 .pay-chips {
   display: flex;
   gap: 0.5rem;
@@ -5472,6 +5542,9 @@ h2 {
   max-width: none;
   font-weight: 600;
 }
+
+/* Brand headline letters (homepage hero). */
+
 .brand-letters {
   display: flex;
   gap: 0.12em;

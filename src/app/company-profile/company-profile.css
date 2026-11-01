@@ -867,6 +867,9 @@
   overflow-wrap: anywhere;
   user-select: all;
 }
+
+/* Terms list in the closing "thanks" section. */
+
 .cp-terms {
   display: flex;
   flex-direction: column;

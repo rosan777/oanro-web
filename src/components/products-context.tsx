@@ -15,6 +15,9 @@ type Catalog = {
   collections: StoreCollection[];
   popular: string[];
 };
+
+// Storefront data from the root layout; the demo catalog is only a fallback outside the provider.
+
 const CatalogContext = createContext<Catalog>({
   products: demoProducts,
   services: demoServices,

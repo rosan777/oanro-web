@@ -8,6 +8,8 @@ import { categoryBn } from "./categories";
 import type { ProductStatus, ServiceInput } from "./product-input";
 import { ProductStoreError, type CatalogDb } from "./product-store";
 
+// Service columns copied straight from the validated admin form.
+
 const fields = [
   "slug",
   "status",
@@ -188,6 +190,8 @@ export async function archiveService(db: CatalogDb, actorId: string, id: string)
     });
   });
 }
+
+/** Copies the built-in demo services into the database as published rows. Only while the table is empty. */
 export async function importDemoServices(db: CatalogDb, actorId: string) {
   await db.transaction(async tx => {
     const [row] = await tx.select({ n: count() }).from(service);

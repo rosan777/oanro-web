@@ -18,6 +18,8 @@ type Faq = {
   keywords: string;
   enabled: boolean;
 };
+
+/** Sends JSON to an admin endpoint and returns { ok, data }; a network failure becomes { ok: false }. */
 const send = (url: string, method: string, body: object) =>
   fetch(url, {
     method,
@@ -289,6 +291,8 @@ type Unanswered = {
   language: string;
   createdAt: string;
 };
+
+/** Questions JUNO could not answer; "resolve" removes one from the list. */
 export function UnansweredList({
   initial,
   canResolve,

@@ -8,6 +8,9 @@ import { CONSENT_EVENT, allows } from "@/lib/consent";
 export function MetaPixel({ pixelId }: { pixelId: string }) {
   const [ok, setOk] = useState(false);
   const path = usePathname();
+
+  // Follow the visitor's Analytics choice, including changes made later in Privacy settings.
+
   useEffect(() => {
     const sync = () => setOk(allows("analytics"));
     sync();

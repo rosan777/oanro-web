@@ -10,6 +10,8 @@ export const listBanners = (db: CatalogDb) =>
   db.select().from(siteBanner).orderBy(asc(siteBanner.displayOrder), asc(siteBanner.updatedAt));
 export const isActive = (b: Pick<Banner, "enabled" | "startsAt" | "endsAt">, now = new Date()) =>
   b.enabled && (!b.startsAt || b.startsAt <= now) && (!b.endsAt || b.endsAt > now);
+
+/** Validates the banner form. Links must be paths on this site (start with "/"). */
 export function parseBanner(d: Record<string, unknown>) {
   const str = (v: unknown, f: string, min: number, max: number) => {
     const s = typeof v === "string" ? v.trim() : "";
@@ -37,6 +39,8 @@ export function parseBanner(d: Record<string, unknown>) {
     displayOrder: order,
   };
 }
+
+/** Creates a banner (id null) or updates one, and logs it. */
 export async function saveBanner(
   db: CatalogDb,
   actorId: string,

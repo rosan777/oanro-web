@@ -23,6 +23,8 @@ import { redeemDiscount } from "./discount-store";
 import type { OrderInput } from "./order-input";
 import { ProductStoreError, type CatalogDb } from "./product-store";
 
+// Payment numbers. A customer may have at most 5 orders waiting for payment review at once.
+
 export const MAX_PENDING_ORDERS = 5;
 const settingKey: Record<PaymentMethod, string> = {
   bkash: "payment.bkash",
@@ -93,6 +95,8 @@ export const DEFAULT_RULES: CheckoutRules = {
 export { chargeFor } from "./delivery-fee";
 import { chargeFor } from "./delivery-fee";
 export const dayRange = /^\d{1,2}(-\d{1,2})?$/;
+
+/** The saved rules; a missing or invalid value falls back to the default. */
 export async function getCheckoutRules(db: CatalogDb): Promise<CheckoutRules> {
   const rows = await db
     .select()
@@ -118,6 +122,8 @@ export async function getCheckoutRules(db: CatalogDb): Promise<CheckoutRules> {
     returnDays: num(ruleKey.returnDays, DEFAULT_RULES.returnDays),
   };
 }
+
+/** Owner action: saves every rule and logs the new values. */
 export async function setCheckoutRules(db: CatalogDb, actorId: string, rules: CheckoutRules) {
   await db.transaction(async tx => {
     for (const k of Object.keys(ruleKey) as (keyof CheckoutRules)[]) {
@@ -138,8 +144,13 @@ export async function setCheckoutRules(db: CatalogDb, actorId: string, rules: Ch
     });
   });
 }
+
+// Order codes look like "OA-" + 6 time-based characters + 4 random hex characters.
+
 const orderCode = () =>
   `OA-${Date.now().toString(36).toUpperCase().slice(-6)}${randomBytes(2).toString("hex").toUpperCase()}`;
+
+/** True for PostgreSQL's "duplicate key" error (23505), here meaning the transaction ID was already used. */
 function uniqueViolation(error: unknown) {
   const e = error as { code?: string; cause?: { code?: string } };
   return e?.code === "23505" || e?.cause?.code === "23505";
@@ -159,6 +170,8 @@ export async function createOrder(
     code = orderCode();
   try {
     await db.transaction(async tx => {
+      // Limits first: too many orders waiting for review, or a transaction ID that was already used.
+
       const [pending] = await tx
         .select({ n: count() })
         .from(shopOrder)
@@ -172,6 +185,9 @@ export async function createOrder(
         .where(and(eq(shopOrder.method, input.method), eq(shopOrder.trxId, input.trxId)))
         .limit(1);
       if (used) throw new ProductStoreError("TRX_USED");
+
+      // Load the ordered products that are on sale right now, and check each line's size and colour.
+
       const rows = await tx
         .select({
           id: product.id,
@@ -238,9 +254,12 @@ export async function createOrder(
       const payable = subtotal - discount;
       const charge = chargeFor(rules, input.deliveryArea);
       const total = cod ? charge : payable + charge;
+
+      // Reserve stock line by line. reserved[i] records whether line i took stock, so a rejection can return it.
+
       const reserved: boolean[] = [];
       // Per-variant shortage names the colour and size (the count is for that option only).
-      const oos = (line: (typeof lines)[number], left: number | null) =>
+      const outOfStockError = (line: (typeof lines)[number], left: number | null) =>
         new ProductStoreError(
           `OUT_OF_STOCK:${line.slug}:${left ?? 0}:${line.color}:${encodeURIComponent(line.size)}`,
         );
@@ -263,7 +282,7 @@ export async function createOrder(
               ),
             )
             .returning({ stock: productVariant.stock });
-          if (!done.length) throw oos(line, v.stock);
+          if (!done.length) throw outOfStockError(line, v.stock);
           await tx
             .update(product)
             .set({ stock: sql`greatest(coalesce(${product.stock}, 0) - ${line.quantity}, 0)` })
@@ -286,6 +305,9 @@ export async function createOrder(
           throw new ProductStoreError(`OUT_OF_STOCK:${line.slug}:${line.product.stock}`);
         reserved.push(true);
       }
+
+      // Save the order, its lines, any discount, the first timeline step and the activity log entry.
+
       await tx.insert(shopOrder).values({
         id,
         code,
@@ -340,7 +362,12 @@ export async function createOrder(
   }
   return { id, code };
 }
+
+// Reading orders. The payment screenshot is never selected in lists, only a flag that one exists.
+
 const orderColumns = () => withImageFlag(getTableColumns(shopOrder));
+
+/** Item lines and timeline events for a set of orders, loaded in two queries. */
 async function detailsFor(db: CatalogDb, ids: string[]) {
   if (!ids.length) return { items: [], events: [] };
   const [items, events] = await Promise.all([
@@ -358,6 +385,8 @@ async function detailsFor(db: CatalogDb, ids: string[]) {
   ]);
   return { items, events };
 }
+
+/** Turns database rows into the JSON shape the screens use (ISO dates, items and events attached). */
 function shape<
   T extends {
     id: string;
@@ -390,6 +419,8 @@ function shape<
       .map(e => ({ stage: e.stage, note: e.note, at: e.createdAt.toISOString() })),
   }));
 }
+
+/** A customer's own 50 most recent orders. */
 export async function listMyOrders(db: CatalogDb, userId: string) {
   const rows = await db
     .select(orderColumns())
@@ -434,6 +465,8 @@ export async function listOrders(
     ),
   );
 }
+
+/** Number of orders per payment status; COD orders only counted for people allowed to see them. */
 export async function orderCounts(db: CatalogDb, includeCod = false) {
   const rows = await db
     .select({ status: shopOrder.status, n: count() })
@@ -456,6 +489,8 @@ export async function assertOrderVisible(db: CatalogDb, id: string, includeCod: 
     .limit(1);
   if (!row || (row.type === "cod" && !includeCod)) throw new ProductStoreError("NOT_FOUND");
 }
+
+/** The payment screenshot for one order, or null (also null for a COD order the caller may not see). */
 export async function orderScreenshot(db: CatalogDb, id: string, includeCod = false) {
   const [row] = await db
     .select({ image: shopOrder.imageData, type: shopOrder.paymentType })
@@ -507,6 +542,7 @@ export async function reviewOrder(
   });
 }
 
+/** Puts back the stock an order reserved (used when payment is rejected or a delivery is returned). */
 async function restock(db: CatalogDb, orderId: string) {
   const lines = await db
     .select()
@@ -530,6 +566,8 @@ async function restock(db: CatalogDb, orderId: string) {
       .where(eq(product.id, l.productId));
   }
 }
+
+/** Moves an approved order to its next delivery step (see order-flow.ts for the allowed steps). */
 export async function updateDelivery(
   db: CatalogDb,
   actorId: string,

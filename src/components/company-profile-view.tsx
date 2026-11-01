@@ -12,6 +12,9 @@ import { ProfileIcon } from "./profile-icon";
 import { Signature } from "./signature";
 
 type T = (v: { en: string; bn: string }) => string;
+
+// Text helpers: owner text is split into lines (lists) or paragraphs (blank-line separated).
+
 const lines = (s: string) =>
   s
     .split("\n")
@@ -24,6 +27,7 @@ const paras = (s: string) =>
     .filter(Boolean);
 const pad = (n: number) => String(n).padStart(2, "0");
 
+/** Section heading: eyebrow and title ("|" in a title marks a line break in some layouts). */
 function Head({ s, t, aside }: { s: ProfileSection; t: T; aside?: ReactNode }) {
   const eyebrow = t(s.eyebrow);
   const title = t(s.title);
@@ -38,6 +42,9 @@ function Head({ s, t, aside }: { s: ProfileSection; t: T; aside?: ReactNode }) {
     </header>
   );
 }
+
+// Small shared pieces: the closing strip line, a bullet list and an icon.
+
 const Strip = ({ s, t }: { s: ProfileSection; t: T }) =>
   t(s.strip) ? <p className="cp-strip">{t(s.strip)}</p> : null;
 const Bullets = ({ it, t }: { it: ProfileItem; t: T }) => {
@@ -57,6 +64,7 @@ const Ico = ({ name, size }: { name: string; size?: number }) =>
     </span>
   ) : null;
 
+/** Draws one section in the layout of its kind (cover, intro, cards, split, groups, values, tech, notice, thanks). */
 function Section({ s, t, h1, email }: { s: ProfileSection; t: T; h1: boolean; email: string }) {
   const g = (i: number) => s.groups[i]?.items ?? [];
   const cls = `cp-sec cp-k-${s.kind}${s.dark ? " is-dark" : ""}`;

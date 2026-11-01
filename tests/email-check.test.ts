@@ -1,3 +1,5 @@
+// Email checks at sign-up: the typo hint, the DNS mail-domain check (with a fake resolver) and the sign-up hook.
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PGlite } from "@electric-sql/pglite";

@@ -9,6 +9,7 @@ export const synthSupported = () =>
   typeof SpeechSynthesisUtterance !== "undefined";
 export type SpeakResult = "spoken" | "no-voice" | "unsupported" | "cancelled" | "skipped";
 
+/** The device's voices; some browsers load them late, so wait for "voiceschanged" (at most 1.5 s). */
 async function voices(): Promise<SpeechSynthesisVoice[]> {
   const synth = window.speechSynthesis;
   const now = synth.getVoices();
@@ -26,6 +27,9 @@ export function stopSpeaking() {
   if (synthSupported()) window.speechSynthesis.cancel();
   current = null;
 }
+
+// The utterance currently speaking, so stopSpeaking() and a new speak() can cancel it.
+
 let current: { cancelled: boolean } | null = null;
 
 /** Speaks `text` and resolves when it ends. `notify` gets a short explanation when speech is not possible (shown to the visitor, text stays on screen). */

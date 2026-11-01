@@ -8,7 +8,11 @@ import { getActiveCampaigns } from "@/lib/store-products";
 import { CampaignShowcase } from "@/components/campaign-showcase";
 import { MessageReveal } from "@/components/message-reveal";
 import { getSectionState } from "@/lib/website-sections";
-import { HomeFaq } from "@/components/home-trust";
+import { HomeFaq, HowWeWork, TrustStrip } from "@/components/home-trust";
+import { CategoryTiles } from "@/components/category-tiles";
+import { DoubleConveyor } from "@/components/double-conveyor";
+import { FeatureStory, ServiceConveyor, StandardPanel } from "@/components/home-experience";
+import { ValueFan } from "@/components/value-fan";
 import { requestLocale } from "@/lib/request-locale";
 import { bnDigits, publicRules } from "@/lib/public-rules";
 import { formatPrice } from "@/lib/catalog";
@@ -41,6 +45,7 @@ export default async function Home() {
   const tx = (k: TextKey) => pick(content, k, locale);
   return (
     <main id="main-content">
+      {/* Hero: brand animation, short intro and the two main buttons. */}
       <section className="v2-hero" aria-labelledby="hero-title">
         <div className="v2-hero-copy">
           <HeroBrand />
@@ -68,6 +73,7 @@ export default async function Home() {
         <div className="v2-planet" aria-hidden="true" />
       </section>
 
+      {/* Shop tabs (products / services) with the scrolling strip of promises. */}
       {f.shopTabs && (config.products || config.services) && (
         <ShopTabs
           showServices={config.services}
@@ -126,6 +132,14 @@ export default async function Home() {
         />
       )}
 
+      {/* Delivery checker and payment options, using the owner's rules. */}
+      {/* Extra sections: all off until the owner switches them on in Admin → Website content. */}
+      {f.categoryTiles && config.products && <CategoryTiles />}
+      {f.trustStrip && config.products && <TrustStrip rules={rules} locale={locale} />}
+      {f.doubleConveyor && (config.products || config.services) && (
+        <DoubleConveyor showProducts={config.products} showServices={config.services} />
+      )}
+
       {f.deliveryPanel && config.products && (
         <div className="container v2-help-row">
           <DeliveryChecker rules={rules} />
@@ -159,12 +173,15 @@ export default async function Home() {
         </div>
       )}
 
+      {/* Featured product, running campaigns and the "why OANRO" grid. */}
       {f.productStory && config.products && <ProductStory featuredSlug={f.featuredProductSlug} />}
 
       {f.campaigns && campaigns.map(c => <CampaignShowcase key={c.id} campaign={c} />)}
+      {f.featureStory && <FeatureStory />}
 
       {f.bento && config.products && <WhyBento rules={rules} services={config.services} />}
 
+      {/* About, the five values, the studio and the contact block. */}
       {f.about && (
         <section id="about" className="container v2-brand" aria-labelledby="about-title">
           <div className="v2-orbit-wrap" aria-hidden="true">
@@ -187,9 +204,13 @@ export default async function Home() {
         </section>
       )}
 
+      {f.standardPanel && <StandardPanel />}
       {f.values && <ValueLetters />}
+      {f.valueFan && <ValueFan showProducts={config.products} />}
 
+      {f.serviceConveyor && config.services && <ServiceConveyor />}
       {f.studio && config.services && <StudioTerminal />}
+      {f.howWeWork && config.services && <HowWeWork locale={locale} />}
 
       {f.contact && (
         <section id="contact" className="container" aria-labelledby="contact-title">
@@ -221,6 +242,7 @@ export default async function Home() {
         </section>
       )}
 
+      {/* Frequently asked questions. */}
       {f.faq && config.products && (
         <HomeFaq rules={rules} locale={locale} services={config.services} />
       )}

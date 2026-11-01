@@ -50,6 +50,8 @@ export async function subscribe(db: CatalogDb, rawEmail: string, locale: "en" | 
   );
   return "subscribed";
 }
+
+/** Marks a newsletter address as unsubscribed (the row is kept so a later sign-up can reactivate it). */
 export async function newsletterUnsubscribe(db: CatalogDb, email: string) {
   await db
     .update(newsletterSubscriber)

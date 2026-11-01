@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useMotion } from "./experience";
 
+/**
+ * Interactive 3D scene drawn with three.js (loaded only when this component mounts): a headphone
+ * model the visitor can drag to turn, or a slowly turning "universe" of points. If WebGL is not
+ * available, a fallback is shown instead.
+ */
 export default function Scene({ mode = "headphones" }: { mode?: "headphones" | "universe" }) {
   const host = useRef<HTMLDivElement>(null);
   const rotate = useRef<(delta: number) => void>(() => {});
@@ -106,6 +111,9 @@ export default function Scene({ mode = "headphones" }: { mode?: "headphones" | "
           }
           group.rotation.set(0.05, -0.35, -0.08);
         }
+
+        // Draw only when something changed (dirty) and the scene is on screen, to save battery.
+
         let dirty = true;
         let visible = true;
         let previous = 0;
@@ -129,6 +137,9 @@ export default function Scene({ mode = "headphones" }: { mode?: "headphones" | "
           group.rotation.y += delta;
           dirty = true;
         };
+
+        // Drag to rotate (headphones only).
+
         let dragging = false;
         let lastX = 0;
         const down = (event: PointerEvent) => {
@@ -151,6 +162,9 @@ export default function Scene({ mode = "headphones" }: { mode?: "headphones" | "
         renderer.domElement.addEventListener("pointermove", move);
         renderer.domElement.addEventListener("pointerup", up);
         renderer.domElement.addEventListener("pointercancel", up);
+
+        // Animation loop: slow automatic spin unless motion is off or the visitor is hovering or dragging.
+
         const draw = (time: number) => {
           frame = requestAnimationFrame(draw);
           const delta = Math.min((time - previous) / 1000 || 0, 0.05);

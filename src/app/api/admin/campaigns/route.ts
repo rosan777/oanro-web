@@ -18,6 +18,8 @@ export const runtime = "nodejs";
 
 const respond = async () =>
   Response.json({ campaigns: await listOwnerCampaigns(catalogDb()) }, { headers: noStore });
+
+/** Create a campaign (with an optional photo). */
 export const POST = adminHandler("campaigns.manage", async (actor, data) => {
   await createCampaign(
     catalogDb(),
@@ -41,6 +43,8 @@ export const PATCH = adminHandler("campaigns.manage", async (actor, data) => {
     await updateCampaign(catalogDb(), actor, id, parseCampaignInput(data), photoField(data.image));
   return respond();
 });
+
+/** Archive a campaign ({ id }). */
 export const DELETE = adminHandler("campaigns.manage", async (actor, data) => {
   await archiveCampaign(catalogDb(), actor, requireUuid(data.id));
   return respond();

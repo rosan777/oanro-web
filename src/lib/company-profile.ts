@@ -1,3 +1,6 @@
+// Reading and saving the company profile page (/company-profile). The section shapes and the
+// clean-up rules live in company-profile-data.ts.
+
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
@@ -47,6 +50,9 @@ export async function saveCompanyProfile(
   const profile = reset ? null : cleanProfile(value);
   if (profile) {
     const json = JSON.stringify(profile);
+
+    // Refuse oversized saves before writing anything.
+
     if (json.length > 400_000) throw new ProductInputError("value");
     await db.transaction(async tx => {
       await tx
@@ -66,6 +72,9 @@ export async function saveCompanyProfile(
     });
     return profile;
   }
+
+  // Reset: delete the saved value so the defaults show again.
+
   await db.transaction(async tx => {
     await tx.delete(storeSetting).where(eq(storeSetting.key, KEY));
     await tx.insert(auditEvent).values({

@@ -14,6 +14,8 @@ const fieldError: Record<string, [string, string]> = {
   ],
   postcode: ["Postcode must be 4 digits.", "পোস্টকোড ৪ অঙ্কের হতে হবে।"],
 };
+
+/** Saved details on My account: shown as a summary, or as a form while editing (open at first when nothing is saved). */
 export function ProfileForm({ initial, email }: { initial: Profile; email: string }) {
   const { locale } = useLocale();
   const bn = locale === "bn";
@@ -72,6 +74,9 @@ export function ProfileForm({ initial, email }: { initial: Profile; email: strin
     [t("Permanent address", "স্থায়ী ঠিকানা"), profile.permanentAddress, ""],
     [t("Company / organisation", "প্রতিষ্ঠান"), profile.company, ""],
   ];
+
+  // One labelled text field bound to a profile value.
+
   const input = (name: keyof Profile, label: string, props: Record<string, unknown> = {}) => (
     <label>
       {label}

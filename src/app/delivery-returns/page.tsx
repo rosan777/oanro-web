@@ -26,16 +26,22 @@ export const dynamic = "force-dynamic";
 // Every number here comes from the owner's "Delivery & payment rules" in the admin, so this page never goes out of date.
 const bnNum = (s: string) => s.replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[Number(d)]);
 export default async function DeliveryReturnsPage() {
-  const r = process.env.DATABASE_URL
+  const deliveryRules = process.env.DATABASE_URL
     ? await getCheckoutRules(catalogDb()).catch(() => DEFAULT_RULES)
     : DEFAULT_RULES;
-  const fee = feeText(r, "en"),
-    feeBn = feeText(r, "bn");
-  const limit = formatPrice(r.codLimit),
-    limitBn = formatPrice(r.codLimit, "bn");
-  const dhaka = r.dhakaDays.replace("-", "–"),
-    outside = r.outsideDays.replace("-", "–");
-  const ret = r.returnDays;
+
+  // The owner's numbers, formatted once for both languages.
+
+  const fee = feeText(deliveryRules, "en"),
+    feeBn = feeText(deliveryRules, "bn");
+  const limit = formatPrice(deliveryRules.codLimit),
+    limitBn = formatPrice(deliveryRules.codLimit, "bn");
+  const dhaka = deliveryRules.dhakaDays.replace("-", "–"),
+    outside = deliveryRules.outsideDays.replace("-", "–");
+  const returnWindowDays = deliveryRules.returnDays;
+
+  // The page text: [heading, paragraphs] in English and Bangla, built from the numbers above.
+
   const sections: LegalSection[] = [
     {
       en: [
@@ -72,7 +78,7 @@ export default async function DeliveryReturnsPage() {
         "How to pay",
         [
           "bKash or Nagad (Send Money): send the full amount, products plus delivery, to the personal number shown at checkout, then enter the Transaction ID. A screenshot is optional.",
-          r.codLimit > 0
+          deliveryRules.codLimit > 0
             ? `Cash on delivery: available for orders up to ${limit}. You first send only the delivery charge (${fee}) by bKash or Nagad; after our admin approves it, you pay the product price in cash when the order arrives.`
             : "Cash on delivery is not available at the moment.",
           "We never ask for your PIN, OTP or password. Don't share them with anyone, including people who say they are from OANRO.",
@@ -82,7 +88,7 @@ export default async function DeliveryReturnsPage() {
         "কীভাবে পেমেন্ট করবেন",
         [
           "bKash বা Nagad (Send Money): চেকআউটে দেখানো পার্সোনাল নম্বরে পুরো টাকা (পণ্য + ডেলিভারি) পাঠান, তারপর Transaction ID দিন। স্ক্রিনশট দেওয়া ঐচ্ছিক।",
-          r.codLimit > 0
+          deliveryRules.codLimit > 0
             ? `ক্যাশ অন ডেলিভারি: ${limitBn} পর্যন্ত অর্ডারে পাওয়া যায়। আগে শুধু ডেলিভারি চার্জ (${feeBn}) bKash বা Nagad-এ পাঠাবেন; অ্যাডমিন অনুমোদন দিলে পণ্য হাতে পেয়ে নগদে দাম দেবেন।`
             : "এই মুহূর্তে ক্যাশ অন ডেলিভারি চালু নেই।",
           "আমরা কখনো আপনার PIN, OTP বা পাসওয়ার্ড চাই না। কাউকে দেবেন না, এমনকি OANRO-র নাম বললেও না।",
@@ -124,9 +130,9 @@ export default async function DeliveryReturnsPage() {
     {
       en: [
         "Returns and exchanges",
-        ret > 0
+        returnWindowDays > 0
           ? [
-              `If you receive a wrong, damaged or missing item, tell us within ${ret} day${ret === 1 ? "" : "s"} of delivery with a photo. We will replace it or refund the product price, and we cover the return delivery.`,
+              `If you receive a wrong, damaged or missing item, tell us within ${returnWindowDays} day${returnWindowDays === 1 ? "" : "s"} of delivery with a photo. We will replace it or refund the product price, and we cover the return delivery.`,
               "Items must be unused and in their original packaging. For hygiene reasons, earrings and nose pins can only be returned if they are faulty or wrong.",
               "Change-of-mind returns are not accepted at the moment.",
             ]
@@ -136,9 +142,9 @@ export default async function DeliveryReturnsPage() {
       ],
       bn: [
         "রিটার্ন ও এক্সচেঞ্জ",
-        ret > 0
+        returnWindowDays > 0
           ? [
-              `ভুল, ক্ষতিগ্রস্ত বা অনুপস্থিত পণ্য পেলে ডেলিভারির ${bnNum(String(ret))} দিনের মধ্যে ছবিসহ জানান। আমরা বদলে দেব বা পণ্যের দাম ফেরত দেব, আর ফেরত পাঠানোর খরচ আমরাই বহন করব।`,
+              `ভুল, ক্ষতিগ্রস্ত বা অনুপস্থিত পণ্য পেলে ডেলিভারির ${bnNum(String(returnWindowDays))} দিনের মধ্যে ছবিসহ জানান। আমরা বদলে দেব বা পণ্যের দাম ফেরত দেব, আর ফেরত পাঠানোর খরচ আমরাই বহন করব।`,
               "পণ্য অব্যবহৃত ও আসল প্যাকেটে থাকতে হবে। স্বাস্থ্যগত কারণে কানের দুল ও নাকফুল শুধু ত্রুটিপূর্ণ বা ভুল হলেই ফেরত নেওয়া হয়।",
               "মত বদলের কারণে রিটার্ন এই মুহূর্তে নেওয়া হয় না।",
             ]

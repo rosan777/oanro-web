@@ -5,6 +5,7 @@ import { formatDhaka } from "@/lib/dhaka-time";
 import type { TrackedOrder } from "@/lib/assistant/types";
 import { useLocale } from "./locale";
 
+/** POSTs JSON to an assistant endpoint; a network failure resolves to null. */
 const postJson = (url: string, body: unknown) =>
   fetch(url, {
     method: "POST",
@@ -234,7 +235,6 @@ export function HandoffForm({
           <option value="phone">{t("Phone call", "ফোন")}</option>
           <option value="whatsapp">WhatsApp</option>
           <option value="email">{t("Email", "ইমেইল")}</option>
-          <option value="messenger">Messenger</option>
         </select>
       </label>
       <label className="asst-check">

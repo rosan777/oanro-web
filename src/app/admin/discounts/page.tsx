@@ -9,6 +9,9 @@ export const dynamic = "force-dynamic";
 export default async function DiscountsPage() {
   await requireAdminPage("discounts.manage");
   const db = catalogDb();
+
+  // Codes, plus the sections and products a code can be limited to.
+
   const [rows, sections, items] = await Promise.all([
     listDiscounts(db),
     db

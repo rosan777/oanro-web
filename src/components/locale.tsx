@@ -1,5 +1,7 @@
 "use client";
 
+// Page language (English or Bangla) for browser components, plus the language and region pickers.
+
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { isBnPath, localePath, type Locale } from "@/lib/locale-path";
 
@@ -9,6 +11,7 @@ const LocaleContext = createContext<{ locale: Locale; setLocale: (locale: Locale
   setLocale: () => {},
 });
 
+/** "bn" when any of the browser's preferred languages is Bangla. */
 function preferredLocale(): Locale {
   return navigator.languages.some(language => language.toLowerCase().startsWith("bn"))
     ? "bn"
@@ -44,6 +47,9 @@ export function LocaleProvider({
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, [locale]);
+
+  // Switching language goes to the same page in the other language (and remembers the choice).
+
   const setLocale = (next: Locale) => {
     if (next === locale) return;
     try {
@@ -129,7 +135,8 @@ export function LanguageSwitch() {
         className="lang-trigger"
         aria-haspopup="true"
         aria-expanded={open}
-        aria-label={locale === "bn" ? "ভাষা বদলান" : "Change language"}
+        // The name starts with the visible code (EN/বাং) so voice users can say what they see.
+        aria-label={`${current.short} – ${locale === "bn" ? "ভাষা বদলান" : "Change language"}`}
         onClick={() => setOpen(v => !v)}
       >
         <Globe />

@@ -1,3 +1,7 @@
+// Adds a few published demo products (with photos from scripts/sample-images) for checking the
+// storefront on phones. Not wired to an npm script; run it with:
+// node --import tsx scripts/seed-preview-products.ts
+
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { loadEnvConfig } from "@next/env";

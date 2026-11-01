@@ -18,6 +18,7 @@ import Link from "@/components/locale-link";
 // One page per published service (e.g. /services/web), so each service can rank on its own keywords.
 type Props = { params: Promise<{ slug: string }> };
 
+/** The published service with this slug; null when services are switched off or the slug is unknown. */
 async function load(slug: string) {
   if (!getSiteConfig().services || !(await getSectionState()).services) return null;
   return (await getStoreServices()).find(s => s.slug === slug) ?? null;
@@ -69,6 +70,9 @@ export default async function ServicePage({ params }: Props) {
   const copy = copyFor(service, bn);
   const guide = serviceGuide(copy.title, locale);
   const pageUrl = absoluteUrl(localePath(`/services/${service.slug}`, locale));
+
+  // Structured data for search engines: the service itself and its breadcrumb.
+
   const schema = {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -113,6 +117,7 @@ export default async function ServicePage({ params }: Props) {
           <p key={text.slice(0, 24)}>{text}</p>
         ))}
       </section>
+      {/* Optional sections the owner can switch off: studio packages and the FAQ (with its FAQPage data). */}
       {showPkgs && (
         <section className="studio-packages" aria-labelledby="pkg-title">
           <h2 id="pkg-title">{bn ? "যেভাবে আমরা কাজ নিই" : "Ways to work with us"}</h2>

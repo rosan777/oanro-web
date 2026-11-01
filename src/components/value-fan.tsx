@@ -5,12 +5,17 @@ import { useMotion } from "./experience";
 import { valuePose } from "./value-motion";
 import styles from "./value-fan.module.css";
 import { useT } from "./locale";
+
+// The four cards.
+
 const values = [
   { title: "Bangladesh to the world", bn: "বাংলাদেশ থেকে বিশ্বে", icon: Globe2 },
   { title: "Clear information", bn: "স্পষ্ট তথ্য", icon: ShieldCheck },
   { title: "Thoughtful support", bn: "যত্নশীল সহায়তা", icon: MessageCircle },
   { title: "Room to grow", bn: "বড় হওয়ার সুযোগ", icon: PackageCheck },
 ];
+
+/** Four value cards that fan out as the section scrolls past (static when motion is off). Not used by any page at the moment. */
 export function ValueFan(props: { showProducts?: boolean }) {
   void props;
   const root = useRef<HTMLElement>(null);
@@ -37,6 +42,9 @@ export function ValueFan(props: { showProducts?: boolean }) {
     }
     node.dataset.animated = "true";
     let frame = 0;
+
+    // Map the scroll position inside the section to each card's pose (see valuePose).
+
     const update = () => {
       const top = parseFloat(getComputedStyle(scene).top) || 0;
       const runway = Math.max(1, node.offsetHeight - scene.offsetHeight);
@@ -52,6 +60,9 @@ export function ValueFan(props: { showProducts?: boolean }) {
       });
       frame = 0;
     };
+
+    // At most one update per animation frame, on scroll, resize and when the page is shown again.
+
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);
     };

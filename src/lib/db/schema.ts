@@ -1,3 +1,7 @@
+// Database tables (Drizzle). Changing this file needs a new migration: npm run db:generate writes it
+// to drizzle/. Tables are grouped as: sign-in (Better Auth), owner and activity log, storefront and
+// catalog, staff roles, campaigns, inquiries, orders, marketing and team extras, and the assistant.
+
 import {
   bigint,
   boolean,
@@ -15,7 +19,12 @@ import { sql } from "drizzle-orm";
 import type { ProductColor, ProductStatus } from "../product-input";
 import type { CollectionPreset } from "../categories";
 
+// Every timestamp column stores the time zone.
+
 const time = (name: string) => timestamp(name, { withTimezone: true });
+
+// Sign-in tables used by Better Auth (users, sessions, linked sign-in methods, email codes, 2FA, rate limits).
+
 export const user = pgTable("auth_user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -113,6 +122,9 @@ export const systemOwner = pgTable(
   },
   t => [check("single_owner_slot", sql`${t.slot} = 1`)],
 );
+
+// Activity log: who did what to which record, and why. Written by almost every admin action.
+
 export const auditEvent = pgTable("audit_event", {
   id: text("id").primaryKey(),
   actorId: text("actor_id").references(() => user.id),
@@ -121,6 +133,9 @@ export const auditEvent = pgTable("audit_event", {
   reason: text("reason").notNull(),
   createdAt: time("created_at").notNull().defaultNow(),
 });
+
+// Homepage section switches and Global Pulse news stories.
+
 export const websiteSection = pgTable("website_section", {
   code: text("code").primaryKey(),
   enabled: boolean("enabled").notNull().default(false),
@@ -344,6 +359,8 @@ export const staffMember = pgTable(
   },
   t => [check("staff_member_status_check", sql`${t.status} in ('active', 'deactivated')`)],
 );
+
+/** Email invitation to join the team with a role; claimed when that email signs in (see rbac.ts). */
 export const staffInvite = pgTable(
   "staff_invite",
   {
@@ -498,6 +515,8 @@ export const storeSetting = pgTable("store_setting", {
   updatedBy: text("updated_by").references(() => user.id),
   updatedAt: time("updated_at").notNull().defaultNow(),
 });
+
+/** One order. The name, phone and address typed at checkout are stored on the order itself. */
 export const shopOrder = pgTable(
   "shop_order",
   {

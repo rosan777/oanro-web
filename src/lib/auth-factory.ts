@@ -1,3 +1,6 @@
+// Builds the Better Auth instance from plain settings. Kept free of environment reads and
+// server-only imports so the app (auth.ts) and the tests can create it with their own database.
+
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { twoFactor } from "better-auth/plugins/two-factor";
@@ -42,13 +45,22 @@ export function createAuth(db: Parameters<typeof drizzleAdapter>[0], settings: S
       sendVerificationEmail: async ({ user, url }) =>
         settings.sendMail(user.email, "Verify your OANRO email", `Verify your email: ${url}`),
     },
+
+    // Google sign-in only when keys are set. Accounts are never linked automatically across sign-in methods.
+
     socialProviders: settings.google ? { google: settings.google } : {},
     account: { accountLinking: { enabled: false } },
+
+    // Sessions last 7 days and are refreshed at most once a day; no cookie cache, so revoking takes effect at once.
+
     session: {
       cookieCache: { enabled: false },
       expiresIn: 60 * 60 * 24 * 7,
       updateAge: 60 * 60 * 24,
     },
+
+    // Sign-in rate limits are stored in the database (the rate_limit table also used by rate-limit.ts).
+
     rateLimit: { enabled: true, storage: "database", window: 60, max: 30 },
     hooks: {
       before: createAuthMiddleware(async ctx => {

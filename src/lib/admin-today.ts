@@ -7,6 +7,9 @@ import type { CatalogDb } from "./product-store";
 import type { Access } from "./rbac";
 import type { AdminCounts } from "./admin-menu";
 
+// Who may see low-stock numbers, and which products count as low: published, tracked stock at or
+// below the product's own alert level (or the default).
+
 const canStock = (a: Access) =>
   a.owner || ["products.manage", "reports.read"].some(p => a.permissions.has(p as never));
 const lowStockWhere = and(
@@ -22,6 +25,7 @@ const pendingWhere = (a: Access) =>
     a.permissions.has("cod.manage") ? undefined : eq(shopOrder.paymentType, "prepaid"),
   );
 
+/** Badge numbers for the side menu. Each count is only queried when the person may see it. */
 export async function adminCounts(db: CatalogDb, access: Access): Promise<AdminCounts> {
   const has = (p: Parameters<typeof access.permissions.has>[0]) => access.permissions.has(p);
   const [orders, leads, low] = await Promise.all([
@@ -58,6 +62,7 @@ function dhakaDayStart() {
   return new Date(Math.floor((now + shift) / 86_400_000) * 86_400_000 - shift);
 }
 
+/** Everything on the Today page, each part loaded only for people allowed to see it. */
 export async function todayData(db: CatalogDb, access: Access) {
   const has = (p: Parameters<typeof access.permissions.has>[0]) => access.permissions.has(p);
   const [payments, inquiries, lowStock, paid, activity] = await Promise.all([

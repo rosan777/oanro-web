@@ -14,6 +14,11 @@ type Story = {
 };
 // Caps and Tech Items visibility moved to their collection pages (status Published/Hidden).
 const labels: Partial<Record<SectionCode, string>> = { "global-pulse": "Global Pulse news strip" }; // Services has its switch on the admin home page.
+
+/**
+ * Global Pulse admin: the strip's on/off switch, the form to publish a story (with an optional
+ * thumbnail found on the page or uploaded, which must be approved), and the story list.
+ */
 export function SectionDashboard({
   initial,
   initialStories,
@@ -31,6 +36,8 @@ export function SectionDashboard({
   } | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [approved, setApproved] = useState(false);
+
+  /** Asks the server to find the article's own preview image; it must be looked at and approved before saving. */
   async function previewImage() {
     const url = String(new FormData(formRef.current!).get("url") ?? "").trim();
     setBusy(true);
@@ -62,6 +69,8 @@ export function SectionDashboard({
   const [stories, setStories] = useState(initialStories);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+
+  /** Turns a homepage section on or off. */
   async function toggle(code: SectionCode) {
     setBusy(true);
     setNotice("");
@@ -80,6 +89,8 @@ export function SectionDashboard({
       setBusy(false);
     }
   }
+
+  /** Publishes a new story (rights confirmation required). */
   async function publish(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -385,6 +396,7 @@ export function SectionDashboard({
   );
 }
 
+/** Find, preview and approve a thumbnail for a story that was published without one. */
 function StoryThumbnailEditor({ story }: { story: Story }) {
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<{ thumbnailUrl: string; previewToken: string } | null>(

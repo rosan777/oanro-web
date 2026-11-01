@@ -7,6 +7,7 @@ export type AdminCounts = { orders: number; leads: number; lowStock: number };
 type Access = { owner: boolean; permissions: Set<Permission> };
 type Entry = MenuItem & { need?: Permission[]; ownerOnly?: boolean };
 
+/** The menu groups and links this person may see, with badge counts; empty groups are left out. */
 export function menuFor(access: Access, counts: AdminCounts): MenuGroup[] {
   const groups: { label: string; items: Entry[] }[] = [
     {

@@ -21,6 +21,9 @@ export async function POST(request: Request) {
   if (!config.transcription) return json({ error: "TRANSCRIBE_UNAVAILABLE" }, 503);
   if (!(request.headers.get("content-type") ?? "").startsWith("multipart/form-data"))
     return json({ error: "INVALID_INPUT" }, 415);
+
+  // Read the upload with a size cap, then check the file type, size and declared length.
+
   const body = await readBytes(request, limits.audioMaxBytes + 4096);
   if (!body) return json({ error: "TOO_LARGE" }, 413);
   let form: FormData;
@@ -46,6 +49,9 @@ export async function POST(request: Request) {
   if (file.size > seconds * 40_000 + 20_000) return json({ error: "INVALID_AUDIO" }, 400); // bytes must be plausible for the declared length
   if (lang !== "auto" && lang !== "bn" && lang !== "en")
     return json({ error: "INVALID_INPUT" }, 400);
+
+  // Per-visitor limits and the shared daily audio quota.
+
   const db = catalogDb();
   try {
     const [win, day] = [

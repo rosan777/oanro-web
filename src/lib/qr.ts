@@ -1,8 +1,13 @@
 // Minimal QR code encoder (byte mode, error correction M, versions 1–10, up to 213 bytes).
 // Follows ISO/IEC 18004; structure after Project Nayuki's public QR generator. Used for the
 // two-step verification setup link, so nothing is sent to a third-party QR service.
+
+// Error-correction codewords per block and number of blocks for versions 1–10 at level M (index = version).
+
 const ECC_PER_BLOCK = [0, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26];
 const BLOCKS = [0, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5];
+
+/** Number of data-carrying cells in a symbol of version v (all cells minus fixed patterns). */
 const rawModules = (v: number) => {
   let r = (16 * v + 128) * v + 64;
   if (v >= 2) {
@@ -13,6 +18,8 @@ const rawModules = (v: number) => {
   return r;
 };
 const dataCodewords = (v: number) => Math.floor(rawModules(v) / 8) - ECC_PER_BLOCK[v] * BLOCKS[v];
+
+/** Reed–Solomon maths: multiplication in GF(256), the generator polynomial, and the remainder (error-correction bytes). */
 function gfMul(x: number, y: number) {
   let z = 0;
   for (let i = 7; i >= 0; i--) {

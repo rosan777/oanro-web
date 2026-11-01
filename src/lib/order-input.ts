@@ -26,6 +26,8 @@ export function normalizePhone(value: unknown, field: string) {
   if (!/^01[3-9]\d{8}$/.test(digits)) throw new ProductInputError(field);
   return digits;
 }
+
+/** A trimmed string within the length limits, with invisible control characters removed. */
 function text(value: unknown, field: string, min: number, max: number) {
   if (value === undefined && min === 0) return "";
   if (typeof value !== "string") throw new ProductInputError(field);
@@ -33,9 +35,17 @@ function text(value: unknown, field: string, min: number, max: number) {
   if (clean.length < min || clean.length > max) throw new ProductInputError(field);
   return clean;
 }
+
+/**
+ * Validates the checkout request body. Throws ProductInputError naming the first bad field.
+ * Prices are not trusted from here: order-store.ts recomputes them and compares with expectedTotal.
+ */
 export function parseOrderInput(data: Record<string, unknown>): OrderInput {
   if (!Array.isArray(data.items) || data.items.length < 1 || data.items.length > 20)
     throw new ProductInputError("items");
+
+  // The same product, size and colour sent twice becomes one line (still at most 10).
+
   const merged = new Map<string, CartLine>();
   for (const raw of data.items) {
     const item = raw as Record<string, unknown>;

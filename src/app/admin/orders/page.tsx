@@ -4,6 +4,8 @@ import { getCheckoutRules, getPaymentNumbers, listOrders } from "@/lib/order-sto
 import { catalogDb } from "@/lib/store-products";
 import { OrdersDashboard } from "@/components/orders-dashboard";
 export const dynamic = "force-dynamic";
+
+/** Order list and payment review. ?open=<id> opens one order, ?q= pre-fills the search. */
 export default async function OrdersAdminPage({
   searchParams,
 }: {

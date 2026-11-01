@@ -3,6 +3,9 @@ import type { Lang } from "./types";
 type Text = { en: string; bn: string; banglish?: string };
 const t = (m: Text, lang: Lang) =>
   lang === "bn" ? m.bn : lang === "banglish" ? (m.banglish ?? m.en) : m.en;
+
+// Every fixed message, by key.
+
 export const messages = {
   greeting: { en: "Hi! How can I help you today?", bn: "হ্যালো! আজ কীভাবে সাহায্য করতে পারি?" },
   off: {
@@ -31,8 +34,8 @@ export const messages = {
     bn: "এই সাইটে AI অংশ এখনো চালু করা হয়নি, তাই শুধু পণ্য খোঁজা ও আমাদের নিয়ম জানাতে পারি। বাকিটায় একজন মানুষ সাহায্য করবেন।",
   },
   human: {
-    en: "Of course. You can contact a person below. Opening WhatsApp or Messenger only starts a chat on your side; to send a message straight to our team, use “Message our team”.",
-    bn: "অবশ্যই। নিচ থেকে একজন মানুষের সাথে যোগাযোগ করুন। WhatsApp বা Messenger খুললে শুধু আপনার দিকে চ্যাট শুরু হয়; সরাসরি আমাদের টিমকে বার্তা পাঠাতে “আমাদের টিমকে বার্তা পাঠান” ব্যবহার করুন।",
+    en: "Of course. You can contact a person below. Opening WhatsApp only starts a chat on your side; to send a message straight to our team, use “Message our team”.",
+    bn: "অবশ্যই। নিচ থেকে একজন মানুষের সাথে যোগাযোগ করুন। WhatsApp খুললে শুধু আপনার দিকে চ্যাট শুরু হয়; সরাসরি আমাদের টিমকে বার্তা পাঠাতে “আমাদের টিমকে বার্তা পাঠান” ব্যবহার করুন।",
   },
   cannot: {
     en: "I'm not sure about that, and I don't want to guess. A person can answer it properly.",
@@ -117,20 +120,28 @@ export const messages = {
     banglish: "Thik ache! Kichu lagle bolben.",
   },
   sorry1: {
-    en: "Sorry, I didn't quite get that. Could you say it a different way?",
-    bn: "দুঃখিত, ঠিক বুঝতে পারিনি। অন্যভাবে একটু বলবেন?",
-    banglish: "Dukkhito, thik bujhte parini. Onnobhabe ektu bolben?",
+    en: "I couldn't match that to anything I know for sure. I can tell you about OANRO, the shop, OANRO Studio's services, delivery, payment or returns, or contact details. What would you like?",
+    bn: "এটা আমার জানা তথ্যের সাথে মেলাতে পারিনি। আমি OANRO, শপ, OANRO স্টুডিওর সেবা, ডেলিভারি, পেমেন্ট, রিটার্ন বা যোগাযোগের তথ্য জানাতে পারি। কোনটা জানতে চান?",
+    banglish:
+      "Eta amar jana tothyo-r sathe milate parini. Ami OANRO, shop, Studio-r service, delivery, payment, return ba contact niye bolte pari. Kon-ta jante chan?",
   },
   sorry2: {
-    en: "Sorry, I can't help with that one myself. Our team can: use “Message our team” below.",
-    bn: "দুঃখিত, এটা আমি নিজে সামলাতে পারছি না। আমাদের টিম পারবে: নিচে “আমাদের টিমকে বার্তা পাঠান” ব্যবহার করুন।",
+    en: "That one is beyond what I can answer reliably, and I'd rather not guess. Rephrase it with a few key words (for example “web development”, “delivery time”), or message our team and a person will reply.",
+    bn: "এটা আমি নির্ভরযোগ্যভাবে বলতে পারছি না, আর অনুমান করতে চাই না। কয়েকটি মূল শব্দে (যেমন “ওয়েব ডেভেলপমেন্ট”, “ডেলিভারি সময়”) আবার লিখুন, অথবা আমাদের টিমকে বার্তা পাঠান।",
     banglish:
-      "Dukkhito, eta ami nije samlate parchhi na. Amader team parbe: niche “Message our team” bebohar korun.",
+      "Eta ami nirbhorjogyo bhabe bolte parchhi na, onuman korte chai na. Kichu mul shobde (jemon “web development”, “delivery time”) abar likhun, ba amader team-ke message din.",
   },
   sorry3: {
-    en: "Still not able to get that, sorry. Our team will be happy to help.",
-    bn: "এখনো বুঝতে পারছি না, দুঃখিত। আমাদের টিম সাহায্য করতে পারবে।",
-    banglish: "Ekhono bujhte parchhi na, dukkhito. Amader team help korte parbe.",
+    en: "I still can't answer that myself. Our team can: use “Message our team” below and someone will reply.",
+    bn: "এটা এখনও আমি নিজে বলতে পারছি না। আমাদের টিম পারবে: নিচে “আমাদের টিমকে বার্তা পাঠান” ব্যবহার করুন, কেউ উত্তর দেবেন।",
+    banglish:
+      "Eta ekhono ami nije bolte parchhi na. Amader team parbe: niche “Message our team” bebohar korun, keu uttor deben.",
+  },
+  askTopic: {
+    en: "Happy to help. What would you like to know: about OANRO, the shop and its products, OANRO Studio's services, delivery and payment, or how to contact the team?",
+    bn: "অবশ্যই। কী জানতে চান: OANRO সম্পর্কে, শপ ও পণ্য, OANRO স্টুডিওর সেবা, ডেলিভারি ও পেমেন্ট, নাকি টিমের সাথে যোগাযোগ?",
+    banglish:
+      "Obossho. Ki jante chan: OANRO somporke, shop o product, Studio-r service, delivery o payment, na team-er sathe jogajog?",
   },
   askProduct: {
     en: "Sure! What are you looking for? You can tell me the item, your budget or who it's for.",
@@ -159,7 +170,23 @@ export const messages = {
 export type MessageKey = keyof typeof messages;
 export const say = (key: MessageKey, lang: Lang) => t(messages[key] as Text, lang);
 
+// Suggested replies shown as buttons under the chat.
+
 export const quickReplies = {
-  en: ["Find a product", "Track my order", "Delivery & payment", "Talk to a person"],
-  bn: ["পণ্য খুঁজুন", "অর্ডার ট্র্যাক", "ডেলিভারি ও পেমেন্ট", "মানুষের সাথে কথা"],
+  en: [
+    "About OANRO",
+    "Our services",
+    "Find a product",
+    "Track my order",
+    "Delivery & payment",
+    "Talk to a person",
+  ],
+  bn: [
+    "OANRO সম্পর্কে",
+    "আমাদের সেবা",
+    "পণ্য খুঁজুন",
+    "অর্ডার ট্র্যাক",
+    "ডেলিভারি ও পেমেন্ট",
+    "মানুষের সাথে কথা",
+  ],
 };

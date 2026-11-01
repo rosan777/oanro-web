@@ -36,12 +36,18 @@ export function AssistantLauncher({ config }: { config: PublicAssistantConfig })
     } catch {}
     return () => window.clearTimeout(timer);
   }, []);
+
+  // Other parts of the site can open the assistant with the "oanro-open-assistant" event.
+
   useEffect(() => {
     const openIt = () => setOpen(true);
     window.addEventListener("oanro-open-assistant", openIt);
     return () => window.removeEventListener("oanro-open-assistant", openIt);
   }, []);
   if (!config.enabled || /^\/(admin|checkout|sign-in|reset-password)/.test(path)) return null;
+
+  // Closing returns keyboard focus to the mascot button.
+
   const close = () => {
     setOpen(false);
     requestAnimationFrame(() => button.current?.focus());

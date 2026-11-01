@@ -19,12 +19,18 @@ type Row = {
 };
 type Section = { id: string; name: string };
 type Item = { slug: string; name: string; collectionId: string; status: string };
+
+// Date helpers: a short readable date, and a Dhaka-time YYYY-MM-DD for date inputs.
+
 const when = (iso: string | null) =>
   iso
     ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
     : "—";
 const day = (iso: string | null) =>
   iso ? new Date(new Date(iso).getTime() + 6 * 3600_000).toISOString().slice(0, 10) : "";
+
+// Messages for fields the server rejects.
+
 const errText: Record<string, string> = {
   code: "Code: 3–20 letters, numbers or dashes.",
   value: "Value: percent 1–90, or taka 1 or more.",
@@ -57,6 +63,9 @@ export function DiscountManager({
   const productName = (slug: string) => products.find(p => p.slug === slug)?.name ?? slug;
   const flip = (list: string[], v: string) =>
     list.includes(v) ? list.filter(x => x !== v) : [...list, v];
+
+  // Opens the form for a new code (null) or an existing one, restoring its section/product choices.
+
   const startEdit = (r: Row | null) => {
     setEditing(r);
     setScoped(Boolean(r && (r.collections.length || r.products.length)));
@@ -112,6 +121,9 @@ export function DiscountManager({
       setMsg("Saved.");
     }
   }
+
+  // What a code covers, as shown in the table, and the product search inside the form.
+
   const scopeText = (r: Row) =>
     !r.collections.length && !r.products.length
       ? "Everything"

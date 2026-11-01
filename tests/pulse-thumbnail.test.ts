@@ -1,3 +1,5 @@
+// Global Pulse thumbnails: public-address checks, meta tag parsing, signed preview tokens and image type checks.
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {

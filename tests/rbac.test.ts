@@ -1,3 +1,5 @@
+// Staff permissions: deny by default, owner bypass, invites, roles, deactivation and staff-admin protection.
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PGlite } from "@electric-sql/pglite";

@@ -1,3 +1,5 @@
+// Customer inquiries: input validation, rate limiting, IP hashing and inbox actions.
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PGlite } from "@electric-sql/pglite";

@@ -134,6 +134,13 @@
       "when": 1793119999154,
       "tag": "0018_assistant",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793520000000,
+      "tag": "0019_audit_owner_purge",
+      "breakpoints": true
     }
   ]
 }

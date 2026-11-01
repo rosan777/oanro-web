@@ -5,10 +5,14 @@ import { auditEvent, user } from "@/lib/db/schema";
 import { catalogDb } from "@/lib/store-products";
 import { formatDhaka } from "@/lib/dhaka-time";
 import { AdminBack } from "@/components/admin-nav";
+import { ActivityDeleteAll, ActivityDeleteOne } from "@/components/activity-delete";
 export const dynamic = "force-dynamic";
 
-// Read-only view of the append-only audit log: who changed what, and when. Nothing here can edit or delete entries.
+// View of the append-only audit log: who changed what, and when. Entries can never be edited; only the owner can delete them.
 const PAGE = 50;
+
+// Area filter: each value is the start of the action names it matches ("order" → "order.approve"…).
+
 const groups: [string, string][] = [
   ["", "Everything"],
   ["order", "Orders & payments"],
@@ -23,6 +27,8 @@ const groups: [string, string][] = [
   ["payment", "Payment numbers"],
   ["checkout", "Delivery rules"],
 ];
+
+/** Red for removals and refusals, green for creations and approvals. */
 const tone = (action: string) =>
   /archive|reject|delete|revoke|deactivat|clear|return/.test(action)
     ? "is-danger"
@@ -34,11 +40,14 @@ export default async function ActivityPage({
 }: {
   searchParams: Promise<{ group?: string; q?: string; before?: string }>;
 }) {
-  await requireAdminPage("audit.read");
+  const { access } = await requireAdminPage("audit.read");
   const sp = await searchParams;
   const group = groups.some(([g]) => g === sp.group) ? (sp.group ?? "") : "";
   const q = (sp.q ?? "").trim().slice(0, 60);
   const before = sp.before && !Number.isNaN(Date.parse(sp.before)) ? new Date(sp.before) : null;
+
+  // Filters from the URL: area, free-text search (matched literally), and "before" for paging back in time.
+
   const where: SQL[] = [];
   if (group) where.push(ilike(auditEvent.action, `${group}%`));
   if (q) {
@@ -76,6 +85,9 @@ export default async function ActivityPage({
       .leftJoin(user, eq(user.id, auditEvent.actorId))
       .where(filter),
   ]);
+
+  // One extra row is loaded only to know whether an "Older entries" page exists.
+
   const shown = rows.slice(0, PAGE),
     more = rows.length > PAGE;
   const link = (extra: Record<string, string>) =>
@@ -85,8 +97,9 @@ export default async function ActivityPage({
       <AdminBack />
       <h1>Activity log</h1>
       <p>
-        Every change made in the admin, newest first. The log can&apos;t be edited or deleted by
-        anyone, including the owner. {Number(total?.n ?? 0)} entr
+        Every change made in the admin, with the person&apos;s name, newest first. Entries
+        can&apos;t be edited. Only the owner can delete them, and each deletion is recorded.{" "}
+        {Number(total?.n ?? 0)} entr
         {Number(total?.n ?? 0) === 1 ? "y" : "ies"}
         {group || q ? " match" : " in total"}.
       </p>
@@ -117,6 +130,9 @@ export default async function ActivityPage({
           </Link>
         )}
       </form>
+      {access.owner && Number(total?.n ?? 0) > 0 && (
+        <ActivityDeleteAll total={Number(total?.n ?? 0)} />
+      )}
       {!shown.length ? (
         <p className="report-empty">No activity matches.</p>
       ) : (
@@ -132,6 +148,7 @@ export default async function ActivityPage({
                 <span className="activity-action">{r.action}</span>
               </div>
               <p>{r.reason || <em>No details</em>}</p>
+              {access.owner && <ActivityDeleteOne id={r.id} />}
             </li>
           ))}
         </ol>

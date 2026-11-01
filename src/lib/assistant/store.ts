@@ -32,6 +32,8 @@ import { ProductStoreError, type CatalogDb } from "../product-store";
 import type { Lang, ProviderId } from "./types";
 import { appSecret } from "../app-secret";
 
+// Shared constants and helpers: logs are kept 30 days; usage days are UTC days; hashes are salted with the app secret.
+
 const DAY = 86_400_000;
 export const RETENTION_DAYS = 30;
 export const utcDay = (d = new Date()) => d.toISOString().slice(0, 10);
@@ -55,6 +57,8 @@ export const defaultSettings: AssistantSettings = {
   tone: "",
   handoffNote: "",
 };
+
+/** Saved settings on top of the defaults (the assistant stays off until the owner switches it on). */
 export async function getSettings(db: CatalogDb): Promise<AssistantSettings> {
   const rows = await db.select().from(assistantSetting);
   const v = (k: string) => rows.find(r => r.key === k)?.value;
@@ -118,6 +122,8 @@ export type FaqInput = {
   keywords: string;
   enabled: boolean;
 };
+
+/** FAQ text: control characters and angle brackets become spaces; length limited. */
 const clean = (v: unknown, max: number, required = false) => {
   if (typeof v !== "string") {
     if (required) throw new ProductStoreError("INVALID_FAQ");
@@ -235,6 +241,8 @@ export async function reserveCall(
     .returning({ requests: assistantUsage.requests });
   return Boolean(row);
 }
+
+/** Like reserveCall, for speech-to-text: also caps the total seconds of audio per day. */
 export async function reserveAudio(
   db: CatalogDb,
   seconds: number,
@@ -262,6 +270,8 @@ export async function reserveAudio(
     .returning({ requests: assistantUsage.requests });
   return Boolean(row);
 }
+
+/** Adds the tokens a chat call used to today's counter for that provider. */
 export async function recordTokens(
   db: CatalogDb,
   provider: ProviderId,
@@ -283,6 +293,8 @@ export async function recordTokens(
       ),
     );
 }
+
+/** Counts one failed provider call for today. */
 export async function recordFailure(
   db: CatalogDb,
   provider: ProviderId,
@@ -300,6 +312,8 @@ export async function recordFailure(
       ),
     );
 }
+
+/** Usage rows for the last `days` days, newest first (admin usage table). */
 export async function usageSince(db: CatalogDb, days: number, now = new Date()) {
   return db
     .select()
@@ -376,6 +390,8 @@ export async function addLog(db: CatalogDb, log: LogInput, now = new Date()) {
       .where(eq(assistantSession.id, log.sessionId));
   return done.length > 0;
 }
+
+/** One stored message of this session that has not expired, or null. */
 export const findLog = async (db: CatalogDb, id: string, sessionId: string, now = new Date()) =>
   (
     await db
@@ -405,6 +421,8 @@ export async function recentHistory(
     .limit(limit); // a question and its answer share a timestamp: "assistant" sorts before "user" here, so after reversing the user message comes first
   return rows.reverse().map(r => ({ role: r.role as "user" | "assistant", content: r.content }));
 }
+
+/** Files a question the assistant could not answer, for the team's review list. */
 export async function addUnanswered(
   db: CatalogDb,
   sessionId: string,

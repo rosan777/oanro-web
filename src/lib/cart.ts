@@ -1,8 +1,16 @@
 "use client";
+
+// The shopping bag, kept in the browser's localStorage. Components read it with useCart(), which
+// re-renders on changes from this tab (the "oanro-cart" event) and from other tabs ("storage").
+
 import { allows } from "./consent";
 import { useSyncExternalStore } from "react";
 /** color is the colour id ("" for products without colours). */
 export type CartItem = { slug: string; size: string; color: string; quantity: number };
+
+// Last parsed bag and the raw text it came from, so read() only re-parses when storage changed
+// (useSyncExternalStore needs the same array back while nothing changed).
+
 const empty: CartItem[] = [];
 let snapshot: CartItem[] = empty;
 let rawCache: string | null | undefined;
@@ -12,6 +20,8 @@ const same = (x: CartItem, slug: string, size: string, color: string) =>
 function read() {
   let raw: string | null;
   try {
+    // Storage blocked (private mode, disabled cookies): keep showing the last known bag.
+
     raw = localStorage.getItem(key);
   } catch {
     return snapshot;
@@ -20,6 +30,10 @@ function read() {
   rawCache = raw;
   try {
     const data: unknown = JSON.parse(raw || "[]");
+
+    // Keep only well-formed lines; anything edited by hand or left by an older version is dropped.
+    // Lines saved before colours existed get an empty colour.
+
     snapshot = Array.isArray(data)
       ? data
           .filter((item): item is CartItem =>
@@ -70,6 +84,9 @@ function syncBag(items: CartItem[]) {
     }).catch(() => {});
   }, 1500);
 }
+
+// Saves the bag, tells the server (when allowed) and notifies every useCart() in this tab.
+
 function write(items: CartItem[]) {
   snapshot = items;
   syncBag(items);
@@ -80,6 +97,9 @@ function write(items: CartItem[]) {
   } catch {}
   window.dispatchEvent(new Event("oanro-cart"));
 }
+
+// Bag actions. A line is one product + size + colour; quantities stay between 1 and 10.
+
 export function addToCart(slug: string, size: string, color = "") {
   const current = read();
   const match = current.find(x => same(x, slug, size, color));

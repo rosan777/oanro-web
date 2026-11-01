@@ -108,6 +108,8 @@ export type ProfileSection = {
 };
 export type CompanyProfile = { sections: ProfileSection[] };
 
+// Short builders used to write the default profile below (Bangla starts empty and falls back to English).
+
 const e = (en: string): Bi => ({ en, bn: "" });
 const item = (
   icon: string,
@@ -142,6 +144,7 @@ const section = (
   strip: e(p.strip ?? ""),
 });
 
+/** The built-in profile shown until the owner saves their own. */
 export function defaultProfile(): CompanyProfile {
   return {
     sections: [
@@ -558,6 +561,9 @@ export function blankSection(kind: SectionKind): ProfileSection {
     ],
   });
 }
+
+// Empty item and group the admin editor adds when "Add" is pressed.
+
 export const blankItem = (): ProfileItem => item("check", "New item");
 export const blankGroup = (): ProfileGroup => group("New group", [blankItem()]);
 
@@ -595,6 +601,8 @@ const cleanGroup = (v: unknown): ProfileGroup => {
   const o = (v ?? {}) as Record<string, unknown>;
   return { title: bi(o.title, 120), items: arr(o.items, 40).map(cleanItem) };
 };
+
+/** Keeps only valid, size-limited fields; section ids are made unique and columns kept between 1 and 4. */
 export function cleanProfile(v: unknown): CompanyProfile {
   const o = (v ?? {}) as Record<string, unknown>;
   const ids = new Set<string>();

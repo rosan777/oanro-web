@@ -11,6 +11,9 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
   const config = getSiteConfig();
+
+  // One English and one Bangla entry per page, each listing both language versions.
+
   const entry = (path: string, priority: number): MetadataRoute.Sitemap => {
     const languages = {
       en: `${base}${path === "/" ? "" : path}`,

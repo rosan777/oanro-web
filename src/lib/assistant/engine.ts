@@ -44,6 +44,13 @@ import {
   type ToolContext,
 } from "./tools";
 import { detectLanguage } from "./language";
+import {
+  knowledgeText,
+  searchKnowledge,
+  vagueKnow,
+  knowledgeDigest,
+  type KnowledgeEntry,
+} from "./knowledge";
 import type {
   ChatReply,
   HumanHelp,
@@ -54,11 +61,16 @@ import type {
   StoreMode,
 } from "./types";
 import type { CatalogDb } from "../product-store";
+import { z } from "zod";
+
+const siteInfoInput = z.object({ query: z.string().trim().min(1).max(120) }).strict();
 
 export type EngineDeps = {
   db: CatalogDb;
   tools: ToolContext;
   faq: Faq[];
+  /** Verified facts about OANRO built from published site content (optional so older callers and tests still work). */
+  knowledge?: KnowledgeEntry[];
   settings: AssistantSettings;
   human: HumanHelp;
   providers: ProviderId[];
@@ -76,6 +88,8 @@ export type ChatInput = {
   recent: string[];
 };
 
+// Which fixed message answers each kind of small talk (keys of messages.ts).
+
 const smallTalkKey = {
   greeting: "hello",
   thanks: "thanks",
@@ -89,6 +103,7 @@ const smallTalkKey = {
 let inflight = 0; // simultaneous AI turns in this server instance
 const dhakaDate = (d: Date) => new Date(d.getTime() + 6 * 3600e3).toISOString().slice(0, 10);
 
+/** An empty reply with every field set, so each return below only names what it changes. */
 function base(id: string, lang: Lang, mode: StoreMode, over: Partial<ChatReply>): ChatReply {
   return {
     id,
@@ -108,6 +123,11 @@ function base(id: string, lang: Lang, mode: StoreMode, over: Partial<ChatReply>)
 const quick = (locale: "en" | "bn", lang: Lang) =>
   lang === "bn" || locale === "bn" ? quickReplies.bn : quickReplies.en;
 
+/**
+ * Answers one visitor message. Order: switched off → secret check → duplicate request →
+ * fixed answers (small talk, hand-off, tracking, FAQ) → AI with read-only tools →
+ * a useful fallback when no AI provider can answer. Every reply is logged through finish().
+ */
 export async function chat(deps: EngineDeps, input: ChatInput): Promise<ChatReply> {
   const now = deps.now?.() ?? new Date();
   const replyId = `${input.requestId}:a`;
@@ -156,6 +176,10 @@ export async function chat(deps: EngineDeps, input: ChatInput): Promise<ChatRepl
       ? make({ text: stored.content, source: stored.source as "ai" | "faq" | "system" })
       : make({ text: say("duplicateBusy", lang), limit: "rate" });
   }
+
+  // Logs the reply (with personal details redacted), records the outcome, and files questions it
+  // could not answer for the team.
+
   const finish = async (
     reply: ChatReply,
     meta: {
@@ -216,6 +240,16 @@ export async function chat(deps: EngineDeps, input: ChatInput): Promise<ChatRepl
         : faq.faq.answerEn;
     return finish(make({ text, source: "faq" }), { outcome: "faq" });
   }
+  // "I want to know" with nothing else: ask which topic instead of guessing or apologising.
+  if (vagueKnow(clean))
+    return finish(make({ text: say("askTopic", lang) }), { outcome: "answered" });
+  // Questions about OANRO itself (company, shop, Studio, contact) are answered from published content when no AI is available.
+  const knowledge = deps.knowledge ?? [];
+  const known = searchKnowledge(clean, knowledge, 1)[0];
+  if (known && !intent && !aiReady)
+    return finish(make({ text: knowledgeText(known, lang), source: "system" }), {
+      outcome: "answered",
+    });
   if (intent && !aiReady) {
     const { faq: _faq, ...policy } = await getPolicy({ topic: intent }, deps.tools);
     void _faq;
@@ -230,6 +264,9 @@ export async function chat(deps: EngineDeps, input: ChatInput): Promise<ChatRepl
   }
 
   // ---- 2. AI path (read-only tools, bounded, with provider fallback) ---------------
+
+  // Earlier messages of this chat, and (only with Personalisation allowed) products the visitor viewed.
+
   const history = await recentHistory(deps.db, input.sessionId, limits.historyMessages + 1, now);
   const prior = history
     .filter(m => m.content && !m.content.startsWith("[message removed"))
@@ -240,7 +277,30 @@ export async function chat(deps: EngineDeps, input: ChatInput): Promise<ChatRepl
     : [];
   let failure: Failure | null = null,
     tried = false;
-  const turnTools = (sink: { cards: Map<string, ProductCard>; policy: PolicyFacts | null }) => ({
+
+  // The tools the model may call this turn. Each tool also drops what it found into `sink`, so the
+  // reply can show product cards and the price check below knows which amounts are real.
+
+  const turnTools = (sink: {
+    cards: Map<string, ProductCard>;
+    policy: PolicyFacts | null;
+    info: string[];
+  }) => ({
+    getSiteInfo: tool({
+      description:
+        "Look up verified facts about OANRO itself: the company, who we are, the shop, OANRO Studio services and packages, the company profile, contact options and the website's pages. Use for any 'what/who/about' question that is not a product or delivery rule.",
+      inputSchema: siteInfoInput,
+      execute: async ({ query }) => {
+        const hits = searchKnowledge(query, knowledge, 3);
+        hits.forEach(h => sink.info.push(h.entry.text.en, h.entry.text.bn));
+        return hits.length
+          ? {
+              found: true,
+              items: hits.map(h => ({ title: h.entry.title.en, text: h.entry.text.en })),
+            }
+          : { found: false };
+      },
+    }),
     searchProducts: tool({
       description:
         "Search the shop's published products by what the shopper wants. Returns up to 5 items with current price, availability, sizes and colours.",
@@ -296,6 +356,8 @@ export async function chat(deps: EngineDeps, input: ChatInput): Promise<ChatRepl
     );
   inflight++;
   try {
+    // Try each configured provider in order; skip unhealthy ones and those over their daily cap.
+
     for (const id of deps.providers) {
       const resolved = deps.model(id);
       if (!resolved || !isHealthy(id)) continue;
@@ -314,7 +376,11 @@ export async function chat(deps: EngineDeps, input: ChatInput): Promise<ChatRepl
         continue;
       }
       tried = true;
-      const sink = { cards: new Map<string, ProductCard>(), policy: null as PolicyFacts | null }; // reset per provider: nothing from a failed attempt leaks into the reply
+      const sink = {
+        cards: new Map<string, ProductCard>(),
+        policy: null as PolicyFacts | null,
+        info: [] as string[],
+      }; // reset per provider: nothing from a failed attempt leaks into the reply
       try {
         const result = await generateText({
           model: resolved.model,
@@ -325,6 +391,7 @@ export async function chat(deps: EngineDeps, input: ChatInput): Promise<ChatRepl
             tone: deps.settings.tone,
             recent: recentNames,
             today: dhakaDate(now),
+            about: knowledgeDigest(knowledge),
           }),
           messages: [
             ...prior.map(m => ({ role: m.role, content: m.content })),
@@ -341,6 +408,9 @@ export async function chat(deps: EngineDeps, input: ChatInput): Promise<ChatRepl
         const tin = usage?.inputTokens ?? 0,
           tout = usage?.outputTokens ?? 0;
         await recordTokens(deps.db, id, tin, tout, now.toISOString().slice(0, 10));
+
+        // Clean the reply, then remove any price or amount the tools did not return this turn.
+
         let text = cleanReply(result.text ?? "");
         const wantsHuman = /\[\[HUMAN\]\]/.test(text);
         text = text.replace(/\[\[HUMAN\]\]/g, "").trim();
@@ -349,13 +419,18 @@ export async function chat(deps: EngineDeps, input: ChatInput): Promise<ChatRepl
         const said = new Set(
           [clean, ...prior.filter(m => m.role === "user").map(m => m.content)].flatMap(amountsIn),
         ); // numbers the visitor wrote (a budget) may be repeated back
-        let checked = stripUnverifiedAmounts(text, allowedAmounts(cards, sink.policy, rules), said);
+        const verified = () => {
+          const set = allowedAmounts(cards, sink.policy, rules);
+          sink.info.flatMap(amountsIn).forEach(n => set.add(n));
+          return set;
+        };
+        let checked = stripUnverifiedAmounts(text, verified(), said);
         // The model quoted a price without looking it up this turn: look the item up ourselves so a correct price can stay and the card is shown.
         if (checked.removed && !cards.length) {
           const found = await fallbackFind(deps, clean, lang, mode);
           if (found.cards.length) {
             cards = found.cards.slice(0, 5);
-            checked = stripUnverifiedAmounts(text, allowedAmounts(cards, sink.policy, rules), said);
+            checked = stripUnverifiedAmounts(text, verified(), said);
           }
         }
         text = checked.text;
@@ -412,6 +487,10 @@ export async function chat(deps: EngineDeps, input: ChatInput): Promise<ChatRepl
       { outcome: "answered" },
     );
   }
+  if (known)
+    return finish(make({ text: knowledgeText(known, lang), source: "system" }), {
+      outcome: "answered",
+    });
   const why: ChatReply["limit"] =
     !tried && !failure ? "unavailable" : failure?.kind === "quota" ? "quota" : "unavailable";
   const note = !deps.providers.some(p => deps.model(p))
@@ -473,6 +552,7 @@ const modelView = (c: ProductCard) => ({
   previewOnly: c.preview,
 });
 
+/** Product search on the meaningful words of the message, used when the AI is not available. */
 async function fallbackFind(
   deps: EngineDeps,
   text: string,

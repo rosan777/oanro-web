@@ -23,6 +23,7 @@ export function hashIp(ip: string, secret: string) {
   return createHash("sha256").update(`${secret}:oanro-lead:${ip}`).digest("hex").slice(0, 32);
 }
 
+/** Saves a public inquiry. Refused after 5 inquiries from the same IP hash within an hour. */
 export async function createLead(
   db: CatalogDb,
   input: LeadInput,
@@ -63,6 +64,8 @@ export async function createLead(
   return id;
 }
 export type InboxLead = Awaited<ReturnType<typeof listLeads>>[number];
+
+/** Inbox list, optionally filtered by status. */
 export async function listLeads(db: CatalogDb, status?: LeadStatus) {
   const rows = await db
     .select()

@@ -20,6 +20,8 @@ import { after } from "next/server";
 import { sendStaffInvite } from "@/lib/order-notify";
 export const runtime = "nodejs";
 
+// Input checks for ids and plain text fields.
+
 const id = (value: unknown, field: string) => {
   if (typeof value !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(value))
     throw new ProductInputError(field);
@@ -36,10 +38,14 @@ const text = (value: unknown, field: string) => {
 function ownerOnly(access: Access) {
   if (!access.owner) throw new ProductStoreError("OWNER_ONLY");
 }
+
+/** Non-owners may not hand out a role that grants staff management or other sensitive access. */
 async function guardRole(access: Access, roleId: string) {
   if (!access.owner && (await roleGrantsStaffAdmin(catalogDb(), roleId)))
     throw new ProductStoreError("OWNER_ONLY");
 }
+
+/** Non-owners may not change someone who already has staff management access. */
 async function guardMember(access: Access, userId: string) {
   if (!access.owner && (await memberIsStaffAdmin(catalogDb(), userId)))
     throw new ProductStoreError("OWNER_ONLY");

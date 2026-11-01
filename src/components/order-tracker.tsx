@@ -23,6 +23,9 @@ export function OrderTracker() {
   const [order, setOrder] = useState<Tracked | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+
+  // Event time in Bangladesh time.
+
   const fmt = (iso: string) =>
     new Intl.DateTimeFormat(bn ? "bn-BD" : "en-GB", {
       day: "numeric",
@@ -31,6 +34,8 @@ export function OrderTracker() {
       minute: "2-digit",
       timeZone: "Asia/Dhaka",
     }).format(new Date(iso));
+
+  /** Looks the order up by code and phone; any failure shows the same "not found" message. */
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);

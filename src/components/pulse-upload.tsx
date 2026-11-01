@@ -2,6 +2,11 @@
 import type { ChangeEvent } from "react";
 
 type Preview = { thumbnailUrl: string; previewToken: string };
+
+/**
+ * Admin file picker for a Global Pulse thumbnail. The photo is resized in the browser (640 px,
+ * JPEG on white), sent to the pulse API for checking, and handed back as a signed preview to approve.
+ */
 export function PulseUpload({
   disabled,
   getUrl,

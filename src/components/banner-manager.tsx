@@ -19,6 +19,9 @@ export function BannerManager({ initial }: { initial: Row[] }) {
   const [editing, setEditing] = useState<Row | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+
+  // Sends a change and replaces the list with the server's answer; shows which field was wrong on failure.
+
   const call = async (method: "POST" | "DELETE", body: object) => {
     setBusy(true);
     setMsg("");

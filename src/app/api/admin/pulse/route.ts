@@ -1,3 +1,6 @@
+// Admin API for Global Pulse news stories (needs pulse.manage). Thumbnails are only saved after the
+// owner has seen them: preview/upload returns a signed token, and saving must present that token.
+
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { authorize } from "@/lib/admin-api";
@@ -13,13 +16,19 @@ import {
 } from "@/lib/pulse-thumbnail";
 import { storefrontChanged } from "@/lib/storefront-cache";
 export const runtime = "nodejs";
+
+/** The caller's user id when they may manage stories, otherwise null. */
 async function owner(request: Request) {
   return (await authorize(request, "pulse.manage"))?.userId ?? null;
 }
+
+/**
+ * Three actions: "upload" (check an uploaded thumbnail), "preview" (fetch the story page's own
+ * thumbnail), or, with no action, publish a story after the owner confirmed the rights.
+ */
 export async function POST(request: Request) {
   const ownerId = await owner(request);
   if (!ownerId) return Response.json({ error: "FORBIDDEN" }, { status: 403 });
-  storefrontChanged();
   let data: Record<string, unknown>;
   try {
     data = await readObject(request);
@@ -80,6 +89,9 @@ export async function POST(request: Request) {
     data.thumbnailUrl != null
   )
     return Response.json({ error: "INVALID_INPUT" }, { status: 400 });
+
+  // Publishing: a thumbnail is only stored when the owner approved it and the signed preview token is valid.
+
   let thumbnailUrl: string | null = null;
   if (data.thumbnailApproved === true) {
     try {
@@ -117,15 +129,17 @@ export async function POST(request: Request) {
           : "Manual source and rights reviewed",
       });
     });
+    storefrontChanged();
     return Response.json({ id }, { status: 201 });
   } catch {
     return Response.json({ error: "DUPLICATE_OR_UNAVAILABLE" }, { status: 409 });
   }
 }
+
+/** Approve a thumbnail for an existing story, archive or restore a story, or show/hide it. */
 export async function PATCH(request: Request) {
   const ownerId = await owner(request);
   if (!ownerId) return Response.json({ error: "FORBIDDEN" }, { status: 403 });
-  storefrontChanged();
   let data: Record<string, unknown>;
   try {
     data = await readObject(request);
@@ -165,6 +179,7 @@ export async function PATCH(request: Request) {
           reason: "Owner reviewed thumbnail snapshot and confirmed image reuse permission",
         });
       });
+      storefrontChanged();
       return Response.json({ id: data.id });
     } catch {
       return Response.json({ error: "PREVIEW_EXPIRED_OR_UNAVAILABLE" }, { status: 400 });
@@ -193,6 +208,7 @@ export async function PATCH(request: Request) {
           reason: changed[0].headline.slice(0, 200),
         });
       });
+      storefrontChanged();
       return Response.json({ id: data.id, archived: archive });
     } catch {
       return Response.json({ error: "NOT_FOUND_OR_UNAVAILABLE" }, { status: 404 });
@@ -220,16 +236,17 @@ export async function PATCH(request: Request) {
         reason: "Owner editorial decision",
       });
     });
+    storefrontChanged();
     return Response.json({ id: data.id, visible: data.visible });
   } catch {
     return Response.json({ error: "NOT_FOUND_OR_UNAVAILABLE" }, { status: 404 });
   }
 }
 
+/** Permanently delete a story (needs confirmDelete: true); the activity log keeps the headline. */
 export async function DELETE(request: Request) {
   const ownerId = await owner(request);
   if (!ownerId) return Response.json({ error: "FORBIDDEN" }, { status: 403 });
-  storefrontChanged();
   let data: Record<string, unknown>;
   try {
     data = await readObject(request, 8192);
@@ -258,9 +275,9 @@ export async function DELETE(request: Request) {
       });
       return true;
     });
-    return deleted
-      ? Response.json({ id: data.id, deleted: true })
-      : Response.json({ error: "NOT_FOUND" }, { status: 404 });
+    if (!deleted) return Response.json({ error: "NOT_FOUND" }, { status: 404 });
+    storefrontChanged();
+    return Response.json({ id: data.id, deleted: true });
   } catch {
     return Response.json({ error: "DELETE_UNAVAILABLE" }, { status: 503 });
   }

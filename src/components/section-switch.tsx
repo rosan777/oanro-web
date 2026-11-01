@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 
 /**
  * ON/OFF switch for an admin hub card. Collections toggle Published/Hidden; site sections
- * (Services, Global Pulse) toggle their website_section flag. Both are owner-only and audit-logged.
+ * (Services, Global Pulse) toggle their website_section flag. Collections need "sections.toggle",
+ * site sections need "site.manage"; both changes are audit-logged.
  */
 export function SectionSwitch({
   kind,

@@ -11,6 +11,8 @@ import { alternatesFor, requestLocale } from "@/lib/request-locale";
 import { localePath } from "@/lib/locale-path";
 import { siteUrl } from "@/lib/site-url";
 type Props = { params: Promise<{ slug: string }> };
+
+/** The published product with this slug, or undefined (also when products are switched off). */
 async function find(slug: string) {
   return getSiteConfig().products
     ? (await getStoreProducts()).find(p => p.slug === slug)
@@ -88,6 +90,9 @@ export default async function ProductPage({ params }: Props) {
   };
   // Price and stock only when the store is really selling (OANRO_STORE_LIVE=true): sample prices would mislead Google.
   const live = storeLive();
+
+  // Shipping details for the structured data: "1-3" style day ranges and one entry per delivery area.
+
   const days = (range: string) => {
     const [min, max = min] = range.split("-").map(Number);
     return { minValue: min, maxValue: max, unitCode: "DAY" };

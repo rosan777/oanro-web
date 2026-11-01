@@ -1,3 +1,6 @@
+// Discount codes: eligibility checks, the checkout preview, redeeming inside the order transaction,
+// and admin create/edit/switch on-off. Amount maths is discountAmount() in order-input.ts.
+
 import { randomUUID } from "node:crypto";
 import { and, desc, eq, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { auditEvent, discountCode, product } from "./db/schema";
@@ -78,6 +81,8 @@ export async function redeemDiscount(tx: Tx, code: string, cart: number | Discou
   return result.amount;
 }
 
+// Admin side: validating the form and saving codes. Every save is written to the activity log.
+
 export type DiscountInput = {
   code: string;
   kind: "percent" | "amount";
@@ -91,6 +96,9 @@ export type DiscountInput = {
   collections: string[];
   products: string[];
 };
+
+// A list of section ids or product slugs (at most 200), duplicates removed.
+
 const ids = (v: unknown, field: string) => {
   if (v === undefined || v === null) return [];
   if (

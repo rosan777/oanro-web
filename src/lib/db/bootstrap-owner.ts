@@ -1,3 +1,6 @@
+// One-time setup: makes a verified user the site owner. Run from scripts/bootstrap-owner.ts
+// (npm run owner:bootstrap). Fails if an owner already exists.
+
 import { randomUUID } from "node:crypto";
 type Connection = { query: (sql: string, values?: string[]) => Promise<{ rows: unknown[] }> };
 // Caller supplies one dedicated connection; every change is one transaction.
@@ -5,6 +8,8 @@ export async function bootstrapOwner(client: Connection, userId: string, reason:
   if (!userId || !reason.trim()) throw new Error("User and reason required");
   await client.query("BEGIN");
   try {
+    // Lock the table so two runs at the same moment cannot both create an owner.
+
     await client.query("LOCK TABLE system_owner IN EXCLUSIVE MODE");
     if ((await client.query("SELECT 1 FROM system_owner")).rows.length)
       throw new Error("Owner already initialized");

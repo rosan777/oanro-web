@@ -16,6 +16,9 @@ import { platformName, SocialIcon } from "./social-icon";
 import type { Bi } from "@/lib/content";
 
 type Part = "contact" | "text" | "features" | "guides" | "packages" | "faq";
+
+// The editor's tabs. "Images" saves each picture on its own; every other tab saves one part of the content.
+
 const tabs: [Part | "images", string][] = [
   ["contact", "Contact & social"],
   ["images", "Images"],
@@ -25,6 +28,8 @@ const tabs: [Part | "images", string][] = [
   ["packages", "Studio packages"],
   ["faq", "Service FAQ"],
 ];
+
+/** Groups field keys by their admin group label, keeping the order they were defined in. */
 const groupBy = <K extends string>(fields: Record<K, { group: string }>) => {
   const out = new Map<string, K[]>();
   (Object.keys(fields) as K[]).forEach(k =>
@@ -108,6 +113,8 @@ function ItemTools({
     </div>
   );
 }
+
+/** Immutable list helpers: move one entry to a new index, or replace the entry at an index. */
 const moved = <T,>(list: T[], from: number, to: number) => {
   const c = [...list];
   const [x] = c.splice(from, 1);
@@ -127,6 +134,9 @@ export function ContentEditor({
   const [saved, setSaved] = useState(initial);
   const [draft, setDraft] = useState(initial);
   const [tabSel, setTab] = useState<Part | "images">("contact");
+
+  // The content part the Save / Reset buttons act on (the Images tab has its own buttons), and whether it has unsaved changes.
+
   const tab: Part = tabSel === "images" ? "contact" : tabSel;
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
@@ -136,6 +146,7 @@ export function ContentEditor({
     setMsg("");
   };
 
+  /** Saves the current tab's part, or puts it back to the default after confirmation. */
   async function save(reset = false) {
     if (reset && !confirm("Put this tab back to the original version?")) return;
     setBusy(true);
@@ -193,6 +204,7 @@ export function ContentEditor({
 
       {tabSel === "images" && <MediaManager initial={initial.media} />}
 
+      {/* Contact details, social links (with optional uploaded icons) and marketing settings. */}
       {tabSel === "contact" &&
         (() => {
           const c = draft.contact;
@@ -413,6 +425,7 @@ export function ContentEditor({
           );
         })()}
 
+      {/* Every editable text, grouped by where it appears. */}
       {tabSel === "text" &&
         groupBy(textFields).map(([group, keys]) => (
           <fieldset key={group} className="ce-group">
@@ -432,6 +445,7 @@ export function ContentEditor({
           </fieldset>
         ))}
 
+      {/* On/off switches for page sections, plus the featured product choice. */}
       {tabSel === "features" && (
         <>
           {groupBy(featureFields).map(([group, keys]) => (
@@ -476,6 +490,7 @@ export function ContentEditor({
         </>
       )}
 
+      {/* Guides, studio packages and the service FAQ: lists that can be added to, reordered and removed. */}
       {tabSel === "guides" && (
         <>
           {draft.guides.map((g, i) => (
@@ -718,6 +733,7 @@ export function ContentEditor({
         </>
       )}
 
+      {/* Save and reset buttons for the current tab. */}
       {tabSel !== "images" && (
         <div className="ce-bar">
           <button

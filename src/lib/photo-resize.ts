@@ -14,6 +14,9 @@ export async function resizePhoto(file: File, maxEdge = 800): Promise<string> {
     context.fillStyle = "#ffffff";
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+    // Lower the JPEG quality step by step until the result fits under the upload limit.
+
     for (const quality of [0.82, 0.65, 0.5]) {
       const image = canvas.toDataURL("image/jpeg", quality);
       if (image.length <= 260000) return image;

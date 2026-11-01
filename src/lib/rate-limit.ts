@@ -1,3 +1,5 @@
+// Simple per-visitor rate limits for public forms and endpoints, stored in the database.
+
 import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
@@ -29,6 +31,9 @@ export async function underLimit(
 ) {
   const ip = clientIp(request);
   if (!ip) return true;
+
+  // Salted hash so the raw IP address is never stored.
+
   const hash = createHash("sha256")
     .update(`${appSecret("oanro")}:oanro-limit:${ip}`)
     .digest("hex")
@@ -36,6 +41,8 @@ export async function underLimit(
   const now = Date.now(),
     windowStart = now - windowMs;
   try {
+    // One upsert: start a new count when the last request is older than the window, otherwise add one.
+
     const [row] = await db
       .insert(rateLimit)
       .values({ id: randomUUID(), key: `oanro:${name}:${hash}`, count: 1, lastRequest: now })

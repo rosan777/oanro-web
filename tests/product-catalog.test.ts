@@ -1,3 +1,5 @@
+// Catalog: product input rules, the product lifecycle with audit, price formatting, custom sections and services, sample seed.
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PGlite } from "@electric-sql/pglite";

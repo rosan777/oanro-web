@@ -54,6 +54,9 @@ import {
   websiteJsonLd,
 } from "@/lib/seo";
 
+// Fonts (self-hosted by next/font). Each sets a CSS variable used by the stylesheets; fonts with
+// preload: false only download when a page actually uses them.
+
 const sans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -67,7 +70,6 @@ const bangla = Hind_Siliguri({
   weight: ["400", "500", "600"],
   display: "swap",
 });
-// Accent serif for the brand words only (italic).
 // New brand fonts (I1 design): condensed headings, grotesk body, mono labels, handwritten signature.
 const display = Barlow_Condensed({
   variable: "--font-display",
@@ -95,6 +97,7 @@ const script = Parisienne({
   display: "swap",
   preload: false,
 });
+// Accent serif for the brand words only (italic).
 const accent = Instrument_Serif({
   variable: "--font-accent",
   subsets: ["latin"],
@@ -134,6 +137,12 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 export const dynamic = "force-dynamic";
+
+/**
+ * Shell of every page: language, shared storefront data for client components, the top bar,
+ * header and footer, and the optional extras (Global Pulse, help button, bottom bar, Meta Pixel,
+ * assistant, privacy center). Admin pages add their own layout inside this one.
+ */
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const config = getSiteConfig();
   const { locale } = await requestLocale();
@@ -151,6 +160,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const sections = await getSectionState();
   // The admin Services switch hides services everywhere (rows, menu, search), on top of the environment switch.
   const site = { ...config, services: config.services && sections.services };
+
+  // Storefront data shared with client components through ProductsProvider (skipped when switched off).
+
   const [stories, catalog, serviceList, lines, popular] = await Promise.all([
     sections["global-pulse"] ? getApprovedPulseStories() : [],
     config.products ? getStoreProducts() : [],
@@ -202,7 +214,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   <MetaPixel pixelId={content.contact.pixelId} />
                 )}
                 {assistant?.enabled && <AssistantLoader config={assistant} />}
-                <PrivacyCenter gaId={process.env.NEXT_PUBLIC_GA_ID ?? ""} />
+                <PrivacyCenter
+                  gaId={
+                    content.features.googleAnalytics ? (process.env.NEXT_PUBLIC_GA_ID ?? "") : ""
+                  }
+                />
               </SiteContentProvider>
             </Experience>
           </ProductsProvider>

@@ -83,6 +83,9 @@ html[lang="bn"] .v2-h3 {
   gap: 0.75rem;
   margin-top: 1.75rem;
 }
+
+/* Buttons. */
+
 .v2-btn {
   display: inline-flex;
   align-items: center;
@@ -321,6 +324,9 @@ html[lang="bn"] .v2-h3 {
 .v2-fade {
   animation: v2-fade 0.9s ease both;
 }
+
+/* Hero and page-load animations. */
+
 @keyframes v2-rise {
   from {
     transform: translateY(40%);
@@ -592,6 +598,9 @@ html[lang="bn"] .v2-h3 {
   background: #141716;
   color: #fff;
 }
+
+/* Product card call-to-action. */
+
 .v2-card-cta {
   position: absolute;
   left: 8px;
@@ -700,6 +709,9 @@ html[lang="bn"] .v2-h3 {
     radial-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px) 0 0 / 18px 18px,
     var(--space);
 }
+
+/* Service cards. */
+
 .v2-svc-orbit {
   position: absolute;
   left: 50%;
@@ -881,6 +893,9 @@ html[lang="bn"] .v2-h3 {
   gap: 3.5rem;
   padding-block: 1.5rem 2rem;
 }
+
+/* About section: orbiting logo. */
+
 .v2-orbit-wrap {
   flex: 0 1 300px;
   display: flex;
@@ -1126,7 +1141,7 @@ html[lang="bn"] .v2-h3 {
   margin-left: 12px;
   font-family: var(--font-label), monospace;
   font-size: 0.75rem;
-  color: #6c7570;
+  color: #808984; /* 5.3:1 on the terminal background (WCAG AA) */
 }
 .v2-terminal-body {
   padding: 1.6rem;
@@ -1349,6 +1364,9 @@ html[lang="bn"] .home-faq h2 {
   color: #fff;
   animation: v2-wa 2.4s ease-out infinite;
 }
+
+/* Floating WhatsApp button animation. */
+
 @keyframes v2-wa {
   0% {
     box-shadow: 0 0 0 0 rgb(31 81 60 / 0.45);
@@ -1525,6 +1543,9 @@ html[lang="bn"] .home-faq h2 {
     box-shadow: 0 0 0 10px rgb(61 220 151 / 0);
   }
 }
+
+/* Global Pulse heading (v2 look). */
+
 .pulse-heading h2 {
   margin-top: 0.5rem;
   font-family: var(--font-display), var(--font-bangla), sans-serif;
@@ -2376,6 +2397,9 @@ dialog.privacy-center .pc-text {
 .pc-link:hover {
   color: #163f2e;
 }
+
+/* Privacy preferences: the "Manage preferences" panel. */
+
 .pc-manage {
   padding-bottom: 1rem;
   margin-bottom: 1rem;
@@ -2576,6 +2600,9 @@ dialog.privacy-center .pc-text a:focus-visible {
 .lang-trigger[aria-expanded="true"] {
   border-color: #3ddc97;
 }
+
+/* Language menu in the header. */
+
 .lang-list {
   position: absolute;
   right: 0;
@@ -2620,6 +2647,9 @@ dialog.privacy-center .pc-text a:focus-visible {
   flex: none;
   border-radius: 2px;
 }
+
+/* Region and language picker in the footer. */
+
 .region-trigger {
   display: inline-flex;
   align-items: center;
@@ -2774,6 +2804,9 @@ dialog.privacy-center .pc-text a:focus-visible {
     transform: none;
   }
 }
+
+/* Product story: progress dots and panels. */
+
 .v2-story-dots {
   display: flex;
   flex-wrap: wrap;
@@ -2882,6 +2915,9 @@ dialog.privacy-center .pc-text a:focus-visible {
     }
   }
 }
+
+/* Product story animations. */
+
 @keyframes v2-panel-focus {
   0% {
     opacity: 0.15;
@@ -2939,6 +2975,9 @@ dialog.privacy-center .pc-text a:focus-visible {
   gap: 14px;
   margin-top: 2rem;
 }
+
+/* "Why OANRO" bento tiles. */
+
 .v2-tile {
   display: flex;
   flex-direction: column;
@@ -3207,6 +3246,9 @@ dialog.privacy-center .pc-text a:focus-visible {
     }
   }
 }
+
+/* Line-drawing animations. */
+
 @keyframes line-draw {
   from {
     transform: scaleX(0);
@@ -3759,6 +3801,9 @@ dialog.privacy-center .pc-text a:focus-visible {
   border-top-color: #fff;
   animation: btn-spin 0.7s linear infinite;
 }
+
+/* Button loading spinner. */
+
 @keyframes btn-spin {
   to {
     transform: rotate(360deg);
@@ -4128,6 +4173,9 @@ dialog.privacy-center .pc-text a:focus-visible {
 .track-page {
   padding-block: 3rem 4rem;
 }
+
+/* Order tracking page. */
+
 .tracker {
   max-width: 560px;
   margin: 0 auto;
@@ -4328,6 +4376,9 @@ dialog.privacy-center .pc-text a:focus-visible {
 .guides-page {
   padding-block: 3rem 4rem;
 }
+
+/* About page. */
+
 .about-hero {
   display: grid;
   justify-items: center;
@@ -4718,6 +4769,9 @@ dialog.privacy-center .pc-text a:focus-visible {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* Social links. */
+
 .social-links {
   list-style: none;
   margin: 0;
@@ -4902,6 +4956,9 @@ dialog.privacy-center .pc-text a:focus-visible {
   letter-spacing: 0.01em;
   margin-bottom: 0.35rem;
 }
+
+/* Footer extras. */
+
 .footer-extra {
   display: flex;
   flex-wrap: wrap;
@@ -5397,6 +5454,9 @@ dialog.privacy-center .pc-text a:focus-visible {
     transform: scaleX(1);
   }
 }
+
+/* Studio section: services, terminal, process steps and device mock-ups. */
+
 .v2-studio-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
@@ -6017,6 +6077,9 @@ dialog.privacy-center .pc-text a:focus-visible {
 
 /* ---- Compact product grids (online-shop density): more products visible at once, smaller text, photo never cropped. Service cards are not touched. ---- */
 .v2-grid-products,
+
+/* Category page grid and filters. */
+
 .category-grid {
   grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
   gap: 14px;

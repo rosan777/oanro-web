@@ -1,3 +1,6 @@
+/* Styles for value-fan.tsx: four value cards that fan out while the section scrolls.
+   The script sets each card's transform, --card-angle, --card-blur and --label-opacity. */
+
 .section {
   --step: min(23.5vw, 180px);
   position: relative;

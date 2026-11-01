@@ -5,12 +5,15 @@ import { auditEvent, customerNote, orderDiscount, orderLabel, shopOrder, user } 
 import { ProductInputError } from "./product-input";
 import { ProductStoreError, type CatalogDb } from "./product-store";
 
+/** An order label: 2–24 characters with spaces tidied. */
 export const cleanLabel = (v: unknown) => {
   if (typeof v !== "string") throw new ProductInputError("label");
   const s = v.trim().replace(/\s+/g, " ");
   if (s.length < 2 || s.length > 24) throw new ProductInputError("label");
   return s;
 };
+
+/** An order's team labels and the discount code used on it, if any. */
 export async function orderExtras(db: CatalogDb, orderId: string) {
   const [labels, [discount]] = await Promise.all([
     db
@@ -26,6 +29,8 @@ export async function orderExtras(db: CatalogDb, orderId: string) {
   ]);
   return { labels: labels.map(l => l.label), discount: discount ?? null };
 }
+
+/** Adds or removes one label on an order and logs it. */
 export async function setOrderLabel(
   db: CatalogDb,
   actorId: string,
@@ -67,6 +72,8 @@ export async function listCustomerNotes(db: CatalogDb, userId: string) {
     .where(eq(customerNote.userId, userId))
     .orderBy(desc(customerNote.createdAt));
 }
+
+/** Adds a private note (2–1000 characters) about a customer. */
 export async function addCustomerNote(
   db: CatalogDb,
   actorId: string,

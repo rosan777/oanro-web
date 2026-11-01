@@ -16,6 +16,9 @@ import { permissions, sensitivePermissions, type Permission } from "./permission
 import { ProductStoreError, type CatalogDb } from "./product-store";
 
 export type Access = { owner: boolean; permissions: Set<Permission> };
+
+// No access at all, and a helper that writes one activity log entry (reason cut to 300 characters).
+
 const none: Access = { owner: false, permissions: new Set() };
 const audit = (
   db: Pick<CatalogDb, "insert">,
@@ -184,6 +187,8 @@ export async function revokeInvite(db: CatalogDb, actorId: string, id: string) {
     await audit(tx, actorId, "staff.invite-revoke", id, done[0].email);
   });
 }
+
+/** The target's staff row; refuses changes to yourself and to anyone who is not staff. */
 async function requireStaff(db: CatalogDb, actorId: string, userId: string) {
   if (userId === actorId) throw new ProductStoreError("SELF_CHANGE"); // nobody can change their own access
   const [m] = await db.select().from(staffMember).where(eq(staffMember.userId, userId)).limit(1);
@@ -249,6 +254,8 @@ export async function removeStaff(db: CatalogDb, actorId: string, userId: string
     );
   });
 }
+
+/** Accepts only known permission names; duplicates removed. */
 function cleanPermissions(list: unknown): Permission[] {
   if (!Array.isArray(list) || list.some(p => !(permissions as readonly unknown[]).includes(p)))
     throw new ProductStoreError("INVALID_PERMISSIONS");
@@ -315,6 +322,8 @@ export async function deleteRole(db: CatalogDb, actorId: string, roleId: string)
   });
 }
 export type StaffOverview = Awaited<ReturnType<typeof getStaffOverview>>;
+
+/** Everything the Staff page shows: roles with their permissions, staff members and open invites. */
 export async function getStaffOverview(db: CatalogDb) {
   const roles = await db.select().from(role).orderBy(asc(role.builtIn), asc(role.name));
   const perms = roles.length

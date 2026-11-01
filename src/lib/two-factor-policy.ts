@@ -28,6 +28,8 @@ export async function staffTwoFactorRequired(db: CatalogDb) {
   }
   return false;
 }
+
+/** Owner action: turns the staff two-step rule on or off and logs it. */
 export async function setStaffTwoFactorRequired(db: CatalogDb, actorId: string, on: boolean) {
   await db.transaction(async tx => {
     await tx
@@ -59,5 +61,8 @@ export async function needsTwoFactorSetup(db: CatalogDb, userId: string, isOwner
       .limit(1),
     db.select({ on: user.twoFactorEnabled }).from(user).where(eq(user.id, userId)).limit(1),
   ]);
+
+  // Only people who have a password sign-in are asked; Google-only accounts are not.
+
   return Boolean(cred) && !me?.on;
 }

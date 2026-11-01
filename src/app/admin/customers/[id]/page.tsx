@@ -11,6 +11,8 @@ import { CustomerEmail } from "@/components/customer-email";
 import { CustomerNotes } from "@/components/team-extras";
 import { listCustomerNotes } from "@/lib/team-notes";
 export const dynamic = "force-dynamic";
+
+/** One plain status line for an order: payment review, then delivery, then COD cash. */
 const orderState = (o: {
   status: string;
   delivery: string | null;
@@ -39,6 +41,9 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
     ...n,
     createdAt: n.createdAt.toISOString(),
   }));
+
+  // A profile row, left out when the value is empty.
+
   const field = (label: string, value?: string | null) =>
     value ? (
       <div>

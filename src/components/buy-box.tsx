@@ -124,6 +124,8 @@ export function StickyBuy({ product, soldOut }: { product: Product; soldOut: boo
   const bn = locale === "bn";
   const [show, setShow] = useState(false);
   useEffect(() => {
+    // Show the bar once the main "Add to bag" button has scrolled up out of view.
+
     const main = document.querySelector(".add-to-bag");
     if (!main) return;
     const io = new IntersectionObserver(([e]) =>
@@ -234,6 +236,9 @@ export function CompleteLook({
   const t = (en: string, b: string) => (bn ? b : en);
   const wearable = (p: Product) => p.collectionId === "seasonal" || p.collectionId === "caps";
   if (!enabled || !wearable(product)) return null;
+
+  // Up to two in-stock wearable items from a different section.
+
   const picks = others
     .filter(p => wearable(p) && p.collectionId !== product.collectionId && p.inStock !== false)
     .slice(0, 2);

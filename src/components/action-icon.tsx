@@ -30,6 +30,8 @@ const paths = {
   inquiry: "M4 5h16v11H9l-5 4V5zM8 9h8M8 12h5",
 } as const;
 export type ActionIconName = keyof typeof paths;
+
+/** One icon by name; decorative (hidden from screen readers) because a text label is always beside it. */
 export function ActionIcon({ name, size = 16 }: { name: ActionIconName; size?: number }) {
   return (
     <svg
