@@ -9,7 +9,16 @@ async function send(body: object) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   }).catch(() => null);
-  return res?.ok ?? false;
+  return res;
+}
+
+/** Says why a delete failed, so an old page or an expired sign-in is not reported as "not the owner". */
+function failText(res: Response | null) {
+  if (!res) return "Couldn't reach the server. Check the connection and try again.";
+  if (res.status === 404) return "Already deleted. The list has been refreshed.";
+  if (res.status === 403)
+    return "Not allowed. Your sign-in may have expired: sign in again as the owner (with your two-step code) and retry.";
+  return "Couldn't delete right now. Refresh the page and try again.";
 }
 
 /** Small "Delete" button beside one log entry; asks once before deleting. */
@@ -26,8 +35,12 @@ export function ActivityDeleteOne({ id }: { id: string }) {
         if (!window.confirm("Delete this activity entry? This can't be undone.")) return;
         setBusy(true);
         setFailed(false);
-        if (await send({ id })) router.refresh();
-        else setFailed(true);
+        const res = await send({ id });
+        if (res?.ok || res?.status === 404) router.refresh();
+        else {
+          setFailed(true);
+          window.alert(failText(res));
+        }
         setBusy(false);
       }}
     >
@@ -67,11 +80,13 @@ export function ActivityDeleteAll({ total }: { total: number }) {
           onClick={async () => {
             setBusy(true);
             setMsg("");
-            if (await send({ all: true, confirm: typed.trim() })) {
+            const res = await send({ all: true, confirm: typed.trim() });
+            if (res?.ok) {
               setOpen(false);
               setTyped("");
-              router.refresh();
-            } else setMsg("Couldn't delete. Only the owner can do this.");
+            } else setMsg(failText(res));
+            // Refresh either way so the entry count on the page is current.
+            router.refresh();
             setBusy(false);
           }}
         >
