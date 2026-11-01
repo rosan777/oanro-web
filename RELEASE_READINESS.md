@@ -6,16 +6,23 @@ unverified items are listed.
 
 ## Go-live actions on production (2026-11-01, owner-approved)
 
-- Backup of the changed rows (activity log, demo products, site content) saved outside the repo:
-  `~/oanro-golive-backup-2026-11-01.json` (owner-only file permissions).
-- Migration `0019_audit_owner_purge` applied with `npm run db:migrate` (20/20 migrations).
+**Correction:** the first clean-up ran against the database in `.env.local`, which turned out to be a
+separate copy (0 orders), not production. Its activity log was cleared and 3 demo products archived there;
+everything removed is in `~/oanro-golive-backup-2026-11-01.json`. The live database is the one in
+`.env.local.live-backup` (it matches the orders and log shown in oanro.com admin). The live steps were then:
+
+- Backup of the live rows (93 activity entries, demo products, site content) saved outside the repo:
+  `~/oanro-LIVE-db-backup-2026-11-01.json` (owner-only file permissions).
+- Migration `0019_audit_owner_purge` applied to the live database (20/20 migrations).
 - 3 hidden demo products (`demo-classic-cap`, `demo-pearl-necklace`, `demo-winter-knit-beanie`) archived
   with the app's `archiveProduct`; the homepage "featured product" setting that pointed at one was reset.
-  The live catalog now has one published product: `ribbed-high-neck-sweater`.
-- Activity log cleared with the app's `deleteAuditEntries` (92 entries removed; one "audit.clear" entry remains).
-- Vercel production: `OANRO_STORE_LIVE=true` set; `CRON_SECRET` newly generated and set through the Vercel CLI
-  (value never printed). `GROQ_API_KEY` is **not** set: `.env.local` has no Groq key to copy. Production
-  already has the Cloudflare Workers AI keys, so JUNO uses Cloudflare; add a fresh Groq key later if wanted.
+  The live catalog has one published product: `ribbed-high-neck-sweater`.
+- Activity log: the owner clears it with Admin → Activity log → "Delete all activity" (works now that 0019 is in).
+- Vercel production: `OANRO_STORE_LIVE=true`; `CRON_SECRET` newly generated; `GROQ_API_KEY` copied from the
+  owner's Oct 29 `.env.local` copy (values never printed; Groq is the main AI, Cloudflare the backup).
+  Rotate the Groq key: it was pasted in chat earlier.
+- The "Delete all" error message said "Only the owner can do this" for every failure; it now names the real
+  reason (old page, expired sign-in, network) — `src/components/activity-delete.tsx`.
 - Owner to-do: the live "Seasonal" section description still says "Sample products, made for exploration."
   Change it in Admin → Products & sections now that the shop is selling.
 
@@ -89,7 +96,7 @@ Kept on purpose (not part of the release commit): untracked `dev.log` and `OANRO
 | C1  | ✅ Done 2026-11-01. **Apply `drizzle/0019_audit_owner_purge.sql` to production** (owner approval needed; it only replaces the `reject_audit_mutation` trigger function). Without it the new "delete activity" button fails with an error; everything else works. It is safe to run before deploying (old code never deletes).                                             | Required for the new feature |
 | C2  | ✅ Done 2026-11-01. **`CRON_SECRET` was not set on Vercel**, so the daily jobs never run: abandoned-bag reminders and the assistant's 30-day chat cleanup. Set it before switching JUNO on (the privacy notice promises 30-day deletion).                                                                                                                                 | High (before JUNO goes on)   |
 | C3  | ✅ Done 2026-11-01 (`OANRO_STORE_LIVE=true`). **Storefront banner said "Design preview: ordering opens soon"** while `OANRO_STORE_LIVE` is unset, yet orders are accepted as soon as a bKash/Nagad number is saved in admin. Owner decision: set `OANRO_STORE_LIVE=true` when selling, or keep payment numbers empty until then. Sample products/prices must not be sold. | Medium (truthful claims)     |
-| C4  | Still open: `GROQ_API_KEY` not set (no key available; Cloudflare AI keys are set). Previously (JUNO answers from site knowledge only; voice auto-detect off). Google OAuth keys not set (email sign-in only).                                                                                                                                                             | Info                         |
+| C4  | ✅ `GROQ_API_KEY` set 2026-11-01 (rotate it). Previously (JUNO answers from site knowledge only; voice auto-detect off). Google OAuth keys not set (email sign-in only).                                                                                                                                                                                                  | Info                         |
 | C5  | `tests/rbac.test.ts` still fails (pre-existing): decide whether the Manager role template or the test is right.                                                                                                                                                                                                                                                           | Medium                       |
 | C6  | `/caps` and `/tech`: product cards are `h3` directly under the page `h1` (heading-order hint).                                                                                                                                                                                                                                                                            | Low                          |
 
