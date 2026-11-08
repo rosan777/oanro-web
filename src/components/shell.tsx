@@ -3,14 +3,14 @@
 // The site frame shared by every page: the header (menus, search, bag), the footer, and the
 // product photo and price pieces used across the store.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "@/components/locale-link";
 import {
   ArrowUpRight,
   ChevronDown,
   Menu,
-  Search,
   ShoppingBag,
   X,
   Plus,
@@ -19,12 +19,16 @@ import {
   Mail,
   MapPin,
   Phone,
+  Heart,
+  UserRound,
 } from "lucide-react";
 import type { SiteConfig } from "@/lib/site-config";
 import { formatPrice, lineFits, optionLabel, variantSoldOut } from "@/lib/catalog";
 import { useProductLines, useProducts, useServices } from "./products-context";
-import { rank, related } from "@/lib/smart-search";
+import { HeaderSearch } from "./header-search";
 import { useCart, changeQuantity, removeItem } from "@/lib/cart";
+import { useWishlist } from "@/lib/saved-lists";
+import { stripLocale } from "@/lib/locale-path";
 import { MotionToggle } from "./experience";
 import { PrivacySettingsLink } from "./privacy-center";
 import { NewsletterSignup } from "./site-extras";
@@ -106,8 +110,6 @@ export function Header({ config }: { config: SiteConfig }) {
   const lines = useProductLines();
   const [mega, setMega] = useState<string | null>(null);
   const [mobile, setMobile] = useState(false);
-  const [query, setQuery] = useState("");
-  const searchDialog = useRef<HTMLDialogElement>(null);
   const cartDialog = useRef<HTMLDialogElement>(null);
 
   // Other components open the bag with the "oanro-open-bag" event (for example after adding a product).
@@ -116,16 +118,6 @@ export function Header({ config }: { config: SiteConfig }) {
     const open = () => cartDialog.current?.showModal();
     window.addEventListener("oanro-open-bag", open);
     return () => window.removeEventListener("oanro-open-bag", open);
-  }, []);
-  // The phone bottom bar opens search with this event.
-  useEffect(() => {
-    const open = () => {
-      setMega(null);
-      setMobile(false);
-      searchDialog.current?.showModal();
-    };
-    window.addEventListener("oanro-open-search", open);
-    return () => window.removeEventListener("oanro-open-search", open);
   }, []);
   const cart = useCart();
   const products = useProducts();
@@ -140,123 +132,119 @@ export function Header({ config }: { config: SiteConfig }) {
     (sum, { item, product, gone }) => sum + (gone ? 0 : product.price * item.quantity),
     0,
   );
-  const sectionName = (id?: string) => {
-    const c = lines.find(l => l.collection.id === (id ?? "seasonal"))?.collection;
-    return c ? `${c.name} ${c.bn?.name ?? ""}` : "";
-  };
-  const searching = query.trim().length > 0;
-  // Smart search: every word is matched on its own (exact, start of word, small typos, English/Bangla synonyms).
-  const matchedProducts =
-    searching && config.products
-      ? rank(query, products, p => [
-          { text: `${p.name} ${p.bn?.name ?? ""}`, weight: 3 },
-          {
-            text: `${p.category} ${p.bn?.category ?? ""} ${sectionName(p.collectionId)}`,
-            weight: 2,
-          },
-          { text: `${p.tagline} ${p.bn?.tagline ?? ""}`, weight: 1 },
-        ]).slice(0, 12)
-      : [];
-  const matchedServices =
-    searching && config.services
-      ? rank(query, services, s => [
-          { text: `${s.title} ${s.bn?.title ?? ""}`, weight: 3 },
-          { text: `${s.category ?? ""} ${s.word}`, weight: 2 },
-          { text: `${s.text} ${s.bn?.text ?? ""}`, weight: 1 },
-        ]).slice(0, 6)
-      : [];
-  const noMatch = searching && !matchedProducts.length && !matchedServices.length;
-  // Nothing is shown before the shopper types. With no direct match, suggest items of the same kind (clothing, jewelry, tech, services).
-  const productFields = (p: (typeof products)[number]) => [
-    { text: `${p.name} ${p.bn?.name ?? ""}`, weight: 3 },
-    { text: `${p.category} ${p.bn?.category ?? ""} ${sectionName(p.collectionId)}`, weight: 2 },
-    { text: `${p.tagline} ${p.bn?.tagline ?? ""}`, weight: 1 },
-  ];
-  const serviceFields = (s: (typeof services)[number]) => [
-    { text: `${s.title} ${s.bn?.title ?? ""}`, weight: 3 },
-    { text: `${s.category ?? ""} ${s.word}`, weight: 2 },
-    { text: `${s.text} ${s.bn?.text ?? ""}`, weight: 1 },
-  ];
-  const filteredProducts =
-    !searching || !config.products
-      ? []
-      : noMatch
-        ? related(query, products, productFields).slice(0, 6)
-        : matchedProducts;
-  const filteredServices =
-    !searching || !config.services
-      ? []
-      : noMatch
-        ? related(query, services, serviceFields).slice(0, 3)
-        : matchedServices;
   const closeMenu = () => {
     setMega(null);
     setMobile(false);
   };
+  const wishlist = useWishlist();
+  const pathname = stripLocale(usePathname() || "/");
+  const active = (prefixes: string[]) =>
+    prefixes.some(p => pathname === p || pathname.startsWith(`${p}/`));
+  const collectionPaths = lines.map(l => `/${l.collection.slug}`);
 
-  // Top menu groups, depending on which parts of the site are switched on.
+  // Top navigation of the approved design: The store and The studio open panels; Software and
+  // Workspace are pages. Store and Studio follow the products/services switches.
 
-  const groups = [
-    ...(config.products ? ["Products"] : []),
-    ...(config.services ? ["Services"] : []),
-    "About",
+  const panels = [
+    ...(config.products ? (["store"] as const) : []),
+    ...(config.services ? (["studio"] as const) : []),
   ];
-  const label = (value: string) =>
-    locale === "bn"
-      ? { Products: "পণ্য", Services: "সেবা", About: "আমাদের কথা" }[value] || value
-      : value;
+  const panelLabel = { store: t("The store", "স্টোর"), studio: t("The studio", "স্টুডিও") };
+  const panelActive = {
+    store: active(["/shop", "/products", "/wishlist", "/compare", "/checkout", ...collectionPaths]),
+    studio: active(["/services", "/contact", "/guides", "/about", "/company-profile"]),
+  };
   return (
     <>
       <header
-        className="site-header"
+        className="o-site-header"
         onMouseLeave={() => setMega(null)}
         onKeyDown={e => {
-          if (e.key === "Escape") {
-            closeMenu();
-          }
+          if (e.key === "Escape") closeMenu();
         }}
       >
-        <div className="container header-row">
-          <Link href="/" className="brand" aria-label="OANRO home" onClick={closeMenu}>
-            <Image src="/logo.svg" alt="" width={39} height={39} />
-            <span>OANRO</span>
+        <div className="o-header">
+          <Link
+            href="/"
+            className="o-wordmark"
+            aria-label={t("OANRO home", "OANRO হোম")}
+            onClick={closeMenu}
+          >
+            <Image src="/logo.svg" alt="" width={34} height={34} priority />
+            OANRO<span aria-hidden="true">®</span>
           </Link>
-          <nav className={`main-nav ${mobile ? "mobile-open" : ""}`} aria-label="Main navigation">
-            {groups.map(group => (
-              <div key={group} className="nav-group">
-                <button
-                  type="button"
-                  aria-expanded={mega === group}
-                  aria-controls={`menu-${group}`}
-                  onMouseEnter={() => {
-                    if (window.matchMedia("(hover: hover)").matches) setMega(group);
-                  }}
-                  onClick={() => setMega(mega === group ? null : group)}
-                >
-                  {label(group)}
-                  <ChevronDown size={13} />
-                </button>
-              </div>
+          <button
+            type="button"
+            className="o-mobile-menu"
+            aria-label={t("Toggle navigation", "নেভিগেশন খুলুন/বন্ধ করুন")}
+            aria-expanded={mobile}
+            aria-controls="o-main-nav"
+            onClick={() => {
+              setMobile(!mobile);
+              setMega(null);
+            }}
+          >
+            {mobile ? <X size={22} /> : <Menu size={22} />}
+          </button>
+          <nav
+            id="o-main-nav"
+            className={mobile ? "open" : ""}
+            aria-label={t("Main navigation", "প্রধান নেভিগেশন")}
+          >
+            {panels.map(panel => (
+              <button
+                key={panel}
+                type="button"
+                className={panelActive[panel] ? "active" : ""}
+                aria-expanded={mega === panel}
+                aria-controls={`o-panel-${panel}`}
+                onMouseEnter={() => {
+                  if (window.matchMedia("(hover: hover)").matches) setMega(panel);
+                }}
+                onClick={() => setMega(mega === panel ? null : panel)}
+              >
+                {panelLabel[panel]}
+                <ChevronDown size={13} aria-hidden="true" />
+              </button>
             ))}
-          </nav>
-          <div className="header-actions">
-            <LanguageSwitch />
-            <button
-              type="button"
-              className="icon-button"
-              title={t("Search", "খুঁজুন")}
-              aria-label={t("Search OANRO", "OANRO-তে খুঁজুন")}
-              onClick={() => {
-                closeMenu();
-                searchDialog.current?.showModal();
-              }}
+            <Link
+              href="/software"
+              className={active(["/software"]) ? "active" : ""}
+              aria-current={active(["/software"]) ? "page" : undefined}
+              onClick={closeMenu}
             >
-              <Search size={20} />
-            </button>
+              {t("Software", "সফটওয়্যার")}
+            </Link>
+            <Link
+              href="/workspace"
+              className={active(["/workspace"]) ? "active" : ""}
+              aria-current={active(["/workspace"]) ? "page" : undefined}
+              onClick={closeMenu}
+            >
+              {t("Workspace", "ওয়ার্কস্পেস")}
+            </Link>
+          </nav>
+          <div className="o-header-actions">
+            <LanguageSwitch />
+            <HeaderSearch onOpen={closeMenu} />
+            {config.products && (
+              <Link
+                href="/wishlist"
+                title={t("Wishlist", "পছন্দের তালিকা")}
+                aria-label={t(
+                  `Wishlist, ${wishlist.length} items`,
+                  `পছন্দের তালিকা, ${wishlist.length}টি`,
+                )}
+                onClick={closeMenu}
+              >
+                <Heart size={20} />
+                {wishlist.length > 0 && <small>{wishlist.length}</small>}
+              </Link>
+            )}
             {config.products && (
               <button
                 type="button"
-                className="icon-button cart-trigger"
+                className="cart-trigger"
                 title={t("Open bag", "ব্যাগ খুলুন")}
                 aria-label={t(`Open bag, ${count} items`, `ব্যাগ খুলুন, ${count}টি আইটেম`)}
                 onClick={() => {
@@ -265,218 +253,130 @@ export function Header({ config }: { config: SiteConfig }) {
                 }}
               >
                 <ShoppingBag size={20} />
-                {count > 0 && (
-                  <span key={count} className="bag-count">
-                    {count}
-                  </span>
-                )}
+                {count > 0 && <small key={count}>{count}</small>}
               </button>
             )}
-            <button
-              type="button"
-              className="icon-button menu-trigger"
-              title={t("Menu", "মেনু")}
-              aria-label={t("Toggle navigation", "নেভিগেশন খুলুন/বন্ধ করুন")}
-              aria-expanded={mobile}
-              onClick={() => {
-                setMobile(!mobile);
-                setMega(null);
-              }}
+            <Link
+              href="/account"
+              title={t("Your account", "আপনার অ্যাকাউন্ট")}
+              aria-label={t("Your account", "আপনার অ্যাকাউন্ট")}
+              onClick={closeMenu}
             >
-              {mobile ? <X size={21} /> : <Menu size={21} />}
-            </button>
+              <UserRound size={20} />
+            </Link>
           </div>
         </div>
-        {groups.map(group => (
-          <div id={`menu-${group}`} key={group} className="mega-menu" hidden={mega !== group}>
-            <div className="container mega-content">
-              <div className="mega-intro">
-                <span className="eyebrow">{t("Explore OANRO", "OANRO ঘুরে দেখুন")}</span>
+        {panels.map(panel => (
+          <div id={`o-panel-${panel}`} key={panel} className="o-mega" hidden={mega !== panel}>
+            <div className="o-mega-inner">
+              <div className="o-mega-intro">
+                <span className="o-eyebrow">
+                  {panel === "store"
+                    ? t("OANRO / STORE", "OANRO / স্টোর")
+                    : t("OANRO / STUDIO", "OANRO / স্টুডিও")}
+                </span>
                 <h2>
-                  {group === "Products"
-                    ? t("Find your next.", "আপনার পরেরটা খুঁজুন।")
-                    : group === "Services"
-                      ? t("Build what's next.", "আগামীকে গড়ুন।")
-                      : t("A considered approach.", "ভেবেচিন্তে এগোনো।")}
+                  {panel === "store"
+                    ? t("Good things for every day.", "প্রতিদিনের পছন্দের জিনিস।")
+                    : t("Websites, apps and software.", "ওয়েবসাইট, অ্যাপ ও সফটওয়্যার।")}
                 </h2>
-                <p>
-                  {group === "Products"
-                    ? t("Browse by product line.", "পণ্যের লাইন অনুযায়ী দেখুন।")
-                    : group === "Services"
-                      ? t(
-                          "Practical technology for people and businesses.",
-                          "মানুষ ও ব্যবসার জন্য কার্যকর প্রযুক্তি।",
-                        )
-                      : t(
-                          "Discover our story and get in touch.",
-                          "আমাদের গল্প জানুন ও যোগাযোগ করুন।",
-                        )}
-                </p>
+                <Link
+                  className="o-button"
+                  href={panel === "store" ? "/shop" : "/services"}
+                  onClick={closeMenu}
+                >
+                  {panel === "store"
+                    ? t("Shop everything", "সব পণ্য দেখুন")
+                    : t("Explore the studio", "স্টুডিও ঘুরে দেখুন")}
+                  <ArrowUpRight size={16} />
+                </Link>
               </div>
-              <div className="mega-links">
-                {group === "About" && (
-                  <Link href="/account" onClick={closeMenu}>
-                    <Localized en="My account" bn="আমার অ্যাকাউন্ট" />
-                    <ArrowUpRight size={16} />
-                  </Link>
-                )}
-                {group === "Products" && (
+              <div className="o-mega-links">
+                {panel === "store" && (
                   <>
+                    <span className="o-mega-heading">{t("Collections", "কালেকশন")}</span>
                     {!lines.some(l => l.count > 0) && (
-                      <p className="mega-empty">
+                      <p className="o-mega-empty">
                         {t("New products are on the way.", "নতুন পণ্য আসছে।")}
                       </p>
                     )}
                     {lines
                       .filter(l => l.count > 0)
-                      .map(({ collection: c }) => (
+                      .map(({ collection: c, count: n }) => (
                         <Link onClick={closeMenu} key={c.id} href={`/${c.slug}`}>
-                          {bn && c.bn ? c.bn.name : c.name}
-                          <ArrowUpRight size={16} />
+                          <span>{bn && c.bn ? c.bn.name : c.name}</span>
+                          <small>{n}</small>
                         </Link>
                       ))}
                     {config.partners && (
                       <Link href="/#partners" onClick={closeMenu}>
-                        {t("Partner Picks", "পার্টনার পছন্দ")}
-                        <ArrowUpRight size={16} />
+                        <span>{t("Partner Picks", "পার্টনার পছন্দ")}</span>
+                        <ArrowUpRight size={15} />
                       </Link>
                     )}
                   </>
                 )}
-                {group === "Services" &&
-                  services.map(s => (
-                    <Link key={s.slug} href={`/services/${s.slug}`} onClick={closeMenu}>
-                      {bn && s.bn ? s.bn.title : s.title}
-                      <ArrowUpRight size={16} />
-                    </Link>
-                  ))}
-                {group === "About" && (
+                {panel === "studio" && (
                   <>
-                    <Link href="/#about" onClick={closeMenu}>
-                      {t("Our approach", "আমাদের পদ্ধতি")}
-                      <ArrowUpRight size={16} />
+                    <span className="o-mega-heading">{t("Services", "সেবা")}</span>
+                    {services.map(s => (
+                      <Link key={s.slug} href={`/services/${s.slug}`} onClick={closeMenu}>
+                        <span>{bn && s.bn ? s.bn.title : s.title}</span>
+                        <ArrowUpRight size={15} />
+                      </Link>
+                    ))}
+                  </>
+                )}
+              </div>
+              <div className="o-mega-links">
+                <span className="o-mega-heading">
+                  {panel === "store" ? t("Your OANRO", "আপনার OANRO") : t("Company", "কোম্পানি")}
+                </span>
+                {panel === "store" ? (
+                  <>
+                    <Link href="/wishlist" onClick={closeMenu}>
+                      <span>{t("Wishlist", "পছন্দের তালিকা")}</span>
+                      <ArrowUpRight size={15} />
                     </Link>
-                    <Link href="/#contact" onClick={closeMenu}>
-                      {t("Contact OANRO", "OANRO-তে যোগাযোগ")}
-                      <ArrowUpRight size={16} />
+                    <Link href="/compare" onClick={closeMenu}>
+                      <span>{t("Compare", "তুলনা")}</span>
+                      <ArrowUpRight size={15} />
+                    </Link>
+                    <Link href="/track" onClick={closeMenu}>
+                      <span>{t("Track your order", "অর্ডার ট্র্যাক করুন")}</span>
+                      <ArrowUpRight size={15} />
+                    </Link>
+                    <Link href="/delivery-returns" onClick={closeMenu}>
+                      <span>{t("Delivery & returns", "ডেলিভারি ও রিটার্ন")}</span>
+                      <ArrowUpRight size={15} />
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/contact" onClick={closeMenu}>
+                      <span>{t("Tell us your idea", "আইডিয়া জানান")}</span>
+                      <ArrowUpRight size={15} />
+                    </Link>
+                    <Link href="/guides" onClick={closeMenu}>
+                      <span>{t("Guides & Global Pulse", "গাইড ও গ্লোবাল পালস")}</span>
+                      <ArrowUpRight size={15} />
+                    </Link>
+                    <Link href="/about" onClick={closeMenu}>
+                      <span>{t("About OANRO", "OANRO সম্পর্কে")}</span>
+                      <ArrowUpRight size={15} />
+                    </Link>
+                    <Link href="/company-profile" onClick={closeMenu}>
+                      <span>{t("Company profile", "কোম্পানি প্রোফাইল")}</span>
+                      <ArrowUpRight size={15} />
                     </Link>
                   </>
                 )}
               </div>
-              <MegaPicture group={group} />
+              <MegaPicture group={panel === "store" ? "Products" : "Services"} />
             </div>
           </div>
         ))}
       </header>
-
-      {/* Search dialog. */}
-      <dialog
-        ref={searchDialog}
-        className="search-dialog"
-        aria-labelledby="search-title"
-        onClick={e => {
-          if (e.target === e.currentTarget) searchDialog.current?.close();
-        }}
-      >
-        <div className="dialog-content">
-          <div className="dialog-heading">
-            <h2 id="search-title">
-              <Localized en="Find something good." bn="ভালো কিছু খুঁজুন।" />
-            </h2>
-            <button
-              type="button"
-              className="icon-button"
-              title="Close search"
-              aria-label="Close search"
-              onClick={() => searchDialog.current?.close()}
-            >
-              <X />
-            </button>
-          </div>
-          <label className="search-field">
-            <Search size={20} />
-            <span className="sr-only">
-              <Localized en="Search products and services" bn="পণ্য ও সেবা খুঁজুন" />
-            </span>
-            <input
-              type="search"
-              placeholder={t("Search products or services", "পণ্য বা সেবা খুঁজুন")}
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-            />
-          </label>
-          <p className="small-note" role="status">
-            {!searching
-              ? t("Type a product, category or service.", "পণ্য, ক্যাটাগরি বা সেবার নাম লিখুন।")
-              : noMatch
-                ? filteredProducts.length + filteredServices.length
-                  ? t(
-                      `No exact match for “${query.trim()}”. Similar items:`,
-                      `“${query.trim()}” এর সাথে হুবহু কিছু মেলেনি। কাছাকাছি কিছু:`,
-                    )
-                  : t(`Nothing found for “${query.trim()}”.`, `“${query.trim()}” পাওয়া যায়নি।`)
-                : t(
-                    `${filteredProducts.length + filteredServices.length} results`,
-                    `${filteredProducts.length + filteredServices.length}টি ফলাফল`,
-                  )}
-          </p>
-          <div className="search-results">
-            {filteredProducts.map(p => (
-              <Link
-                key={p.slug}
-                href={`/products/${p.slug}`}
-                onClick={() => searchDialog.current?.close()}
-              >
-                <ProductPhoto position={p.position} image={p.image} label={p.name} />
-                <span>
-                  <strong>{bn && p.bn ? p.bn.name : p.name}</strong>
-                  <small>
-                    {bn && p.bn ? p.bn.category : p.category}
-                    {p.inStock === false ? t(" / Out of stock", " / স্টক শেষ") : ""}
-                  </small>
-                </span>
-                <ArrowUpRight size={18} />
-              </Link>
-            ))}
-            {filteredServices.map(s => (
-              <Link
-                key={s.slug}
-                href={`/services/${s.slug}`}
-                onClick={() => searchDialog.current?.close()}
-              >
-                <span className="service-search-mark">{s.word}</span>
-                <span>
-                  <strong>{bn && s.bn ? s.bn.title : s.title}</strong>
-                  <small>
-                    <Localized en="Technology service" bn="প্রযুক্তি সেবা" />
-                  </small>
-                </span>
-                <ArrowUpRight size={18} />
-              </Link>
-            ))}
-            {!filteredProducts.length && !filteredServices.length && (
-              <p className="empty-state">
-                {searching ? (
-                  <>
-                    <Localized
-                      en="Tell us what you need and we will try to find it for you."
-                      bn="কী খুঁজছেন জানান, আমরা খুঁজে দেওয়ার চেষ্টা করব।"
-                    />{" "}
-                    <Link href="/contact" onClick={() => searchDialog.current?.close()}>
-                      <Localized en="Ask us" bn="জিজ্ঞাসা করুন" />
-                    </Link>
-                  </>
-                ) : (
-                  <Localized
-                    en="Try “winter”, “cap”, “necklace” or “website”."
-                    bn="“শীত”, “ক্যাপ”, “নেকলেস” বা “ওয়েবসাইট” লিখে দেখুন।"
-                  />
-                )}
-              </p>
-            )}
-          </div>
-        </div>
-      </dialog>
 
       {/* Bag dialog. */}
       <dialog
@@ -615,9 +515,11 @@ export function Header({ config }: { config: SiteConfig }) {
   );
 }
 
-/** Site footer: newsletter sign-up, link columns, social links, language/region picker and legal links. */
+/** Site footer (approved structure): brand, description and contact with the compact newsletter on the
+ * left; Store, Studio, Your OANRO and Help & Company link groups on the right (collapsible on phones);
+ * then copyright, region/language, privacy and motion controls and the social links. */
 export function Footer({ config }: { config: SiteConfig }) {
-  const { locale } = useLocale();
+  const { locale, setLocale } = useLocale();
   const bn = locale === "bn";
   const lines = useProductLines().filter(line => line.count > 0);
   const services = useServices();
@@ -627,94 +529,161 @@ export function Footer({ config }: { config: SiteConfig }) {
     showSocial = useFeature("socialIcons");
   const { contact } = useSiteContent();
   const address = bn ? contact.address.bn || contact.address.en : contact.address.en;
-  // Organised columns (Shop, Services, Help) with real links to category and service pages: good for visitors and for Google.
-  const linkCols =
-    2 +
-    (config.products && lines.length > 0 ? 1 : 0) +
-    (config.services && services.length > 0 ? 1 : 0);
-  return (
-    <footer className="site-footer">
-      <div className="container">
-        <div className="footer-grid" style={{ ["--footer-cols" as string]: linkCols }}>
-          <div className="footer-brand">
-            <Link className="brand" href="/">
-              <Image src="/logo.svg" alt="" width={42} height={42} />
-              OANRO
-            </Link>
-            <p>{footerTagline}</p>
-            {(contact.email || contact.phone || address) && (
-              <ul className="footer-contact">
-                {contact.email && (
-                  <li>
-                    <Mail size={16} aria-hidden="true" />
-                    <a href={`mailto:${contact.email}`}>{contact.email}</a>
-                  </li>
-                )}
-                {contact.phone && (
-                  <li>
-                    <Phone size={16} aria-hidden="true" />
-                    <a href={`tel:${contact.phone}`}>{contact.phone}</a>
-                  </li>
-                )}
-                {address && (
-                  <li>
-                    <MapPin size={16} aria-hidden="true" />
-                    <span>{address}</span>
-                  </li>
-                )}
-              </ul>
-            )}
-            {showSocial && <SocialLinks socials={contact.socials} />}
-          </div>
-          {config.products && lines.length > 0 && (
-            <nav aria-label={t("Shop", "শপ")} className="footer-col">
-              <strong>{t("Shop", "শপ")}</strong>
-              {lines.map(({ collection }) => (
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const link = (href: string, en: string, b: string) => (
+    <Link key={href} href={href}>
+      {t(en, b)}
+    </Link>
+  );
+  const groups: { id: string; title: string; links: ReactNode[] }[] = [
+    ...(config.products
+      ? [
+          {
+            id: "store",
+            title: t("Store", "স্টোর"),
+            links: [
+              link("/shop", "Shop everything", "সব পণ্য"),
+              ...lines.map(({ collection }) => (
                 <Link key={collection.id} href={`/${collection.slug}`}>
                   {bn && collection.bn ? collection.bn.name : collection.name}
                 </Link>
-              ))}
-            </nav>
+              )),
+              ...(config.partners ? [link("/#partners", "Partner Picks", "পার্টনার পছন্দ")] : []),
+            ],
+          },
+        ]
+      : []),
+    {
+      id: "studio",
+      title: t("Studio", "স্টুডিও"),
+      links: [
+        ...(config.services ? [link("/services", "All services", "সব সেবা")] : []),
+        ...(config.services
+          ? services.map(s => (
+              <Link key={s.slug} href={`/services/${s.slug}`}>
+                {bn && s.bn ? s.bn.title : s.title}
+              </Link>
+            ))
+          : []),
+        link("/software", "Software", "সফটওয়্যার"),
+        link("/workspace", "Client workspace", "ক্লায়েন্ট ওয়ার্কস্পেস"),
+      ],
+    },
+    {
+      id: "you",
+      title: t("Your OANRO", "আপনার OANRO"),
+      links: [
+        link("/account", "My account", "আমার অ্যাকাউন্ট"),
+        ...(config.products
+          ? [
+              link("/wishlist", "Saved favourites", "পছন্দের তালিকা"),
+              link("/compare", "Compare", "তুলনা"),
+              link("/checkout", "Shopping bag", "শপিং ব্যাগ"),
+            ]
+          : []),
+        link("/account?tab=projects", "My projects", "আমার প্রজেক্ট"),
+      ],
+    },
+    {
+      id: "help",
+      title: t("Help & Company", "সহায়তা ও কোম্পানি"),
+      links: [
+        link("/track", "Track your order", "অর্ডার ট্র্যাক করুন"),
+        link("/delivery-returns", "Delivery & returns", "ডেলিভারি ও রিটার্ন"),
+        link("/contact", "Contact", "যোগাযোগ"),
+        link("/guides", "Guides & Global Pulse", "গাইড ও গ্লোবাল পালস"),
+        link("/about", "About OANRO", "OANRO সম্পর্কে"),
+        link("/company-profile", "Company profile", "কোম্পানি প্রোফাইল"),
+        link("/privacy", "Privacy", "প্রাইভেসি"),
+        link("/terms", "Terms", "শর্তাবলি"),
+      ],
+    },
+  ];
+  return (
+    <footer className="o-footer">
+      <div className="o-footer-top">
+        <div className="o-footer-brand">
+          <Link className="o-wordmark" href="/">
+            <Image src="/logo-on-dark.svg" alt="" width={34} height={34} loading="lazy" />
+            OANRO<span aria-hidden="true">®</span>
+          </Link>
+          <p>
+            {footerTagline ||
+              t(
+                "Good things for today.\nGreat possibilities for tomorrow.",
+                "আজকের পছন্দের জিনিস।\nআগামীর বড় সম্ভাবনা।",
+              )}
+          </p>
+          {(contact.email || contact.phone || address) && (
+            <ul className="o-footer-contact">
+              {contact.email && (
+                <li>
+                  <Mail size={15} aria-hidden="true" />
+                  <a href={`mailto:${contact.email}`}>{contact.email}</a>
+                </li>
+              )}
+              {contact.phone && (
+                <li>
+                  <Phone size={15} aria-hidden="true" />
+                  <a href={`tel:${contact.phone}`}>{contact.phone}</a>
+                </li>
+              )}
+              {address && (
+                <li>
+                  <MapPin size={15} aria-hidden="true" />
+                  <span>{address}</span>
+                </li>
+              )}
+            </ul>
           )}
-          {config.services && services.length > 0 && (
-            <nav aria-label={t("Services", "সেবা")} className="footer-col">
-              <strong>{t("Services", "সেবা")}</strong>
-              {services.map(s => (
-                <Link key={s.slug} href={`/services/${s.slug}`}>
-                  {bn && s.bn ? s.bn.title : s.title}
-                </Link>
-              ))}
-            </nav>
-          )}
-          <nav aria-label={t("Help", "সহায়তা")} className="footer-col">
-            <strong>{t("Help", "সহায়তা")}</strong>
-            <Link href="/track">{t("Track your order", "অর্ডার ট্র্যাক করুন")}</Link>
-            <Link href="/delivery-returns">{t("Delivery & returns", "ডেলিভারি ও রিটার্ন")}</Link>
-            <Link href="/contact">{t("Contact", "যোগাযোগ")}</Link>
-            <Link href="/guides">{t("Guides", "গাইড")}</Link>
-          </nav>
-          <nav aria-label={t("Company", "কোম্পানি")} className="footer-col">
-            <strong>{t("Company", "কোম্পানি")}</strong>
-            <Link href="/about">{t("About OANRO", "OANRO সম্পর্কে")}</Link>
-            <Link href="/company-profile">{t("Company profile", "কোম্পানি প্রোফাইল")}</Link>
-            <Link href="/privacy">{t("Privacy", "প্রাইভেসি")}</Link>
-            <Link href="/terms">{t("Terms", "শর্তাবলি")}</Link>
-          </nav>
-        </div>
-        <div className={`footer-extra${showNewsletter ? "" : " is-solo"}`}>
           {showNewsletter && <NewsletterSignup />}
         </div>
-        <div className="footer-bottom">
-          <span>
-            {t("© 2026 OANRO · Licensed business", "© ২০২৬ OANRO · লাইসেন্সপ্রাপ্ত ব্যবসা")}
-          </span>
-
-          <span className="footer-tools">
-            <RegionPicker />
-            <PrivacySettingsLink />
-            <MotionToggle />
-          </span>
+        <div className="o-footer-groups">
+          {groups.map(g => (
+            <nav
+              key={g.id}
+              aria-labelledby={`footer-${g.id}`}
+              className={openGroup === g.id ? "is-open" : ""}
+            >
+              <h3 id={`footer-${g.id}`}>
+                <span className="o-footer-heading">{g.title}</span>
+                <button
+                  type="button"
+                  className="o-footer-toggle"
+                  aria-expanded={openGroup === g.id}
+                  aria-controls={`footer-${g.id}-links`}
+                  onClick={() => setOpenGroup(openGroup === g.id ? null : g.id)}
+                >
+                  {g.title}
+                  <ChevronDown size={16} aria-hidden="true" />
+                </button>
+              </h3>
+              <div id={`footer-${g.id}-links`} className="o-footer-links">
+                {g.links}
+              </div>
+            </nav>
+          ))}
         </div>
+      </div>
+      <div className="o-footer-bottom">
+        <span>
+          {t("© 2026 OANRO · Licensed business", "© ২০২৬ OANRO · লাইসেন্সপ্রাপ্ত ব্যবসা")}
+        </span>
+        <div className="o-footer-market">
+          <RegionPicker />
+          <span className="o-footer-langs" role="group" aria-label={t("Language", "ভাষা")}>
+            <button type="button" aria-pressed={!bn} onClick={() => setLocale("en")}>
+              English
+            </button>
+            <span aria-hidden="true">/</span>
+            <button type="button" aria-pressed={bn} onClick={() => setLocale("bn")} lang="bn">
+              বাংলা
+            </button>
+          </span>
+          <PrivacySettingsLink />
+          <MotionToggle />
+        </div>
+        {showSocial && <SocialLinks socials={contact.socials} />}
       </div>
     </footer>
   );
@@ -734,7 +703,7 @@ function MegaPicture({ group }: { group: string }) {
       {src ? (
         <Image src={src} alt="" fill sizes="300px" unoptimized />
       ) : (
-        <Image src="/logo.svg" alt="" width={72} height={72} className="mega-mark" />
+        <Image src="/logo.svg" alt="" width={72} height={72} className="mega-mark" loading="lazy" />
       )}
       {label && <span>{label}</span>}
     </div>

@@ -82,6 +82,15 @@ export function ShopTabs({ showServices, chips }: { showServices: boolean; chips
   return (
     <section className="v2-shop" id="products" aria-labelledby="shop-title">
       <div className="container">
+        <div className="collection-editorial">
+          <span>{t("THE OANRO EDIT", "OANRO-এর বাছাই")}</span>
+          <p>
+            {t(
+              "Everyday essentials. A little extraordinary.",
+              "প্রতিদিনের প্রয়োজন। একটু অসাধারণভাবে।",
+            )}
+          </p>
+        </div>
         <div
           className="v2-tabs"
           data-count={tabs.length}
@@ -101,17 +110,10 @@ export function ShopTabs({ showServices, chips }: { showServices: boolean; chips
             </button>
           ))}
         </div>
-        {/* Promise strip: two identical copies slide left forever for a seamless loop (no pause control by design). */}
-        {chips && (
-          <div className="v2-marquee">
-            <div className="v2-marquee-track">
-              <div className="v2-chips-row">{chips}</div>
-              <div className="v2-chips-row" aria-hidden="true">
-                {chips}
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Promise strip: two identical copies slide left for a seamless loop. It stops for reduced motion,
+            the site's Pause motion switch, and while hovered or focused (the copy is hidden from screen readers). */}
+        {/* The information strip and payment row (info-strip.tsx), passed in by the homepage. */}
+        {chips}
         <div className="v2-shop-head">
           <h2 id="shop-title" className="v2-h2">
             {current.label}
@@ -162,14 +164,13 @@ export function ShopTabs({ showServices, chips }: { showServices: boolean; chips
                 // Second photo for the hover reveal: the first colour photo that differs from the main one (real photos only).
                 const alt = p.colors?.find(c => c.image && c.image !== p.image)?.image ?? null;
                 return (
-                  <Link
+                  <article
                     key={p.slug}
-                    href={`/products/${p.slug}`}
                     className={`v2-card v2-tilt${alt ? " has-alt" : ""}`}
                     onMouseMove={tilt}
                     onMouseLeave={untilt}
                   >
-                    <div className="v2-card-photo">
+                    <Link href={`/products/${p.slug}`} className="v2-card-photo" aria-label={pname}>
                       <ProductPhoto
                         position={p.position}
                         image={swatch[p.slug] !== undefined ? swatch[p.slug] : p.image}
@@ -195,9 +196,11 @@ export function ShopTabs({ showServices, chips }: { showServices: boolean; chips
                             ? t("Choose size", "সাইজ বেছে নিন")
                             : t("View & add to bag", "দেখুন ও ব্যাগে নিন")}
                       </span>
-                    </div>
+                    </Link>
                     <div className="v2-card-body">
-                      <strong>{pname}</strong>
+                      <Link href={`/products/${p.slug}`} className="collection-product-name">
+                        <strong>{pname}</strong>
+                      </Link>
                       {p.colors && p.colors.length > 0 && (
                         <span
                           className="v2-swatches"
@@ -237,16 +240,16 @@ export function ShopTabs({ showServices, chips }: { showServices: boolean; chips
                           {out ? t("Out of stock", "স্টক শেষ") : t("In stock", "স্টকে আছে")}
                         </small>
                       </div>
-                      <span className="v2-card-mobile-action">
+                      <Link href={`/products/${p.slug}`} className="v2-card-mobile-action">
                         {out
                           ? t("View details", "বিস্তারিত দেখুন")
                           : p.sizes.length > 1
                             ? t("Choose size", "সাইজ বেছে নিন")
                             : t("View product", "পণ্য দেখুন")}{" "}
                         <span aria-hidden="true">→</span>
-                      </span>
+                      </Link>
                     </div>
-                  </Link>
+                  </article>
                 );
               })
             : services.slice(0, 8).map(s => (
@@ -631,7 +634,7 @@ export function HeroBrand() {
   return (
     <>
       <span className="holographic-mark v2-holo v2-fade" aria-hidden="true">
-        <Image src="/logo.svg" alt="" width={56} height={56} priority />
+        <Image src="/logo-on-dark.svg" alt="" width={56} height={56} priority />
       </span>
       <h1 id="hero-title" className="v2-hero-h1">
         <span className="v2-eyebrow v2-fade">{heroEyebrow}</span>

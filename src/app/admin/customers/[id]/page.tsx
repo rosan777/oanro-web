@@ -1,3 +1,5 @@
+import { requestLocale } from "@/lib/request-locale";
+import { adminTextFor } from "@/lib/admin-text-server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdminPage } from "@/lib/admin-guard";
@@ -33,6 +35,7 @@ const orderState = (o: {
             ? `Approved, ${o.delivery.replaceAll("_", " ")}`
             : "Approved";
 export default async function CustomerPage({ params }: { params: Promise<{ id: string }> }) {
+  const tr = adminTextFor((await requestLocale()).locale);
   const { access } = await requireAdminPage("customers.read");
   const c = await getCustomer(catalogDb(), decodeURIComponent((await params).id).slice(0, 100));
   if (!c) notFound();
@@ -56,7 +59,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
       <AdminBack />
       <p>
         <Link className="text-link" href="/admin/customers">
-          All customers
+          {tr("All customers")}
         </Link>
       </p>
       <h1>{c.user.name || "No name"}</h1>
@@ -67,21 +70,21 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
       )}
       <div className="customer-stats">
         <div>
-          <span>Orders</span>
+          <span>{tr("Orders")}</span>
           <strong>{c.orders.length}</strong>
         </div>
         <div>
-          <span>Total spent</span>
+          <span>{tr("Total spent")}</span>
           <strong>{formatPrice(c.spent)}</strong>
         </div>
         <div>
-          <span>Joined</span>
+          <span>{tr("Joined")}</span>
           <strong>{formatDhaka(c.user.createdAt, "en", { year: true })}</strong>
         </div>
       </div>
       {!c.deleted && (
         <section className="profile-card">
-          <h2>Profile</h2>
+          <h2>{tr("Profile")}</h2>
           <dl className="customer-fields">
             {field("Email", `${c.user.email}${c.user.emailVerified ? "" : " (not verified)"}`)}
             {field("Phone", p?.phone)}
@@ -99,25 +102,25 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
         <CustomerNotes userId={c.user.id} initial={notes} />
       )}
       <section className="profile-card">
-        <h2>Orders</h2>
+        <h2>{tr("Orders")}</h2>
         {access.permissions.has("orders.read") && c.orders.length > 0 && (
           <Link className="text-link" href="/admin/orders">
-            Open orders
+            {tr("Open orders")}
           </Link>
         )}
         {!c.orders.length ? (
-          <p className="report-empty">No orders.</p>
+          <p className="report-empty">{tr("No orders.")}</p>
         ) : (
           <div className="table-scroll">
             <table className="report-table">
               <thead>
                 <tr>
-                  <th>Order</th>
-                  <th>Date</th>
-                  <th>Payment</th>
-                  <th className="num">Items</th>
-                  <th className="num">Amount</th>
-                  <th>Status</th>
+                  <th>{tr("Order")}</th>
+                  <th>{tr("Date")}</th>
+                  <th>{tr("Payment")}</th>
+                  <th className="num">{tr("Items")}</th>
+                  <th className="num">{tr("Amount")}</th>
+                  <th>{tr("Status")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -144,9 +147,9 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
       </section>
       {!c.deleted && (
         <section className="profile-card">
-          <h2>Inquiries</h2>
+          <h2>{tr("Inquiries")}</h2>
           {!c.inquiries.length ? (
-            <p className="report-empty">No inquiries from this email.</p>
+            <p className="report-empty">{tr("No inquiries from this email.")}</p>
           ) : (
             <ul className="customer-inquiries">
               {c.inquiries.map(i => (
@@ -162,7 +165,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
           )}
           {access.permissions.has("leads.read") && c.inquiries.length > 0 && (
             <Link className="text-link" href="/admin/leads">
-              Open inquiries
+              {tr("Open inquiries")}
             </Link>
           )}
         </section>

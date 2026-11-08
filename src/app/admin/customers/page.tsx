@@ -1,3 +1,6 @@
+import { requestLocale } from "@/lib/request-locale";
+import { adminTextFor } from "@/lib/admin-text-server";
+import { Localized } from "@/components/locale";
 import { ExportButton } from "@/components/team-extras";
 import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin-guard";
@@ -15,6 +18,7 @@ export default async function CustomersPage({
 }: {
   searchParams: Promise<{ q?: string; page?: string }>;
 }) {
+  const tr = adminTextFor((await requestLocale()).locale);
   const { access } = await requireAdminPage("customers.read");
   const sp = await searchParams;
   const q = (sp.q ?? "").trim().slice(0, 60);
@@ -30,13 +34,15 @@ export default async function CustomersPage({
     `/admin/customers?${new URLSearchParams({ ...(q ? { q } : {}), page: String(p) })}`;
   return (
     <main id="main-content" className="container auth-page admin-customers">
-      <h1>Customers</h1>
+      <h1>
+        <Localized en="Customers" bn="গ্রাহক" />
+      </h1>
       <p className="admin-tools">
         {access.permissions.has("data.export") && (
-          <ExportButton type="customers" label="Export customers (CSV)" />
+          <ExportButton type="customers" label={tr("Export customers (CSV)")} />
         )}{" "}
         {access.permissions.has("newsletter.read") && (
-          <ExportButton type="newsletter" label="Export newsletter list (CSV)" />
+          <ExportButton type="newsletter" label={tr("Export newsletter list (CSV)")} />
         )}
       </p>
       <p>
@@ -46,13 +52,18 @@ export default async function CustomersPage({
       </p>
       <form className="activity-filters" method="get" action="/admin/customers">
         <label>
-          Search
-          <input name="q" defaultValue={q} placeholder="Name, email or phone" maxLength={60} />
+          {tr("Search")}
+          <input
+            name="q"
+            defaultValue={q}
+            placeholder={tr("Name, email or phone")}
+            maxLength={60}
+          />
         </label>
-        <button className="btn btn-primary">Search</button>
+        <button className="btn btn-primary">{tr("Search")}</button>
         {q && (
           <Link className="btn btn-neutral" href="/admin/customers">
-            Clear
+            {tr("Clear")}
           </Link>
         )}
       </form>
@@ -63,12 +74,12 @@ export default async function CustomersPage({
           <table className="report-table">
             <thead>
               <tr>
-                <th>Customer</th>
-                <th>Phone</th>
-                <th>Joined</th>
-                <th className="num">Orders</th>
-                <th className="num">Total spent</th>
-                <th>Last order</th>
+                <th>{tr("Customer")}</th>
+                <th>{tr("Phone")}</th>
+                <th>{tr("Joined")}</th>
+                <th className="num">{tr("Orders")}</th>
+                <th className="num">{tr("Total spent")}</th>
+                <th>{tr("Last order")}</th>
               </tr>
             </thead>
             <tbody>
@@ -97,15 +108,15 @@ export default async function CustomersPage({
       )}
       {access.owner && <CustomerEmail count={reach} limit={BROADCAST_LIMIT} />}
       {total > PAGE && (
-        <nav className="activity-pages" aria-label="Pages">
+        <nav className="activity-pages" aria-label={tr("Pages")}>
           {page > 1 && (
             <Link className="btn btn-neutral" href={link(page - 1)}>
-              Previous
+              {tr("Previous")}
             </Link>
           )}
           {page * PAGE < total && (
             <Link className="btn btn-neutral" href={link(page + 1)}>
-              Next
+              {tr("Next")}
             </Link>
           )}
         </nav>

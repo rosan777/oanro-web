@@ -11,7 +11,16 @@ import { BuyBox, CompleteLook, SizeGuide, StickyBuy } from "./buy-box";
 import Image from "next/image";
 import Link from "@/components/locale-link";
 import dynamic from "next/dynamic";
-import { ArrowLeft, ArrowUpRight, Check, MessageCircle, ShoppingBag } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Check,
+  Heart,
+  MessageCircle,
+  Plus,
+  ShoppingBag,
+} from "lucide-react";
+import { toggleCompare, toggleWishlist, useCompare, useWishlist } from "@/lib/saved-lists";
 import { track } from "@/lib/meta-pixel";
 import { useFeature, useSiteContent } from "./site-content-context";
 import { addToCart } from "@/lib/cart";
@@ -193,9 +202,9 @@ export default function ProductDetail({
   return (
     <main id="main-content" className="product-page">
       <div className="container">
-        <Link className="back-link" href="/#products">
+        <Link className="back-link o-back" href="/shop">
           <ArrowLeft size={16} />
-          {bn ? "কালেকশনে ফিরে যান" : "Back to the collection"}
+          {bn ? "স্টোরে ফিরে যান" : "Back to the store"}
         </Link>
         <div className="product-detail-grid">
           <div className="product-gallery">
@@ -438,6 +447,7 @@ export default function ProductDetail({
                 />
               </FormPopup>
             </div>
+            <SaveCompare slug={product.slug} bn={bn} />
             <BuyBox product={product} rules={rules} soldOut={soldOut} />
             <SizeGuide product={product} />
             {!live && (
@@ -447,20 +457,43 @@ export default function ProductDetail({
                   : "This is a public preview. Ask us about availability, final price and delivery before making a decision."}
               </p>
             )}
-            <dl className="specifications">
-              {specs
-                .filter(([, value]) => value)
-                .map(([label, value]) => (
-                  <div key={label}>
-                    <dt>{label}</dt>
-                    <dd>{value}</dd>
-                  </div>
-                ))}
-            </dl>
-            <Link className="text-link" href="/#contact">
-              {bn ? "সব যোগাযোগের অপশন দেখুন" : "See all contact options"}
-              <ArrowUpRight size={16} />
-            </Link>
+            <details className="o-detail-more" open>
+              <summary>{bn ? "বিস্তারিত ও উপকরণ" : "Details & materials"}</summary>
+              <dl className="specifications">
+                {specs
+                  .filter(([, value]) => value)
+                  .map(([label, value]) => (
+                    <div key={label}>
+                      <dt>{label}</dt>
+                      <dd>{value}</dd>
+                    </div>
+                  ))}
+              </dl>
+            </details>
+            <details className="o-detail-more">
+              <summary>{bn ? "ডেলিভারি ও রিটার্ন" : "Delivery & returns"}</summary>
+              <p>
+                {bn
+                  ? "ডেলিভারি চার্জ ও সময় চেকআউটে পেমেন্টের আগে দেখানো হয়। ভুল বা ক্ষতিগ্রস্ত পণ্য, রিটার্ন ও রিফান্ডের নিয়ম ডেলিভারি ও রিটার্ন পেজে আছে।"
+                  : "Delivery charges and times are shown at checkout before you pay. Wrong or damaged items, returns and refunds are explained on the delivery & returns page."}
+              </p>
+              <Link className="text-link" href="/delivery-returns">
+                {bn ? "ডেলিভারি ও রিটার্ন" : "Delivery & returns"}
+                <ArrowUpRight size={16} />
+              </Link>
+            </details>
+            <details className="o-detail-more">
+              <summary>{bn ? "যত্ন ও সহায়তা" : "Care & support"}</summary>
+              <p>
+                {bn
+                  ? "এই পণ্য নিয়ে প্রশ্ন থাকলে উপরের “জিজ্ঞাসা করুন” বাটনে লিখুন বা আমাদের সাথে যোগাযোগ করুন।"
+                  : "Questions about this product? Use “Ask about this product” above or contact us."}
+              </p>
+              <Link className="text-link" href="/contact">
+                {bn ? "সব যোগাযোগের অপশন দেখুন" : "See all contact options"}
+                <ArrowUpRight size={16} />
+              </Link>
+            </details>
           </div>
         </div>
         <CompleteLook
@@ -492,5 +525,43 @@ export default function ProductDetail({
       </div>
       <StickyBuy product={product} soldOut={soldOut} />
     </main>
+  );
+}
+
+/** Wishlist and compare toggles on the product page. */
+function SaveCompare({ slug, bn }: { slug: string; bn: boolean }) {
+  const saved = useWishlist().includes(slug);
+  const compared = useCompare().includes(slug);
+  return (
+    <div className="o-detail-tools">
+      <button type="button" aria-pressed={saved} onClick={() => toggleWishlist(slug)}>
+        <Heart size={17} fill={saved ? "currentColor" : "none"} aria-hidden="true" />
+        {saved
+          ? bn
+            ? "পছন্দের তালিকায় আছে"
+            : "Saved"
+          : bn
+            ? "পছন্দের তালিকায় রাখুন"
+            : "Save to wishlist"}
+      </button>
+      <button
+        type="button"
+        aria-pressed={compared}
+        onClick={() => {
+          if (!toggleCompare(slug))
+            window.dispatchEvent(
+              new CustomEvent("oanro-toast", {
+                detail: bn
+                  ? "সর্বোচ্চ ৩টি পণ্য তুলনা করা যায়।"
+                  : "You can compare up to 3 products.",
+              }),
+            );
+        }}
+      >
+        {compared ? <Check size={17} aria-hidden="true" /> : <Plus size={17} aria-hidden="true" />}
+        {bn ? "তুলনা" : "Compare"}
+      </button>
+      <Link href="/compare">{bn ? "তুলনা দেখুন" : "View comparison"}</Link>
+    </div>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
-import Link from "next/link";
+import { LanguageSwitch, useLocale } from "./locale";
+import { localePath, stripLocale } from "@/lib/locale-path";
+import Link from "./locale-link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
@@ -70,7 +72,10 @@ export function AdminShell({
   role: string;
   children: ReactNode;
 }) {
-  const path = usePathname();
+  const bn = useLocale().locale === "bn";
+  const t = (en: string, b: string) => (bn ? b : en);
+  // English path (/bn/admin/x → /admin/x) so the current page matches on both languages and on server and client.
+  const path = stripLocale(usePathname() || "/");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState(false);
@@ -102,7 +107,10 @@ export function AdminShell({
       ? [
           {
             href: `/admin/orders?q=${encodeURIComponent(term)}`,
-            label: `Find order “${term}” (code, name, phone or Trx ID)`,
+            label: t(
+              `Find order “${term}” (code, name, phone or Trx ID)`,
+              `অর্ডার খুঁজুন “${term}” (কোড, নাম, ফোন বা Trx ID)`,
+            ),
             kind: "ORDERS",
           },
         ]
@@ -111,7 +119,7 @@ export function AdminShell({
       ? [
           {
             href: `/admin/customers?q=${encodeURIComponent(term)}`,
-            label: `Find customer “${term}”`,
+            label: t(`Find customer “${term}”`, `গ্রাহক খুঁজুন “${term}”`),
             kind: "CUSTOMERS",
           },
         ]
@@ -120,7 +128,7 @@ export function AdminShell({
       ? [
           {
             href: `/admin/activity?q=${encodeURIComponent(term)}`,
-            label: `Search the activity log for “${term}”`,
+            label: t(`Search the activity log for “${term}”`, `কার্যক্রমের লগে খুঁজুন “${term}”`),
             kind: "LOG",
           },
         ]
@@ -173,7 +181,7 @@ export function AdminShell({
   };
   const go = (href: string) => {
     setSearch(false);
-    router.push(href);
+    router.push(localePath(href, bn ? "bn" : "en"));
   };
 
   return (
@@ -185,7 +193,7 @@ export function AdminShell({
           className="admin-menu-toggle"
           aria-expanded={open}
           aria-controls="admin-side"
-          aria-label="Open admin menu"
+          aria-label={t("Open admin menu", "অ্যাডমিন মেনু খুলুন")}
           onClick={() => setOpen(true)}
         >
           <Menu size={20} aria-hidden="true" />
@@ -194,7 +202,7 @@ export function AdminShell({
         <button
           type="button"
           className="admin-mobilebar-search"
-          aria-label="Search the admin"
+          aria-label={t("Search the admin", "অ্যাডমিনে খুঁজুন")}
           onClick={() => setSearch(true)}
         >
           <Search size={20} aria-hidden="true" />
@@ -203,7 +211,7 @@ export function AdminShell({
       <nav
         id="admin-side"
         className={`admin-side${open ? " is-open" : ""}`}
-        aria-label="Admin menu"
+        aria-label={t("Admin menu", "অ্যাডমিন মেনু")}
       >
         <div className="admin-side-brand">
           <span className="admin-side-logo" aria-hidden="true" />
@@ -212,7 +220,7 @@ export function AdminShell({
           <button
             type="button"
             className="admin-side-close"
-            aria-label="Close admin menu"
+            aria-label={t("Close admin menu", "অ্যাডমিন মেনু বন্ধ করুন")}
             onClick={closeMenu}
           >
             <X size={20} aria-hidden="true" />
@@ -220,11 +228,11 @@ export function AdminShell({
         </div>
         <button type="button" className="admin-side-search" onClick={() => setSearch(true)}>
           <Search size={16} aria-hidden="true" />
-          <span>Search anything</span>
+          <span>{t("Search anything", "যেকোনো কিছু খুঁজুন")}</span>
           <kbd>/</kbd>
         </button>
         {menu.map(g => (
-          <div key={g.label} className="admin-side-group" data-group={groupSlug(g.label)}>
+          <div key={g.label} className="admin-side-group" data-group={groupSlug(g.key ?? g.label)}>
             <p>{g.label}</p>
             {g.items.map(i => (
               <Link
@@ -268,9 +276,15 @@ export function AdminShell({
             <small>{role}</small>
           </div>
         </div>
+        <div className="admin-side-lang">
+          <LanguageSwitch />
+        </div>
       </nav>
       {open && <div className="admin-scrim" aria-hidden="true" onClick={closeMenu} />}
-      <div className="admin-content" data-area={area ? groupSlug(area.label) : undefined}>
+      <div
+        className="admin-content"
+        data-area={area ? groupSlug(area.key ?? area.label) : undefined}
+      >
         {area && (
           <p className="admin-crumb">
             <span className="admin-crumb-chip">{area.label}</span>
@@ -286,7 +300,7 @@ export function AdminShell({
             className="admin-search"
             role="dialog"
             aria-modal="true"
-            aria-label="Search the admin"
+            aria-label={t("Search the admin", "অ্যাডমিনে খুঁজুন")}
             onClick={e => e.stopPropagation()}
           >
             <form
@@ -301,7 +315,7 @@ export function AdminShell({
                 value={q}
                 onChange={e => setQ(e.target.value)}
                 placeholder="Order code, customer, phone, page…"
-                aria-label="Search"
+                aria-label={t("Search", "খুঁজুন")}
                 maxLength={60}
               />
               <button
@@ -322,7 +336,7 @@ export function AdminShell({
                 </li>
               ))}
             </ul>
-            {!hits.length && <p>Nothing found.</p>}
+            {!hits.length && <p>{t("Nothing found.", "কিছু পাওয়া যায়নি।")}</p>}
           </div>
         </div>
       )}

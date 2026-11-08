@@ -6,6 +6,7 @@ import { catalogDb } from "@/lib/store-products";
 import { storeLive } from "@/lib/seo";
 import { adminCounts } from "@/lib/admin-today";
 import { menuFor } from "@/lib/admin-menu";
+import { requestLocale } from "@/lib/request-locale";
 import { AdminShell } from "@/components/admin-shell";
 import "./admin.css";
 
@@ -23,10 +24,18 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const counts = await adminCounts(db, access).catch(() => ({ orders: 0, leads: 0, lowStock: 0 }));
   return (
     <AdminShell
-      menu={menuFor(access, counts)}
+      menu={menuFor(access, counts, (await requestLocale()).locale)}
       live={storeLive()}
       name={session.user.name || session.user.email}
-      role={access.owner ? "Owner · full access" : "Staff"}
+      role={
+        (await requestLocale()).locale === "bn"
+          ? access.owner
+            ? "মালিক · সম্পূর্ণ প্রবেশাধিকার"
+            : "স্টাফ"
+          : access.owner
+            ? "Owner · full access"
+            : "Staff"
+      }
     >
       {children}
     </AdminShell>

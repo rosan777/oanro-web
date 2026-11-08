@@ -1,11 +1,13 @@
 "use client";
 
+import { useAdminText } from "./admin-text";
 import { useEffect, useState, type FormEvent } from "react";
 import { formatPrice } from "@/lib/catalog";
 
 const QUICK = ["Call first", "Gift wrap", "VIP", "Fragile", "Urgent"];
 /** Inside an opened order: team labels (quick picks or custom) and the discount code used, if any. */
 export function OrderExtras({ orderId }: { orderId: string }) {
+  const tr = useAdminText();
   const [data, setData] = useState<{
     labels: string[];
     discount: { code: string; amount: number } | null;
@@ -44,7 +46,7 @@ export function OrderExtras({ orderId }: { orderId: string }) {
         )}
         {data.labels.length > 0 && (
           <div className="order-labels">
-            <span>Labels</span>
+            <span>{tr("Labels")}</span>
             {data.labels.map(l => (
               <span key={l} className="label-chip is-on">
                 {l}
@@ -62,7 +64,7 @@ export function OrderExtras({ orderId }: { orderId: string }) {
         </p>
       )}
       <div className="order-labels">
-        <span>Labels</span>
+        <span>{tr("Labels")}</span>
         {data.labels.map(l => (
           <button
             type="button"
@@ -96,8 +98,8 @@ export function OrderExtras({ orderId }: { orderId: string }) {
             value={text}
             onChange={e => setText(e.target.value)}
             maxLength={24}
-            placeholder="Custom label"
-            aria-label="Custom label"
+            placeholder={tr("Custom label")}
+            aria-label={tr("Custom label")}
           />
         </form>
       </div>
@@ -108,6 +110,7 @@ export function OrderExtras({ orderId }: { orderId: string }) {
 type Note = { id: string; body: string; author: string; createdAt: string };
 /** Private team notes on a customer page. */
 export function CustomerNotes({ userId, initial }: { userId: string; initial: Note[] }) {
+  const tr = useAdminText();
   const [notes, setNotes] = useState(initial);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -130,18 +133,18 @@ export function CustomerNotes({ userId, initial }: { userId: string; initial: No
   }
   return (
     <section className="profile-card customer-notes">
-      <h2>Team notes</h2>
-      <p className="small-note">Private: only staff with customer access see these.</p>
+      <h2>{tr("Team notes")}</h2>
+      <p className="small-note">{tr("Private: only staff with customer access see these.")}</p>
       <form onSubmit={add}>
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
           rows={3}
           maxLength={1000}
-          placeholder="e.g. Prefers calls after 6 pm"
+          placeholder={tr("e.g. Prefers calls after 6 pm")}
         />
         <button className="btn btn-primary btn-sm" disabled={busy || text.trim().length < 2}>
-          Add note
+          {tr("Add note")}
         </button>
       </form>
       {err && <p className="inquiry-error">{err}</p>}

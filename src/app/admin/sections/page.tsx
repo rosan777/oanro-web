@@ -1,3 +1,5 @@
+import { requestLocale } from "@/lib/request-locale";
+import { adminTextFor } from "@/lib/admin-text-server";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { requireAdminPage } from "@/lib/admin-guard";
@@ -40,6 +42,7 @@ function Card({
   );
 }
 export default async function SectionsPage() {
+  const tr = adminTextFor((await requestLocale()).locale);
   // Any staff member with at least one permission may enter; each card shows only with its permission.
   const { access } = await requireAdminPage();
   const can = (p: Parameters<typeof access.permissions.has>[0]) => access.permissions.has(p);
@@ -79,7 +82,7 @@ export default async function SectionsPage() {
       )}
       {productPermissions.some(can) && (
         <>
-          <h2>Product sections</h2>
+          <h2>{tr("Product sections")}</h2>
           <div className="admin-card-grid">
             {catalog.collections.map(c => (
               <Card
@@ -105,14 +108,14 @@ export default async function SectionsPage() {
         </>
       )}
       {(can("services.manage") || can("pulse.manage") || can("site.manage")) && (
-        <h2>Other sections</h2>
+        <h2>{tr("Other sections")}</h2>
       )}
       <div className="admin-card-grid">
         {(can("services.manage") || can("site.manage")) && (
           <Card
             href="/admin/services"
-            label="Tech solutions"
-            title="Services"
+            label={tr("Tech solutions")}
+            title={tr("Services")}
             on={sections.services}
             detail={
               services.managed
@@ -128,9 +131,9 @@ export default async function SectionsPage() {
         {can("site.manage") && (
           <div className={`admin-card ${sections["back-to-top"] ? "is-on" : "is-off"}`}>
             <div className="admin-card-link is-static">
-              <small>Floating button</small>
-              <strong>Back to top</strong>
-              <span>Round arrow at the bottom left that appears after scrolling down</span>
+              <small>{tr("Floating button")}</small>
+              <strong>{tr("Back to top")}</strong>
+              <span>{tr("Round arrow at the bottom left that appears after scrolling down")}</span>
             </div>
             <SectionSwitch
               kind="site"
@@ -143,8 +146,8 @@ export default async function SectionsPage() {
         {(can("pulse.manage") || can("site.manage")) && (
           <Card
             href="/admin/pulse"
-            label="News strip"
-            title="Global Pulse"
+            label={tr("News strip")}
+            title={tr("Global Pulse")}
             on={sections["global-pulse"]}
             detail={`${stories.length} stor${stories.length === 1 ? "y" : "ies"}`}
           >

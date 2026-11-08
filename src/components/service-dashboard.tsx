@@ -1,4 +1,5 @@
 "use client";
+import { useAdminText } from "./admin-text";
 import { useState, type FormEvent } from "react";
 import { serviceCategories } from "@/lib/categories";
 import { slugify, type ProductStatus } from "@/lib/product-input";
@@ -53,6 +54,7 @@ const toDraft = (s: Item): Draft => ({
 
 /** Admin list of technology services with a create/edit form, status changes and archiving. */
 export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
+  const tr = useAdminText();
   const [items, setItems] = useState(initial.services);
   const [managed, setManaged] = useState(initial.managed);
   const [editing, setEditing] = useState<{
@@ -104,14 +106,14 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
         ? call(
             "PATCH",
             { id: editing.id, ...body },
-            "Service saved. Refresh the storefront to see it.",
+            tr("Service saved. Refresh the storefront to see it."),
           )
         : call(
             "POST",
             body,
             editing.draft.status === "published"
-              ? "Service created and published."
-              : "Service saved as a draft.",
+              ? tr("Service created and published.")
+              : tr("Service saved as a draft."),
           ))
     )
       setEditing(null);
@@ -152,7 +154,7 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
     );
   return (
     <section className="admin-sections admin-products" aria-labelledby="services-heading">
-      <h2 id="services-heading">Services</h2>
+      <h2 id="services-heading">{tr("Services")}</h2>
       {!managed && (
         <div className="admin-callout">
           <p>
@@ -167,11 +169,11 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
               call(
                 "POST",
                 { action: "import-demo" },
-                "Built-in services imported. You can now edit them.",
+                tr("Built-in services imported. You can now edit them."),
               )
             }
           >
-            Import the 4 current services
+            {tr("Import the 4 current services")}
           </button>
         </div>
       )}
@@ -182,13 +184,13 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
           disabled={busy}
           onClick={() => open(null)}
         >
-          Add service
+          {tr("Add service")}
         </button>
       )}
       {editing && (
         <form className="pulse-form product-form" onSubmit={save}>
-          <h3>{editing.id ? `Edit ${editing.draft.titleEn || "service"}` : "New service"}</h3>
-          {field("titleEn", "Title", { required: true, maxLength: 80 })}
+          <h3>{editing.id ? `Edit ${editing.draft.titleEn || "service"}` : tr("New service")}</h3>
+          {field("titleEn", tr("Title"), { required: true, maxLength: 80 })}
           <CategoryPicker
             key={editing.id ?? "new"}
             options={serviceCategories}
@@ -197,17 +199,17 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
             disabled={busy}
             onChange={(en, bn) => set({ categoryEn: en, categoryBn: bn })}
           />
-          {field("word", "Card word (big text on the card, e.g. WEB, APP)", { maxLength: 12 })}
-          {area("summaryEn", "Short text (shown on the card)", 160)}
-          {area("detailEn", "Details (shown when the card flips)", 800)}
+          {field("word", tr("Card word (big text on the card, e.g. WEB, APP)"), { maxLength: 12 })}
+          {area("summaryEn", tr("Short text (shown on the card)"), 160)}
+          {area("detailEn", tr("Details (shown when the card flips)"), 800)}
           <details>
-            <summary>Bangla text (optional)</summary>
+            <summary>{tr("Bangla text (optional)")}</summary>
             {field("titleBn", "শিরোনাম", { maxLength: 80 })}
             {area("summaryBn", "সংক্ষিপ্ত লেখা", 160)}
             {area("detailBn", "বিস্তারিত", 800)}
           </details>
           <PhotoPicker
-            legend="Thumbnail (optional)"
+            legend={tr("Thumbnail (optional)")}
             value={photo}
             hasCurrent={editing.hasImage}
             disabled={busy}
@@ -220,14 +222,14 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
             onChange={status => set({ status })}
           />
           <details>
-            <summary>Advanced</summary>
-            {field("slug", "Web address", {
+            <summary>{tr("Advanced")}</summary>
+            {field("slug", tr("Web address"), {
               required: true,
               maxLength: 60,
               pattern: "[a-z0-9]+(-[a-z0-9]+)*",
               onInput: () => setSlugTouched(true),
             })}
-            {field("displayOrder", "Display order (lower shows first)", {
+            {field("displayOrder", tr("Display order (lower shows first)"), {
               type: "number",
               min: -1000,
               max: 1000,
@@ -236,7 +238,7 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
           </details>
           <div className="product-form-actions">
             <button type="submit" className="button brand-button" disabled={busy}>
-              {busy ? "Saving…" : editing.id ? "Save changes" : "Create service"}
+              {busy ? tr("Saving…") : editing.id ? tr("Save changes") : tr("Create service")}
             </button>
             <button
               type="button"
@@ -244,7 +246,7 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
               disabled={busy}
               onClick={() => setEditing(null)}
             >
-              Cancel
+              {tr("Cancel")}
             </button>
           </div>
         </form>
@@ -255,7 +257,7 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
             <div>
               <strong>{item.titleEn}</strong>
               <small>
-                {item.categoryEn || "No category"}
+                {item.categoryEn || tr("No category")}
                 {item.hasImage ? " · thumbnail" : ""} · {statusLabel[item.status]}
               </small>
             </div>
@@ -279,7 +281,7 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
                 onClick={() => open(item)}
               >
                 <ActionIcon name="edit" />
-                Edit
+                {tr("Edit")}
               </button>
               <button
                 type="button"
@@ -291,7 +293,7 @@ export function ServiceDashboard({ initial }: { initial: OwnerServices }) {
                 }}
               >
                 <ActionIcon name="archive" />
-                Archive
+                {tr("Archive")}
               </button>
             </div>
           </li>

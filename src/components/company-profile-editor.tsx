@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdminText } from "./admin-text";
 import { useState } from "react";
 import {
   blankGroup,
@@ -39,6 +40,7 @@ function BiInput({
   long?: boolean;
   hint?: string;
 }) {
+  const tr = useAdminText();
   const Field = long ? "textarea" : "input";
   return (
     <div className="ce-bi">
@@ -47,7 +49,7 @@ function BiInput({
         {hint && <small> · {hint}</small>}
       </span>
       <label>
-        <small>English</small>
+        <small>{tr("English")}</small>
         <Field
           rows={long ? 4 : undefined}
           value={value.en}
@@ -143,18 +145,19 @@ function ItemEditor({
   kind: SectionKind;
   onChange: (v: ProfileItem) => void;
 }) {
+  const tr = useAdminText();
   const u = uses(kind);
   return (
     <div className="cpe-item">
       {u.icon && (
         <label className="cpe-icon">
-          Icon
+          {tr("Icon")}
           <span className="cpe-icon-row">
             <span className="cpe-icon-preview">
               <ProfileIcon name={it.icon} size={18} />
             </span>
             <select value={it.icon} onChange={e => onChange({ ...it, icon: e.target.value })}>
-              <option value="">No icon</option>
+              <option value="">{tr("No icon")}</option>
               {profileIcons.map(n => (
                 <option key={n} value={n}>
                   {n}
@@ -190,7 +193,7 @@ function ItemEditor({
       )}
       {u.list && (
         <BiInput
-          label="Bullet list"
+          label={tr("Bullet list")}
           hint="one line per bullet"
           value={it.list}
           onChange={v => onChange({ ...it, list: v })}
@@ -211,6 +214,7 @@ function GroupEditor({
   kind: SectionKind;
   onChange: (v: ProfileGroup) => void;
 }) {
+  const tr = useAdminText();
   const u = uses(kind);
   return (
     <div className="cpe-group">
@@ -218,12 +222,12 @@ function GroupEditor({
         <BiInput
           label={
             kind === "notice"
-              ? "Box heading"
+              ? tr("Box heading")
               : kind === "split"
-                ? "Panel heading"
+                ? tr("Panel heading")
                 : kind === "cards"
-                  ? "Group heading (used for the tags group)"
-                  : "Group heading"
+                  ? tr("Group heading (used for the tags group)")
+                  : tr("Group heading")
           }
           value={g.title}
           onChange={v => onChange({ ...g, title: v })}
@@ -269,6 +273,7 @@ function SectionEditor({
   s: ProfileSection;
   onChange: (v: ProfileSection) => void;
 }) {
+  const tr = useAdminText();
   const u = uses(s.kind);
   return (
     <div className="cpe-section-body">
@@ -300,7 +305,7 @@ function SectionEditor({
         </label>
         {u.columns && (
           <label>
-            Columns
+            {tr("Columns")}
             <select
               value={s.columns}
               onChange={e => onChange({ ...s, columns: Number(e.target.value) })}
@@ -315,25 +320,25 @@ function SectionEditor({
         )}
       </div>
       <BiInput
-        label="Small label above the heading"
+        label={tr("Small label above the heading")}
         value={s.eyebrow}
         onChange={v => onChange({ ...s, eyebrow: v })}
       />
       <BiInput
-        label="Heading"
+        label={tr("Heading")}
         hint={s.kind === "cover" || s.kind === "thanks" ? "use | for a new line" : undefined}
         value={s.title}
         onChange={v => onChange({ ...s, title: v })}
       />
       <BiInput
-        label={s.kind === "cover" ? "Tagline" : "Paragraph"}
+        label={s.kind === "cover" ? tr("Tagline") : tr("Paragraph")}
         hint={s.kind === "intro" || s.kind === "notice" ? "blank line = new paragraph" : undefined}
         value={s.body}
         onChange={v => onChange({ ...s, body: v })}
         long
       />
       <BiInput
-        label="Bottom strip (optional)"
+        label={tr("Bottom strip (optional)")}
         value={s.strip}
         onChange={v => onChange({ ...s, strip: v })}
       />
@@ -367,6 +372,7 @@ function SectionEditor({
 
 /** Admin → Company profile: add, edit, reorder and switch off sections of /company-profile. */
 export function CompanyProfileEditor({ initial }: { initial: CompanyProfile }) {
+  const tr = useAdminText();
   const [saved, setSaved] = useState(initial);
   const [draft, setDraft] = useState(initial);
   const [busy, setBusy] = useState(false);
@@ -387,7 +393,9 @@ export function CompanyProfileEditor({ initial }: { initial: CompanyProfile }) {
     if (
       reset &&
       !confirm(
-        "Put the whole company profile back to the original version? Your changes will be lost.",
+        tr(
+          "Put the whole company profile back to the original version? Your changes will be lost.",
+        ),
       )
     )
       return;
@@ -406,7 +414,7 @@ export function CompanyProfileEditor({ initial }: { initial: CompanyProfile }) {
     }
     setSaved(data.profile);
     setDraft(data.profile);
-    setMsg(reset ? "Back to the original version. Live now." : "Saved. Live now.");
+    setMsg(reset ? tr("Back to the original version. Live now.") : tr("Saved. Live now."));
   }
 
   return (
@@ -418,7 +426,7 @@ export function CompanyProfileEditor({ initial }: { initial: CompanyProfile }) {
           target="_blank"
           rel="noreferrer"
         >
-          View page ↗
+          {tr("View page ↗")}
         </a>
         <button
           type="button"
@@ -429,7 +437,7 @@ export function CompanyProfileEditor({ initial }: { initial: CompanyProfile }) {
             setMsg("");
           }}
         >
-          Discard changes
+          {tr("Discard changes")}
         </button>
         <button
           type="button"
@@ -437,7 +445,7 @@ export function CompanyProfileEditor({ initial }: { initial: CompanyProfile }) {
           disabled={busy}
           onClick={() => save(true)}
         >
-          Reset to default
+          {tr("Reset to default")}
         </button>
         <button
           type="button"
@@ -445,7 +453,7 @@ export function CompanyProfileEditor({ initial }: { initial: CompanyProfile }) {
           disabled={busy || !dirty}
           onClick={() => save()}
         >
-          {busy ? "Saving…" : "Save"}
+          {busy ? tr("Saving…") : tr("Save")}
         </button>
         {msg && (
           <span className="small-note" role="status">
@@ -466,9 +474,9 @@ export function CompanyProfileEditor({ initial }: { initial: CompanyProfile }) {
         >
           <summary>
             <span className="cpe-index">{String(i + 1).padStart(2, "0")}</span>
-            <strong>{s.title.en.replace(/\|/g, " ") || "Untitled section"}</strong>
+            <strong>{s.title.en.replace(/\|/g, " ") || tr("Untitled section")}</strong>
             <small>{sectionKinds[s.kind].label}</small>
-            {!s.enabled && <span className="cpe-off">Hidden</span>}
+            {!s.enabled && <span className="cpe-off">{tr("Hidden")}</span>}
           </summary>
           <Tools
             what="section"
@@ -476,7 +484,7 @@ export function CompanyProfileEditor({ initial }: { initial: CompanyProfile }) {
             n={draft.sections.length}
             move={(a, b) => setSections(moved(draft.sections, a, b))}
             remove={() => {
-              if (confirm(`Remove the section “${s.title.en || "Untitled"}”?`))
+              if (confirm(`Remove the section “${s.title.en || tr("Untitled")}”?`))
                 setSections(draft.sections.filter((_, k) => k !== i));
             }}
           />
@@ -486,7 +494,7 @@ export function CompanyProfileEditor({ initial }: { initial: CompanyProfile }) {
 
       <div className="ce-group cpe-add">
         <label>
-          New section type
+          {tr("New section type")}
           <select value={newKind} onChange={e => setNewKind(e.target.value as SectionKind)}>
             {(Object.keys(sectionKinds) as SectionKind[]).map(k => (
               <option key={k} value={k}>
@@ -506,7 +514,7 @@ export function CompanyProfileEditor({ initial }: { initial: CompanyProfile }) {
         >
           + Add section
         </button>
-        <small>New sections are added at the end. Move them with ↑ ↓ and press Save.</small>
+        <small>{tr("New sections are added at the end. Move them with ↑ ↓ and press Save.")}</small>
       </div>
     </section>
   );

@@ -2,6 +2,7 @@ import "server-only";
 // Server wiring for the assistant: real data sources, request guards, session cookies and public configuration.
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { cache } from "react";
+import { searchTrends } from "../search-insights";
 import { authConfigured } from "../auth";
 import { getCheckoutRules, getPaymentNumbers, DEFAULT_RULES } from "../order-store";
 import { publicRules } from "../public-rules";
@@ -96,6 +97,9 @@ export const productionTools = (): ToolContext => ({
     const n = await getPaymentNumbers(catalogDb()).catch(() => ({ bkash: "", nagad: "" }));
     return [n.bkash && "bKash", n.nagad && "Nagad"].filter(Boolean) as string[];
   },
+  // Aggregate search trends only (see search-insights.ts: minimum count, no individual data).
+  searchTrends: async () =>
+    hasDatabase() ? await searchTrends(catalogDb()).catch(() => null) : null,
 });
 export { publicRules };
 

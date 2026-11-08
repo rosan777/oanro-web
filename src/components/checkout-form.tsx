@@ -81,6 +81,18 @@ const fieldText = (bn: boolean): Record<string, string> => ({
     : "Something is wrong with your bag. Refresh and try again.",
 });
 
+export type SavedAddress = {
+  id: string;
+  label: string;
+  name: string;
+  phone: string;
+  address: string;
+  area: string;
+  city: string;
+  postcode: string;
+  insideDhaka: boolean;
+};
+
 /** The checkout form; the props come from the server (payment numbers, rules, saved profile). */
 export function CheckoutForm({
   numbers,
@@ -89,6 +101,7 @@ export function CheckoutForm({
   phone,
   address,
   verified,
+  savedAddresses = [],
 }: {
   numbers: Record<Method, string>;
   rules: {
@@ -103,6 +116,8 @@ export function CheckoutForm({
   phone: string;
   address: string;
   verified: boolean;
+  /** The customer's saved addresses (account → Addresses); picking one fills the delivery step. */
+  savedAddresses?: SavedAddress[];
 }) {
   const { locale } = useLocale();
   const bn = locale === "bn";
@@ -199,6 +214,69 @@ export function CheckoutForm({
   // The cash amount is kept with the finished order: the bag is emptied on success, which would otherwise turn "Pay ৳599 in cash" into "Pay ৳0".
   const [done, setDone] = useState<{ code: string; payLater: number } | null>(null);
   const [copied, setCopied] = useState(false);
+  // Three steps of the approved design. All fields stay in one form; each step checks its own fields.
+  const [step, setStep] = useState(1);
+  const formRef = useRef<HTMLFormElement>(null);
+  const deliveryStep = useRef<HTMLElement>(null);
+  const paymentStep = useRef<HTMLElement>(null);
+  const [review, setReview] = useState<{
+    name: string;
+    phone: string;
+    address: string;
+    trxId: string;
+  } | null>(null);
+
+  /** Moves past step n when its choices and fields are valid (the browser shows the first problem). */
+  function next(n: number) {
+    setError("");
+    if (n === 1 && !area) {
+      setError(
+        bn
+          ? "ডেলিভারির এলাকা বেছে নিন: ঢাকার ভেতরে না বাইরে।"
+          : "Choose your delivery area: inside or outside Dhaka.",
+      );
+      return;
+    }
+    if (n === 2 && (!payType || !method)) {
+      setError(bn ? "পেমেন্ট পদ্ধতি বেছে নিন।" : "Choose how to pay.");
+      return;
+    }
+    const box = (n === 1 ? deliveryStep : paymentStep).current;
+    for (const el of box?.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
+      "input, textarea",
+    ) ?? []) {
+      if (!el.checkValidity()) {
+        el.reportValidity();
+        return;
+      }
+    }
+    if (n === 2 && formRef.current) {
+      const f = new FormData(formRef.current);
+      setReview({
+        name: String(f.get("name") ?? ""),
+        phone: String(f.get("phone") ?? ""),
+        address: String(f.get("address") ?? ""),
+        trxId: String(f.get("trxId") ?? ""),
+      });
+    }
+    setStep(n + 1);
+    formRef.current?.scrollIntoView({ block: "start" });
+  }
+
+  /** Fills the delivery step from a saved address. */
+  function fillFromAddress(id: string) {
+    const a = savedAddresses.find(x => x.id === id);
+    const form = formRef.current;
+    if (!a || !form) return;
+    const set = (field: string, value: string) => {
+      const el = form.elements.namedItem(field) as HTMLInputElement | HTMLTextAreaElement | null;
+      if (el && value) el.value = value;
+    };
+    set("name", a.name);
+    set("phone", a.phone);
+    set("address", [a.address, a.area, a.city, a.postcode].filter(Boolean).join(", "));
+    setArea(a.insideDhaka ? "dhaka" : "outside");
+  }
 
   if (done)
     return (
@@ -228,7 +306,7 @@ export function CheckoutForm({
     return (
       <section className="checkout-empty">
         <h1>{bn ? "আপনার ব্যাগ খালি" : "Your bag is empty"}</h1>
-        <Link className="button brand-button" href="/#products">
+        <Link className="button brand-button" href="/shop">
           {bn ? "পণ্য দেখুন" : "Browse products"}
         </Link>
       </section>
@@ -252,6 +330,7 @@ export function CheckoutForm({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!area) {
+      setStep(1);
       setError(
         bn
           ? "ডেলিভারির এলাকা বেছে নিন: ঢাকার ভেতরে না বাইরে।"
@@ -260,6 +339,7 @@ export function CheckoutForm({
       return;
     }
     if (!payType || !method) {
+      setStep(2);
       setError(bn ? "পেমেন্ট পদ্ধতি বেছে নিন।" : "Choose how to pay.");
       return;
     }
@@ -342,6 +422,14 @@ export function CheckoutForm({
         window.scrollTo({ top: 0 });
         return;
       }
+      if (result.field)
+        setStep(
+          ["name", "phone", "address", "note"].includes(result.field)
+            ? 1
+            : ["trxId", "payerNumber", "screenshot"].includes(result.field)
+              ? 2
+              : 3,
+        );
       setError(
         result.field
           ? (fieldText(bn)[result.field] ?? (bn ? "তথ্য ঠিক করে দিন।" : "Please check the form."))
@@ -361,11 +449,489 @@ export function CheckoutForm({
     }
   }
   const payTo = method ? numbers[method] : "";
+  const stepNames = bn ? ["ডেলিভারি", "পেমেন্ট", "রিভিউ"] : ["Delivery", "Payment", "Review"];
   return (
-    <form className="checkout-grid" onSubmit={submit}>
-      {/* Left: the order summary, delivery area, discount code and totals. */}
-      <section className="checkout-summary" aria-labelledby="summary-title">
-        <h1 id="summary-title">{bn ? "চেকআউট" : "Checkout"}</h1>
+    <form className="o-checkout-layout o-checkout" onSubmit={submit} ref={formRef}>
+      <div className="o-checkout-main">
+        <div className="o-title">
+          <span className="o-eyebrow">{bn ? "নিরাপদ চেকআউট" : "A LITTLE CLOSER"}</span>
+          <h1 id="summary-title">{bn ? "চেকআউট" : "Make it yours."}</h1>
+        </div>
+        <ol className="o-checkout-steps" aria-label={bn ? "চেকআউটের ধাপ" : "Checkout steps"}>
+          {stepNames.map((label, i) => (
+            <li key={label} className={step === i + 1 ? "active" : step > i + 1 ? "done" : ""}>
+              <button
+                type="button"
+                aria-current={step === i + 1 ? "step" : undefined}
+                disabled={i + 1 > step}
+                onClick={() => setStep(i + 1)}
+              >
+                <i aria-hidden="true">{step > i + 1 ? "✓" : i + 1}</i>
+                {label}
+              </button>
+            </li>
+          ))}
+        </ol>
+        {!verified && (
+          <p className="checkout-warning" role="alert">
+            <ShieldAlert size={18} />
+            {bn
+              ? "অর্ডার দিতে আগে আপনার ইমেইল ভেরিফাই করুন (ইনবক্সে লিংক দেখুন)।"
+              : "Verify your email first (check your inbox for the link) to place an order."}
+          </p>
+        )}
+
+        {/* Step 1: where it goes. */}
+        <section
+          className="o-checkout-step"
+          hidden={step !== 1}
+          ref={deliveryStep}
+          aria-labelledby="step-delivery"
+        >
+          <h2 id="step-delivery">{bn ? "১. ডেলিভারি" : "1. Delivery"}</h2>
+          <div
+            className="checkout-area o-choice-row"
+            role="radiogroup"
+            aria-label={bn ? "ডেলিভারির এলাকা" : "Delivery area"}
+          >
+            <span>{bn ? "ডেলিভারির এলাকা *" : "Delivery area *"}</span>
+            {(["dhaka", "outside"] as DeliveryArea[]).map(a => (
+              <button
+                key={a}
+                type="button"
+                role="radio"
+                aria-checked={area === a}
+                onClick={() => {
+                  setArea(a);
+                  setError("");
+                }}
+              >
+                {areaLabel(a, locale)} <small>{formatPrice(chargeFor(rules, a), locale)}</small>
+              </button>
+            ))}
+          </div>
+          {savedAddresses.length > 0 && (
+            <label className="o-saved-address">
+              {bn ? "সংরক্ষিত ঠিকানা" : "Saved address"}
+              <select defaultValue="" onChange={e => fillFromAddress(e.target.value)}>
+                <option value="">{bn ? "বেছে নিন…" : "Choose…"}</option>
+                {savedAddresses.map(a => (
+                  <option key={a.id} value={a.id}>
+                    {[a.label, a.address].filter(Boolean).join(" · ").slice(0, 70)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <div className="checkout-fields">
+            <label>
+              {bn ? "আপনার নাম *" : "Your name *"}
+              <input
+                name="name"
+                required
+                minLength={2}
+                maxLength={80}
+                defaultValue={name}
+                autoComplete="name"
+              />
+            </label>
+            <label>
+              {bn ? "মোবাইল নম্বর (ডেলিভারির জন্য) *" : "Mobile number (for delivery) *"}
+              <input
+                name="phone"
+                required
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="01XXXXXXXXX"
+                defaultValue={phone}
+              />
+            </label>
+            <label className="wide">
+              {bn ? "ডেলিভারি ঠিকানা *" : "Delivery address *"}
+              <textarea
+                name="address"
+                required
+                minLength={10}
+                maxLength={300}
+                rows={3}
+                autoComplete="street-address"
+                defaultValue={address}
+              />
+            </label>
+            <label className="wide">
+              {bn ? "নোট (ঐচ্ছিক)" : "Note (optional)"}
+              <textarea name="note" maxLength={300} rows={2} />
+            </label>
+          </div>
+          {step === 1 && error && (
+            <p className="checkout-error" role="alert">
+              {error}
+            </p>
+          )}
+          <button type="button" className="button brand-button" onClick={() => next(1)}>
+            {bn ? "পেমেন্টে যান" : "Continue to payment"}
+          </button>
+        </section>
+
+        {/* Step 2: how to pay (manual bKash/Nagad send money; cash on delivery pays the delivery charge first). */}
+        <section
+          className="o-checkout-step"
+          hidden={step !== 2}
+          ref={paymentStep}
+          aria-labelledby="pay-title"
+        >
+          <h2 id="pay-title">{bn ? "২. পেমেন্ট পদ্ধতি বেছে নিন" : "2. Choose how to pay"}</h2>
+          <div
+            className="pay-methods"
+            role="radiogroup"
+            aria-label={bn ? "পেমেন্ট পদ্ধতি" : "Payment method"}
+          >
+            {methods.map(m => (
+              <button
+                type="button"
+                role="radio"
+                aria-checked={payType === "prepaid" && method === m}
+                key={m}
+                className={`pay-method pay-${m}`}
+                onClick={() => {
+                  setPayType("prepaid");
+                  setMethod(m);
+                  setError("");
+                }}
+              >
+                {methodName[m]}
+              </button>
+            ))}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={cod}
+              aria-disabled={!codAllowed}
+              className="pay-method pay-cod"
+              onClick={() => {
+                if (!codAllowed) {
+                  setError(errorText(bn).COD_LIMIT);
+                  return;
+                }
+                setPayType("cod");
+                setMethod(methods.length === 1 ? methods[0] : null);
+                setError("");
+              }}
+            >
+              {bn ? "ক্যাশ অন ডেলিভারি" : "Cash on delivery"}
+            </button>
+          </div>
+          {!codAllowed && (
+            <small className="pay-hint">
+              {bn
+                ? `ক্যাশ অন ডেলিভারি সর্বোচ্চ ${formatPrice(rules.codLimit, locale)} পর্যন্ত।`
+                : `Cash on delivery is available up to ${formatPrice(rules.codLimit, locale)}.`}
+            </small>
+          )}
+          {cod && (
+            <div className="cod-box">
+              <p className="pay-notice cod-notice" role="note">
+                <ShieldAlert size={18} />
+                {bn
+                  ? "আগে ডেলিভারি চার্জ দিতে হবে, তারপর আমাদের অ্যাডমিন অর্ডারটি অনুমোদন করবে।"
+                  : "You must pay the delivery charge first, and your order needs approval from our admin."}
+              </p>
+              <h3>
+                {bn
+                  ? `ডেলিভারি চার্জ ${formatPrice(fee, locale)} পাঠান`
+                  : `Pay the delivery charge (${formatPrice(fee, locale)})`}
+              </h3>
+              <div
+                className="pay-methods"
+                role="radiogroup"
+                aria-label={bn ? "ডেলিভারি চার্জ কীভাবে দেবেন" : "Pay the delivery charge with"}
+              >
+                {methods.map(m => (
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={method === m}
+                    key={m}
+                    className={`pay-method pay-${m}`}
+                    onClick={() => {
+                      setMethod(m);
+                      setError("");
+                    }}
+                  >
+                    {methodName[m]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {payType && method && (
+            <div className="pay-instructions">
+              <h3>
+                {bn
+                  ? `${methodName[method]}-এ Send Money করুন`
+                  : `Send Money with ${methodName[method]}`}
+              </h3>
+              <dl>
+                <div>
+                  <dt>{bn ? "যে নম্বরে পাঠাবেন (পার্সোনাল)" : "Send to (personal number)"}</dt>
+                  <dd>
+                    <strong>{payTo}</strong>
+                    <button
+                      type="button"
+                      className="btn btn-neutral btn-sm"
+                      onClick={() => {
+                        void navigator.clipboard?.writeText(payTo).then(() => setCopied(true));
+                      }}
+                    >
+                      <ActionIcon name={copied ? "approve" : "copy"} size={14} />
+                      {copied ? (bn ? "কপি হয়েছে" : "Copied") : bn ? "কপি" : "Copy"}
+                    </button>
+                  </dd>
+                </div>
+                <div>
+                  <dt>
+                    {bn
+                      ? cod
+                        ? "পরিমাণ (শুধু ডেলিভারি চার্জ)"
+                        : "পরিমাণ (পণ্য + ডেলিভারি)"
+                      : cod
+                        ? "Amount (delivery charge only)"
+                        : "Amount (products + delivery)"}
+                  </dt>
+                  <dd>
+                    <strong>{formatPrice(payNow, locale)}</strong>
+                  </dd>
+                </div>
+              </dl>
+              <p className="pay-notice" role="note">
+                <ShieldAlert size={18} />
+                {bn
+                  ? "টাকা পাঠানোর পর নিচে Transaction ID দিতে হবে (বাধ্যতামূলক)। চাইলে পেমেন্টের স্ক্রিনশটও দিতে পারেন। তাই পাঠানোর পর মেসেজটি বন্ধ করবেন না।"
+                  : "After sending, you must enter the Transaction ID below (required). You can also add a screenshot of the payment. Keep the confirmation message open until you finish."}
+              </p>
+              <div className="checkout-fields">
+                <label>
+                  {bn ? "Transaction ID *" : "Transaction ID *"}
+                  <input
+                    name="trxId"
+                    required
+                    minLength={6}
+                    maxLength={20}
+                    autoCapitalize="characters"
+                    autoComplete="off"
+                    placeholder="8F7A3K9D2X"
+                  />
+                </label>
+                <label>
+                  {bn
+                    ? `যে ${methodName[method]} নম্বর থেকে পাঠিয়েছেন *`
+                    : `Your ${methodName[method]} number (sent from) *`}
+                  <input name="payerNumber" required inputMode="tel" placeholder="01XXXXXXXXX" />
+                </label>
+                <label>
+                  {bn ? "স্ক্রিনশট (ঐচ্ছিক)" : "Screenshot (optional)"}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    disabled={busy}
+                    onChange={async e => {
+                      const f = e.currentTarget.files?.[0];
+                      if (!f) return;
+                      try {
+                        setShot(await resizePhoto(f, 1000));
+                        setError("");
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : "Photo error");
+                      }
+                    }}
+                  />
+                  {shot && (
+                    <span className="shot-preview">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={shot}
+                        alt={bn ? "পেমেন্ট স্ক্রিনশট" : "Payment screenshot preview"}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-danger btn-sm"
+                        onClick={() => setShot(null)}
+                      >
+                        <ActionIcon name="remove" size={14} />
+                        {bn ? "সরান" : "Remove"}
+                      </button>
+                    </span>
+                  )}
+                </label>
+              </div>
+            </div>
+          )}
+          {step === 2 && error && (
+            <p className="checkout-error" role="alert">
+              {error}
+            </p>
+          )}
+          <div className="o-step-actions">
+            <button type="button" className="button light-button" onClick={() => setStep(1)}>
+              {bn ? "পেছনে" : "Back"}
+            </button>
+            <button type="button" className="button brand-button" onClick={() => next(2)}>
+              {bn ? "রিভিউ করুন" : "Review order"}
+            </button>
+          </div>
+        </section>
+
+        {/* Step 3: check and submit. */}
+        <section className="o-checkout-step" hidden={step !== 3} aria-labelledby="step-review">
+          <h2 id="step-review">{bn ? "৩. রিভিউ ও জমা" : "3. Review and submit"}</h2>
+          {review && (
+            <dl className="o-review">
+              <div>
+                <dt>{bn ? "ডেলিভারি" : "Delivery"}</dt>
+                <dd>
+                  {review.name} · {review.phone}
+                  <br />
+                  {review.address}
+                  <br />
+                  {area ? areaLabel(area, locale) : ""}
+                </dd>
+              </div>
+              <div>
+                <dt>{bn ? "পেমেন্ট" : "Payment"}</dt>
+                <dd>
+                  {cod ? (bn ? "ক্যাশ অন ডেলিভারি" : "Cash on delivery") : ""}
+                  {method ? `${cod ? " · " : ""}${methodName[method]} · ${review.trxId}` : ""}
+                </dd>
+              </div>
+            </dl>
+          )}
+          {step === 3 && error && (
+            <p className="checkout-error" role="alert">
+              {error}
+            </p>
+          )}
+          {shortage &&
+            (() => {
+              const one = lines.filter(
+                ({ item }) =>
+                  item.slug === shortage.slug &&
+                  (shortage.size === null ||
+                    (item.size === shortage.size && item.color === shortage.color)),
+              );
+              return (
+                <div className="stock-shortage" role="alert">
+                  <p>
+                    <strong>
+                      {bn ? "দুঃখিত, পর্যাপ্ত স্টক নেই।" : "Sorry, we don't have enough in stock."}
+                    </strong>{" "}
+                    {shortage.available === 0
+                      ? bn
+                        ? `"${shortage.name}" এখন স্টকে নেই। ব্যাগ থেকে সরিয়ে আবার চেষ্টা করুন।`
+                        : `"${shortage.name}" is out of stock right now. Remove it from your bag to continue.`
+                      : bn
+                        ? `"${shortage.name}" এখন মাত্র ${shortage.available}টি আছে, আপনি ${shortage.wanted}টি চেয়েছেন। সর্বোচ্চ ${shortage.available}টি অর্ডার করতে পারবেন।`
+                        : `Only ${shortage.available} of "${shortage.name}" left, and you asked for ${shortage.wanted}. You can order up to ${shortage.available}.`}
+                  </p>
+                  {shortage.available > 0 && one.length === 1 ? (
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={() => {
+                        const { item } = one[0];
+                        changeQuantity(
+                          item.slug,
+                          item.size,
+                          shortage.available - item.quantity,
+                          item.color,
+                        );
+                        setShortage(null);
+                      }}
+                    >
+                      <ActionIcon name="approve" size={14} />
+                      {bn ? `${shortage.available}টি করে দিন` : `Change to ${shortage.available}`}
+                    </button>
+                  ) : shortage.available === 0 ? (
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={() => {
+                        one.forEach(({ item }) => removeItem(item.slug, item.size, item.color));
+                        setShortage(null);
+                      }}
+                    >
+                      <ActionIcon name="remove" size={14} />
+                      {bn ? "ব্যাগ থেকে সরান" : "Remove from bag"}
+                    </button>
+                  ) : (
+                    <small>
+                      {bn
+                        ? "উপরের ব্যাগে সাইজগুলো মিলিয়ে সংখ্যা কমিয়ে নিন।"
+                        : "Reduce the quantities in your bag (all sizes together) to continue."}
+                    </small>
+                  )}
+                  <p className="shortage-refund">
+                    {bn ? (
+                      <>
+                        ইতিমধ্যে টাকা পাঠিয়ে থাকলে চিন্তা করবেন না। একই Transaction ID দিয়েই
+                        অর্ডার জমা দিন। নতুন মোটের চেয়ে বেশি পাঠিয়ে থাকলে, যাচাইয়ের পর বাড়তি
+                        টাকা যে নম্বর থেকে পাঠিয়েছেন সেই নম্বরেই ফেরত দেব। কোনো প্রশ্ন থাকলে{" "}
+                        <Link href="/contact">আমাদের সাথে যোগাযোগ করুন</Link>।
+                      </>
+                    ) : (
+                      <>
+                        Already sent the payment? Don&apos;t worry. Submit with the same Transaction
+                        ID. If you paid more than the new total, we&apos;ll return the difference to
+                        the number you paid from once we&apos;ve checked it. Questions?{" "}
+                        <Link href="/contact">Contact us</Link>.
+                      </>
+                    )}
+                  </p>
+                </div>
+              );
+            })()}
+          {/* Digital Commerce Guidelines 2021: prior consent before collecting personal data. */}
+          <label className="consent-check">
+            <input type="checkbox" name="consent" required />
+            <span>
+              {bn ? (
+                <>
+                  আমি OANRO-র{" "}
+                  <Link href="/privacy" target="_blank">
+                    প্রাইভেসি নোটিশ
+                  </Link>{" "}
+                  পড়েছি এবং আমার তথ্য ব্যবহারে সম্মতি দিচ্ছি।
+                </>
+              ) : (
+                <>
+                  I have read the{" "}
+                  <Link href="/privacy" target="_blank">
+                    Privacy notice
+                  </Link>{" "}
+                  and agree to OANRO using my details for this purpose.
+                </>
+              )}
+            </span>
+          </label>
+          <div className="o-step-actions">
+            <button type="button" className="button light-button" onClick={() => setStep(2)}>
+              {bn ? "পেছনে" : "Back"}
+            </button>
+            <button className="button brand-button checkout-submit" disabled={busy || !verified}>
+              {busy
+                ? bn
+                  ? "জমা হচ্ছে…"
+                  : "Submitting…"
+                : bn
+                  ? `পেমেন্ট জমা দিন · ${formatPrice(payNow, locale)}`
+                  : `Submit payment · ${formatPrice(payNow, locale)}`}
+            </button>
+          </div>
+        </section>
+      </div>
+
+      {/* The order summary: items, delivery charge, discount code and totals (server re-checks everything). */}
+      <aside className="o-order-summary checkout-summary" aria-labelledby="order-summary-title">
+        <h2 id="order-summary-title">{bn ? "অর্ডারের সারাংশ" : "Order summary"}</h2>
         <ul>
           {lines.map(({ item, p }) => (
             <li key={`${item.slug}-${item.size}-${item.color}`}>
@@ -383,27 +949,6 @@ export function CheckoutForm({
           <span>{bn ? "পণ্যের দাম" : "Subtotal"}</span>
           <span>{formatPrice(subtotal, locale)}</span>
         </p>
-        <div
-          className="checkout-area"
-          role="radiogroup"
-          aria-label={bn ? "ডেলিভারির এলাকা" : "Delivery area"}
-        >
-          <span>{bn ? "ডেলিভারির এলাকা *" : "Delivery area *"}</span>
-          {(["dhaka", "outside"] as DeliveryArea[]).map(a => (
-            <button
-              key={a}
-              type="button"
-              role="radio"
-              aria-checked={area === a}
-              onClick={() => {
-                setArea(a);
-                setError("");
-              }}
-            >
-              {areaLabel(a, locale)} <small>{formatPrice(chargeFor(rules, a), locale)}</small>
-            </button>
-          ))}
-        </div>
         <p className="checkout-line">
           <span>{bn ? "ডেলিভারি চার্জ" : "Delivery charge"}</span>
           <span>{area ? formatPrice(fee, locale) : bn ? "এলাকা বেছে নিন" : "Choose area"}</span>
@@ -475,360 +1020,7 @@ export function CheckoutForm({
             </>
           )}
         </small>
-      </section>
-      {/* Right: the three payment steps. */}
-      <section className="checkout-pay" aria-labelledby="pay-title">
-        {!verified && (
-          <p className="checkout-warning" role="alert">
-            <ShieldAlert size={18} />
-            {bn
-              ? "অর্ডার দিতে আগে আপনার ইমেইল ভেরিফাই করুন (ইনবক্সে লিংক দেখুন)।"
-              : "Verify your email first (check your inbox for the link) to place an order."}
-          </p>
-        )}
-        <h2 id="pay-title">{bn ? "১. পেমেন্ট পদ্ধতি বেছে নিন" : "1. Choose how to pay"}</h2>
-        <div
-          className="pay-methods"
-          role="radiogroup"
-          aria-label={bn ? "পেমেন্ট পদ্ধতি" : "Payment method"}
-        >
-          {methods.map(m => (
-            <button
-              type="button"
-              role="radio"
-              aria-checked={payType === "prepaid" && method === m}
-              key={m}
-              className={`pay-method pay-${m}`}
-              onClick={() => {
-                setPayType("prepaid");
-                setMethod(m);
-                setError("");
-              }}
-            >
-              {methodName[m]}
-            </button>
-          ))}
-          <button
-            type="button"
-            role="radio"
-            aria-checked={cod}
-            aria-disabled={!codAllowed}
-            className="pay-method pay-cod"
-            onClick={() => {
-              if (!codAllowed) {
-                setError(errorText(bn).COD_LIMIT);
-                return;
-              }
-              setPayType("cod");
-              setMethod(methods.length === 1 ? methods[0] : null);
-              setError("");
-            }}
-          >
-            {bn ? "ক্যাশ অন ডেলিভারি" : "Cash on delivery"}
-          </button>
-        </div>
-        {!codAllowed && (
-          <small className="pay-hint">
-            {bn
-              ? `ক্যাশ অন ডেলিভারি সর্বোচ্চ ${formatPrice(rules.codLimit, locale)} পর্যন্ত।`
-              : `Cash on delivery is available up to ${formatPrice(rules.codLimit, locale)}.`}
-          </small>
-        )}
-        {cod && (
-          <div className="cod-box">
-            <p className="pay-notice cod-notice" role="note">
-              <ShieldAlert size={18} />
-              {bn
-                ? "আগে ডেলিভারি চার্জ দিতে হবে, তারপর আমাদের অ্যাডমিন অর্ডারটি অনুমোদন করবে।"
-                : "You must pay the delivery charge first, and your order needs approval from our admin."}
-            </p>
-            <h3>
-              {bn
-                ? `ডেলিভারি চার্জ ${formatPrice(fee, locale)} পাঠান`
-                : `Pay the delivery charge (${formatPrice(fee, locale)})`}
-            </h3>
-            <div
-              className="pay-methods"
-              role="radiogroup"
-              aria-label={bn ? "ডেলিভারি চার্জ কীভাবে দেবেন" : "Pay the delivery charge with"}
-            >
-              {methods.map(m => (
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={method === m}
-                  key={m}
-                  className={`pay-method pay-${m}`}
-                  onClick={() => {
-                    setMethod(m);
-                    setError("");
-                  }}
-                >
-                  {methodName[m]}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        {payType && method && (
-          <div className="pay-instructions">
-            <h2>
-              {bn
-                ? `২. ${methodName[method]}-এ Send Money করুন`
-                : `2. Send Money with ${methodName[method]}`}
-            </h2>
-            <dl>
-              <div>
-                <dt>{bn ? "যে নম্বরে পাঠাবেন (পার্সোনাল)" : "Send to (personal number)"}</dt>
-                <dd>
-                  <strong>{payTo}</strong>
-                  <button
-                    type="button"
-                    className="btn btn-neutral btn-sm"
-                    onClick={() => {
-                      void navigator.clipboard?.writeText(payTo).then(() => setCopied(true));
-                    }}
-                  >
-                    <ActionIcon name={copied ? "approve" : "copy"} size={14} />
-                    {copied ? (bn ? "কপি হয়েছে" : "Copied") : bn ? "কপি" : "Copy"}
-                  </button>
-                </dd>
-              </div>
-              <div>
-                <dt>
-                  {bn
-                    ? cod
-                      ? "পরিমাণ (শুধু ডেলিভারি চার্জ)"
-                      : "পরিমাণ (পণ্য + ডেলিভারি)"
-                    : cod
-                      ? "Amount (delivery charge only)"
-                      : "Amount (products + delivery)"}
-                </dt>
-                <dd>
-                  <strong>{formatPrice(payNow, locale)}</strong>
-                </dd>
-              </div>
-            </dl>
-            <p className="pay-notice" role="note">
-              <ShieldAlert size={18} />
-              {bn
-                ? "টাকা পাঠানোর পর নিচে Transaction ID দিতে হবে (বাধ্যতামূলক)। চাইলে পেমেন্টের স্ক্রিনশটও দিতে পারেন। তাই পাঠানোর পর মেসেজটি বন্ধ করবেন না।"
-                : "After sending, you must enter the Transaction ID below (required). You can also add a screenshot of the payment. Keep the confirmation message open until you finish."}
-            </p>
-            <h2>
-              {bn ? "৩. পেমেন্টের প্রমাণ ও ডেলিভারি তথ্য" : "3. Payment proof and delivery details"}
-            </h2>
-            <div className="checkout-fields">
-              <label>
-                {bn ? "Transaction ID *" : "Transaction ID *"}
-                <input
-                  name="trxId"
-                  required
-                  minLength={6}
-                  maxLength={20}
-                  autoCapitalize="characters"
-                  autoComplete="off"
-                  placeholder="8F7A3K9D2X"
-                />
-              </label>
-              <label>
-                {bn
-                  ? `যে ${methodName[method]} নম্বর থেকে পাঠিয়েছেন *`
-                  : `Your ${methodName[method]} number (sent from) *`}
-                <input name="payerNumber" required inputMode="tel" placeholder="01XXXXXXXXX" />
-              </label>
-              <label>
-                {bn ? "স্ক্রিনশট (ঐচ্ছিক)" : "Screenshot (optional)"}
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  disabled={busy}
-                  onChange={async e => {
-                    const f = e.currentTarget.files?.[0];
-                    if (!f) return;
-                    try {
-                      setShot(await resizePhoto(f, 1000));
-                      setError("");
-                    } catch (err) {
-                      setError(err instanceof Error ? err.message : "Photo error");
-                    }
-                  }}
-                />
-                {shot && (
-                  <span className="shot-preview">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={shot} alt={bn ? "পেমেন্ট স্ক্রিনশট" : "Payment screenshot preview"} />
-                    <button
-                      type="button"
-                      className="btn btn-danger btn-sm"
-                      onClick={() => setShot(null)}
-                    >
-                      <ActionIcon name="remove" size={14} />
-                      {bn ? "সরান" : "Remove"}
-                    </button>
-                  </span>
-                )}
-              </label>
-              <label>
-                {bn ? "আপনার নাম *" : "Your name *"}
-                <input
-                  name="name"
-                  required
-                  minLength={2}
-                  maxLength={80}
-                  defaultValue={name}
-                  autoComplete="name"
-                />
-              </label>
-              <label>
-                {bn ? "মোবাইল নম্বর (ডেলিভারির জন্য) *" : "Mobile number (for delivery) *"}
-                <input
-                  name="phone"
-                  required
-                  inputMode="tel"
-                  autoComplete="tel"
-                  placeholder="01XXXXXXXXX"
-                  defaultValue={phone}
-                />
-              </label>
-              <label className="wide">
-                {bn ? "ডেলিভারি ঠিকানা *" : "Delivery address *"}
-                <textarea
-                  name="address"
-                  required
-                  minLength={10}
-                  maxLength={300}
-                  rows={3}
-                  autoComplete="street-address"
-                  defaultValue={address}
-                />
-              </label>
-              <label className="wide">
-                {bn ? "নোট (ঐচ্ছিক)" : "Note (optional)"}
-                <textarea name="note" maxLength={300} rows={2} />
-              </label>
-            </div>
-            {error && (
-              <p className="checkout-error" role="alert">
-                {error}
-              </p>
-            )}
-            {shortage &&
-              (() => {
-                const one = lines.filter(
-                  ({ item }) =>
-                    item.slug === shortage.slug &&
-                    (shortage.size === null ||
-                      (item.size === shortage.size && item.color === shortage.color)),
-                );
-                return (
-                  <div className="stock-shortage" role="alert">
-                    <p>
-                      <strong>
-                        {bn
-                          ? "দুঃখিত, পর্যাপ্ত স্টক নেই।"
-                          : "Sorry, we don't have enough in stock."}
-                      </strong>{" "}
-                      {shortage.available === 0
-                        ? bn
-                          ? `"${shortage.name}" এখন স্টকে নেই। ব্যাগ থেকে সরিয়ে আবার চেষ্টা করুন।`
-                          : `"${shortage.name}" is out of stock right now. Remove it from your bag to continue.`
-                        : bn
-                          ? `"${shortage.name}" এখন মাত্র ${shortage.available}টি আছে, আপনি ${shortage.wanted}টি চেয়েছেন। সর্বোচ্চ ${shortage.available}টি অর্ডার করতে পারবেন।`
-                          : `Only ${shortage.available} of "${shortage.name}" left, and you asked for ${shortage.wanted}. You can order up to ${shortage.available}.`}
-                    </p>
-                    {shortage.available > 0 && one.length === 1 ? (
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-sm"
-                        onClick={() => {
-                          const { item } = one[0];
-                          changeQuantity(
-                            item.slug,
-                            item.size,
-                            shortage.available - item.quantity,
-                            item.color,
-                          );
-                          setShortage(null);
-                        }}
-                      >
-                        <ActionIcon name="approve" size={14} />
-                        {bn ? `${shortage.available}টি করে দিন` : `Change to ${shortage.available}`}
-                      </button>
-                    ) : shortage.available === 0 ? (
-                      <button
-                        type="button"
-                        className="btn btn-danger btn-sm"
-                        onClick={() => {
-                          one.forEach(({ item }) => removeItem(item.slug, item.size, item.color));
-                          setShortage(null);
-                        }}
-                      >
-                        <ActionIcon name="remove" size={14} />
-                        {bn ? "ব্যাগ থেকে সরান" : "Remove from bag"}
-                      </button>
-                    ) : (
-                      <small>
-                        {bn
-                          ? "উপরের ব্যাগে সাইজগুলো মিলিয়ে সংখ্যা কমিয়ে নিন।"
-                          : "Reduce the quantities in your bag (all sizes together) to continue."}
-                      </small>
-                    )}
-                    <p className="shortage-refund">
-                      {bn ? (
-                        <>
-                          ইতিমধ্যে টাকা পাঠিয়ে থাকলে চিন্তা করবেন না। একই Transaction ID দিয়েই
-                          অর্ডার জমা দিন। নতুন মোটের চেয়ে বেশি পাঠিয়ে থাকলে, যাচাইয়ের পর বাড়তি
-                          টাকা যে নম্বর থেকে পাঠিয়েছেন সেই নম্বরেই ফেরত দেব। কোনো প্রশ্ন থাকলে{" "}
-                          <Link href="/contact">আমাদের সাথে যোগাযোগ করুন</Link>।
-                        </>
-                      ) : (
-                        <>
-                          Already sent the payment? Don&apos;t worry. Submit with the same
-                          Transaction ID. If you paid more than the new total, we&apos;ll return the
-                          difference to the number you paid from once we&apos;ve checked it.
-                          Questions? <Link href="/contact">Contact us</Link>.
-                        </>
-                      )}
-                    </p>
-                  </div>
-                );
-              })()}
-            {/* Digital Commerce Guidelines 2021: prior consent before collecting personal data. */}
-            <label className="consent-check">
-              <input type="checkbox" name="consent" required />
-              <span>
-                {bn ? (
-                  <>
-                    আমি OANRO-র{" "}
-                    <Link href="/privacy" target="_blank">
-                      প্রাইভেসি নোটিশ
-                    </Link>{" "}
-                    পড়েছি এবং আমার তথ্য ব্যবহারে সম্মতি দিচ্ছি।
-                  </>
-                ) : (
-                  <>
-                    I have read the{" "}
-                    <Link href="/privacy" target="_blank">
-                      Privacy notice
-                    </Link>{" "}
-                    and agree to OANRO using my details for this purpose.
-                  </>
-                )}
-              </span>
-            </label>
-            <button className="button brand-button checkout-submit" disabled={busy || !verified}>
-              {busy
-                ? bn
-                  ? "জমা হচ্ছে…"
-                  : "Submitting…"
-                : bn
-                  ? `পেমেন্ট জমা দিন · ${formatPrice(payNow, locale)}`
-                  : `Submit payment · ${formatPrice(payNow, locale)}`}
-            </button>
-          </div>
-        )}
-      </section>
+      </aside>
     </form>
   );
 }

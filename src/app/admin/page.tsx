@@ -1,3 +1,6 @@
+import { requestLocale } from "@/lib/request-locale";
+import { adminTextFor } from "@/lib/admin-text-server";
+import { Localized } from "@/components/locale";
 import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { catalogDb } from "@/lib/store-products";
@@ -25,13 +28,16 @@ const kindText: Record<string, string> = {
 
 /** Admin home: what needs attention now, quick actions and recent activity. */
 export default async function TodayPage() {
+  const tr = adminTextFor((await requestLocale()).locale);
   const { access } = await requireAdminPage();
   const has = (p: Parameters<typeof access.permissions.has>[0]) => access.permissions.has(p);
   const data = await todayData(catalogDb(), access).catch(() => null);
   if (!data)
     return (
       <main id="main-content" className="container auth-page admin-today">
-        <h1>Today</h1>
+        <h1>
+          <Localized en="Today" bn="আজ" />
+        </h1>
         <p className="admin-callout">
           Could not load today&apos;s numbers. Run <code>npm run db:migrate</code>, then reload.
         </p>
@@ -42,7 +48,9 @@ export default async function TodayPage() {
   const stockHref = has("reports.read") ? "/admin/reports/sales" : "/admin/sections";
   return (
     <main id="main-content" className="container auth-page admin-today">
-      <h1>Today</h1>
+      <h1>
+        <Localized en="Today" bn="আজ" />
+      </h1>
       <p className="admin-today-intro">
         {taskCount
           ? `${taskCount} thing${taskCount === 1 ? "" : "s"} need${taskCount === 1 ? "s" : ""} you. Oldest first.`
@@ -52,28 +60,42 @@ export default async function TodayPage() {
       <div className="today-stats">
         {has("orders.read") && (
           <Link href="/admin/orders" className={`today-stat${payments.length ? " is-alert" : ""}`}>
-            <span>Payments to check</span>
+            <span>
+              <Localized en="Payments to check" bn="চেক করার পেমেন্ট" />
+            </span>
             <strong>{payments.length}</strong>
-            <small>Open orders →</small>
+            <small>
+              <Localized en="Open orders →" bn="অর্ডার খুলুন →" />
+            </small>
           </Link>
         )}
         {has("leads.read") && (
           <Link href="/admin/leads" className="today-stat">
-            <span>New inquiries</span>
+            <span>
+              <Localized en="New inquiries" bn="নতুন ইনকোয়ারি" />
+            </span>
             <strong>{inquiries.length}</strong>
-            <small>Open inquiries →</small>
+            <small>
+              <Localized en="Open inquiries →" bn="ইনকোয়ারি খুলুন →" />
+            </small>
           </Link>
         )}
         {(access.owner || has("products.manage") || has("reports.read")) && (
           <Link href={stockHref} className="today-stat">
-            <span>Low or out of stock</span>
+            <span>
+              <Localized en="Low or out of stock" bn="কম বা স্টক শেষ" />
+            </span>
             <strong>{lowStock.length}</strong>
-            <small>Restock →</small>
+            <small>
+              <Localized en="Restock →" bn="স্টক বাড়ান →" />
+            </small>
           </Link>
         )}
         {paidToday && (
           <Link href="/admin/reports/sales" className="today-stat is-brand">
-            <span>Approved today</span>
+            <span>
+              <Localized en="Approved today" bn="আজ অনুমোদিত" />
+            </span>
             <strong>{formatPrice(paidToday.total)}</strong>
             <small>
               {paidToday.count} order{paidToday.count === 1 ? "" : "s"}
@@ -84,7 +106,9 @@ export default async function TodayPage() {
 
       <div className="today-grid">
         <section className="today-panel is-main" aria-labelledby="needs-you">
-          <h2 id="needs-you">Needs you now</h2>
+          <h2 id="needs-you">
+            <Localized en="Needs you now" bn="এখনই আপনার কাজ" />
+          </h2>
           {payments.map(o => (
             <div key={o.id} className="today-task">
               <span className="today-tag is-payment">PAYMENT</span>
@@ -102,7 +126,7 @@ export default async function TodayPage() {
                 className="btn btn-primary"
                 href={`/admin/orders?open=${encodeURIComponent(o.id)}`}
               >
-                Check payment
+                <Localized en="Check payment" bn="পেমেন্ট চেক করুন" />
               </Link>
             </div>
           ))}
@@ -119,7 +143,7 @@ export default async function TodayPage() {
                 </small>
               </div>
               <Link className="btn btn-primary" href="/admin/leads">
-                Reply
+                {tr("Reply")}
               </Link>
             </div>
           ))}
@@ -130,48 +154,64 @@ export default async function TodayPage() {
                 <strong>
                   {p.name} {p.stock === 0 ? "is sold out" : `has only ${p.stock} left`}
                 </strong>
-                <small>Live on the website</small>
+                <small>
+                  <Localized en="Live on the website" bn="ওয়েবসাইটে লাইভ" />
+                </small>
               </div>
               <Link className="btn btn-neutral" href={stockHref}>
-                Restock
+                <Localized en="Restock" bn="স্টক বাড়ান" />
               </Link>
             </div>
           ))}
-          {!taskCount && <p className="today-empty">All clear. Nothing is waiting for you.</p>}
+          {!taskCount && (
+            <p className="today-empty">
+              <Localized
+                en="All clear. Nothing is waiting for you."
+                bn="সব ঠিক আছে। আপনার জন্য কিছু অপেক্ষায় নেই।"
+              />
+            </p>
+          )}
         </section>
 
         <div className="today-side">
           <section className="today-panel" aria-labelledby="quick">
-            <h2 id="quick">Quick actions</h2>
+            <h2 id="quick">
+              <Localized en="Quick actions" bn="দ্রুত কাজ" />
+            </h2>
             <div className="today-actions">
               {canProduct(has, "draft") && (
                 <Link className="btn btn-neutral" href="/admin/sections">
-                  Add or edit products
+                  <Localized en="Add or edit products" bn="পণ্য যোগ বা এডিট" />
                 </Link>
               )}
               {has("campaigns.manage") && (
                 <Link className="btn btn-neutral" href="/admin/campaigns">
-                  Start a campaign
+                  <Localized en="Start a campaign" bn="ক্যাম্পেইন শুরু করুন" />
                 </Link>
               )}
               {has("staff.manage") && (
                 <Link className="btn btn-neutral" href="/admin/staff">
-                  Invite a staff member
+                  <Localized en="Invite a staff member" bn="স্টাফ আমন্ত্রণ" />
                 </Link>
               )}
               {access.owner && (
                 <Link className="btn btn-neutral" href="/admin/settings">
-                  Payment numbers &amp; delivery rules
+                  <Localized
+                    en="Payment numbers & delivery rules"
+                    bn="পেমেন্ট নম্বর ও ডেলিভারি নিয়ম"
+                  />
                 </Link>
               )}
               <a className="btn btn-neutral" href="/" target="_blank" rel="noreferrer">
-                View the store ↗
+                {tr("View the store ↗")}
               </a>
             </div>
           </section>
           {has("audit.read") && (
             <section className="today-panel" aria-labelledby="recent">
-              <h2 id="recent">Recent activity</h2>
+              <h2 id="recent">
+                <Localized en="Recent activity" bn="সাম্প্রতিক কার্যক্রম" />
+              </h2>
               {activity.length ? (
                 <ul className="today-log">
                   {activity.map(a => (
@@ -184,11 +224,13 @@ export default async function TodayPage() {
                   ))}
                 </ul>
               ) : (
-                <p className="today-empty">No activity yet.</p>
+                <p className="today-empty">
+                  <Localized en="No activity yet." bn="এখনো কোনো কার্যক্রম নেই।" />
+                </p>
               )}
               <div className="today-actions">
                 <Link className="btn btn-neutral btn-sm" href="/admin/activity">
-                  Full activity log
+                  <Localized en="Full activity log" bn="পুরো কার্যক্রমের লগ" />
                 </Link>
               </div>
             </section>

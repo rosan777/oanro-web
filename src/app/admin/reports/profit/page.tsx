@@ -1,3 +1,6 @@
+import { adminTextFor } from "@/lib/admin-text-server";
+import { requestLocale } from "@/lib/request-locale";
+import { Localized } from "@/components/locale";
 import { FeeSetting } from "@/components/fee-setting";
 import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin-guard";
@@ -15,6 +18,7 @@ export default async function ProfitReportPage({
 }: {
   searchParams: Promise<{ range?: string }>;
 }) {
+  const tr = adminTextFor((await requestLocale()).locale);
   const { access } = await requireAdminPage("profit.read");
   const range = parseRange((await searchParams).range);
   const r = await profitReport(catalogDb(), range);
@@ -67,8 +71,10 @@ export default async function ProfitReportPage({
       <AdminBack />
       <header className="report-head">
         <div>
-          <p className="eyebrow">Analytics · private</p>
-          <h1>Profit &amp; performance</h1>
+          <p className="eyebrow">{tr("Analytics · private")}</p>
+          <h1>
+            <Localized en="Profit & performance" bn="মুনাফা ও পারফরম্যান্স" />
+          </h1>
           <p>
             Profit = selling price − cost price for every unit sold, plus delivery charges
             collected, minus what you paid couriers, bKash/Nagad fees and refunds. Cash on delivery
@@ -78,7 +84,11 @@ export default async function ProfitReportPage({
         </div>
         <CsvButton filename={`oanro-profit-${range}.csv`} rows={csv} />
       </header>
-      <RangeTabs base="/admin/reports/profit" current={range} />
+      <RangeTabs
+        base="/admin/reports/profit"
+        current={range}
+        locale={(await requestLocale()).locale}
+      />
 
       {/* Notes about missing data that makes the numbers less exact. */}
       {(r.missingCost > 0 || r.missingShipping > 0 || r.pendingCod.orders > 0) && (
@@ -111,39 +121,40 @@ export default async function ProfitReportPage({
                   {r.missingShipping} order{r.missingShipping === 1 ? " has" : "s have"} no courier
                   charge yet.
                 </strong>{" "}
-                Until you add it on the <Link href="/admin/orders">Orders</Link> page, the courier
-                cost is assumed equal to the delivery charge (no profit, no loss on delivery).
+                Until you add it on the <Link href="/admin/orders">{tr("Orders")}</Link> page, the
+                courier cost is assumed equal to the delivery charge (no profit, no loss on
+                delivery).
               </p>
             )}
           </div>
         </div>
       )}
 
-      <section className="stat-grid" aria-label="Summary">
+      <section className="stat-grid" aria-label={tr("Summary")}>
         <StatCard
           icon="coin"
           tone="brand"
-          label="Revenue"
+          label={tr("Revenue")}
           value={formatPrice(r.totals.revenue)}
           now={r.totals.revenue}
           before={r.previous?.revenue}
         />
         <StatCard
           icon="box"
-          label="Product cost"
+          label={tr("Product cost")}
           value={formatPrice(r.totals.productCost)}
           hint={`Gross profit ${formatPrice(r.totals.gross)}`}
         />
         <StatCard
           icon="courier"
-          label="Delivery: charged − courier"
+          label={tr("Delivery: charged − courier")}
           value={formatPrice(r.totals.delivery - r.totals.shipping)}
           tone={r.totals.delivery - r.totals.shipping < 0 ? "bad" : "neutral"}
           hint={`Charged ${formatPrice(r.totals.delivery)} · paid courier ${formatPrice(r.totals.shipping)}`}
         />
         <StatCard
           icon="alert"
-          label="Fees & refunds"
+          label={tr("Fees & refunds")}
           value={formatPrice(r.totals.fees + r.totals.refunds)}
           tone={r.totals.fees + r.totals.refunds > 0 ? "bad" : "neutral"}
           hint={`Payment fees ${formatPrice(r.totals.fees)} (${r.feePercent}%) · refunds ${formatPrice(r.totals.refunds)}`}
@@ -151,7 +162,7 @@ export default async function ProfitReportPage({
         <StatCard
           icon="wallet"
           tone={tone}
-          label="Net profit"
+          label={tr("Net profit")}
           value={formatPrice(r.totals.net)}
           now={r.totals.net}
           before={r.previous?.net}
@@ -162,28 +173,28 @@ export default async function ProfitReportPage({
       {access.permissions.has("costs.manage") && <FeeSetting percent={r.feePercent} />}
       {/* Best and worst sellers by units and by profit. */}
       {sold.length > 0 && (
-        <section className="highlight-grid" aria-label="Highlights">
+        <section className="highlight-grid" aria-label={tr("Highlights")}>
           <div className="highlight is-good">
             <ActionIcon name="trend-up" size={18} />
-            <small>Best seller</small>
+            <small>{tr("Best seller")}</small>
             <strong>{byUnits[0].name}</strong>
             <span>{fmtCount(byUnits[0].sold)} sold</span>
           </div>
           <div className="highlight is-good">
             <ActionIcon name="coin" size={18} />
-            <small>Most profit</small>
+            <small>{tr("Most profit")}</small>
             <strong>{byProfit[0].name}</strong>
             <span>{formatPrice(byProfit[0].profit)}</span>
           </div>
           <div className="highlight is-bad">
             <ActionIcon name="trend-down" size={18} />
-            <small>Slowest seller</small>
+            <small>{tr("Slowest seller")}</small>
             <strong>{byUnits.at(-1)!.name}</strong>
             <span>{fmtCount(byUnits.at(-1)!.sold)} sold</span>
           </div>
           <div className="highlight is-bad">
             <ActionIcon name="alert" size={18} />
-            <small>Least profit</small>
+            <small>{tr("Least profit")}</small>
             <strong>{byProfit.at(-1)!.name}</strong>
             <span>{formatPrice(byProfit.at(-1)!.profit)}</span>
           </div>
@@ -194,9 +205,9 @@ export default async function ProfitReportPage({
         <section className="report-panel is-alert" aria-labelledby="loss-h">
           <h2 id="loss-h">
             <ActionIcon name="alert" size={18} />
-            Selling at a loss
+            {tr("Selling at a loss")}
           </h2>
-          <p>The cost price is higher than the selling price. Every sale loses money.</p>
+          <p>{tr("The cost price is higher than the selling price. Every sale loses money.")}</p>
           <ul className="restock-list">
             {losses.map(x => (
               <li key={x.id}>
@@ -222,7 +233,7 @@ export default async function ProfitReportPage({
 
       <div className="report-two">
         <BarList
-          title="Units sold (most to least)"
+          title={tr("Units sold (most to least)")}
           bars={byUnits.map(x => ({
             label: x.name,
             sub: x.section,
@@ -231,7 +242,7 @@ export default async function ProfitReportPage({
           }))}
         />
         <BarList
-          title="Profit by product (most to least)"
+          title={tr("Profit by product (most to least)")}
           bars={byProfit.map(x => ({
             label: x.name,
             sub: x.margin === null ? x.section : `${x.margin}% margin`,
@@ -242,7 +253,7 @@ export default async function ProfitReportPage({
         />
       </div>
       <BarList
-        title="Profit by section"
+        title={tr("Profit by section")}
         bars={r.bySection
           .filter(s => s.revenue)
           .sort((a, b) => b.profit - a.profit)
@@ -258,31 +269,31 @@ export default async function ProfitReportPage({
       {/* Full table of every product. */}
       <section className="report-panel" aria-labelledby="detail-h">
         <div className="report-panel-head">
-          <h2 id="detail-h">Every product</h2>
-          <span>Product profit before courier charges</span>
+          <h2 id="detail-h">{tr("Every product")}</h2>
+          <span>{tr("Product profit before courier charges")}</span>
         </div>
         <div className="table-scroll">
           <table className="report-table">
             <thead>
               <tr>
-                <th scope="col">Product</th>
+                <th scope="col">{tr("Product")}</th>
                 <th scope="col" className="num">
-                  Sells for
+                  {tr("Sells for")}
                 </th>
                 <th scope="col" className="num">
-                  Costs
+                  {tr("Costs")}
                 </th>
                 <th scope="col" className="num">
-                  Sold
+                  {tr("Sold")}
                 </th>
                 <th scope="col" className="num">
-                  Revenue
+                  {tr("Revenue")}
                 </th>
                 <th scope="col" className="num">
-                  Profit
+                  {tr("Profit")}
                 </th>
                 <th scope="col" className="num">
-                  Margin
+                  {tr("Margin")}
                 </th>
               </tr>
             </thead>
@@ -298,7 +309,7 @@ export default async function ProfitReportPage({
                     <td className="num">{formatPrice(x.price)}</td>
                     <td className="num">
                       {x.costPrice === null ? (
-                        <span className="stock-pill is-warn">Not set</span>
+                        <span className="stock-pill is-warn">{tr("Not set")}</span>
                       ) : (
                         formatPrice(x.costPrice)
                       )}

@@ -1,9 +1,12 @@
 "use client";
+import { useLocale } from "./locale";
+import { useAdminText } from "./admin-text";
 import { ActionIcon } from "./action-icon";
 import { useState } from "react";
 import {
   permissionGroups,
   permissionInfo,
+  permissionInfoBn,
   sensitivePermissions,
   type Permission,
 } from "@/lib/permissions";
@@ -41,6 +44,7 @@ export function StaffDashboard({
   selfId: string;
   isOwner?: boolean;
 }) {
+  const tr = useAdminText();
   const [data, setData] = useState(initial);
   const { busy, notice, setNotice, call } = useAdminCall<StaffOverview>(
     "/api/admin/staff",
@@ -76,7 +80,7 @@ export function StaffDashboard({
     <div className="admin-sections staff-admin">
       {/* Staff members: role, active switch and removal (owner rules are enforced by the server too). */}
       <section>
-        <h2>People with admin access</h2>
+        <h2>{tr("People with admin access")}</h2>
         {data.owner && (
           <div className="admin-section-row">
             <div>
@@ -87,7 +91,7 @@ export function StaffDashboard({
             </div>
           </div>
         )}
-        {data.staff.length === 0 && <p>No staff yet. Invite someone below.</p>}
+        {data.staff.length === 0 && <p>{tr("No staff yet. Invite someone below.")}</p>}
         <ul className="admin-product-list">
           {data.staff.map(s => (
             <li key={s.userId} className="admin-section-row">
@@ -95,7 +99,11 @@ export function StaffDashboard({
                 <strong>{s.name}</strong>
                 <small>
                   {s.email} ·{" "}
-                  {s.status === "active" ? "Active" : <b className="stock-badge">Deactivated</b>}
+                  {s.status === "active" ? (
+                    tr("Active")
+                  ) : (
+                    <b className="stock-badge">{tr("Deactivated")}</b>
+                  )}
                 </small>
               </div>
               <div className="admin-product-actions">
@@ -141,7 +149,7 @@ export function StaffDashboard({
                       );
                     }}
                   >
-                    {s.status === "active" ? "Deactivate" : "Reactivate"}
+                    {s.status === "active" ? tr("Deactivate") : tr("Reactivate")}
                   </button>
                 )}
                 {s.userId !== selfId && isOwner && (
@@ -164,7 +172,7 @@ export function StaffDashboard({
                     }}
                   >
                     <ActionIcon name="remove" size={14} />
-                    Remove from staff
+                    {tr("Remove from staff")}
                   </button>
                 )}
               </div>
@@ -174,7 +182,7 @@ export function StaffDashboard({
       </section>
 
       <section>
-        <h2>Invite staff</h2>
+        <h2>{tr("Invite staff")}</h2>
         <form
           className="pulse-form product-form"
           onSubmit={async e => {
@@ -191,7 +199,7 @@ export function StaffDashboard({
         >
           <div className="product-form-row">
             <label>
-              Their email
+              {tr("Their email")}
               <input
                 type="email"
                 required
@@ -202,7 +210,7 @@ export function StaffDashboard({
               />
             </label>
             <label>
-              Role
+              {tr("Role")}
               <select
                 value={invite.roleId}
                 disabled={busy}
@@ -222,7 +230,7 @@ export function StaffDashboard({
           </small>
           <div className="product-form-actions">
             <button className="button brand-button" disabled={busy}>
-              Save invite
+              {tr("Save invite")}
             </button>
           </div>
         </form>
@@ -244,7 +252,7 @@ export function StaffDashboard({
                     run("DELETE", { action: "invite", id: i.id }, `Invite for ${i.email} revoked.`)
                   }
                 >
-                  Revoke
+                  {tr("Revoke")}
                 </button>
               </li>
             ))}
@@ -253,8 +261,14 @@ export function StaffDashboard({
       </section>
 
       <section>
-        <h2>Roles</h2>
-        <p>A role is a set of permissions. Changes apply immediately to everyone with that role.</p>
+        <h2>{tr("Roles")}</h2>
+        <p>
+          {tr(
+            tr(
+              "A role is a set of permissions. Changes apply immediately to everyone with that role.",
+            ),
+          )}
+        </p>
         {data.roles.map(r => {
           const current = edits[r.id] ?? (r.permissions as Permission[]);
           const dirty = edits[r.id] !== undefined;
@@ -294,7 +308,7 @@ export function StaffDashboard({
                       });
                   }}
                 >
-                  Save permissions
+                  {tr("Save permissions")}
                 </button>
                 {dirty && (
                   <button
@@ -309,7 +323,7 @@ export function StaffDashboard({
                       })
                     }
                   >
-                    Undo
+                    {tr("Undo")}
                   </button>
                 )}
                 {!r.builtIn && (
@@ -322,7 +336,7 @@ export function StaffDashboard({
                         void run("DELETE", { action: "role", roleId: r.id }, `${r.name} deleted.`);
                     }}
                   >
-                    Delete role
+                    {tr("Delete role")}
                   </button>
                 )}
               </div>
@@ -353,7 +367,7 @@ export function StaffDashboard({
             }}
           >
             <label>
-              Role name
+              {tr("Role name")}
               <input
                 required
                 maxLength={40}
@@ -363,7 +377,7 @@ export function StaffDashboard({
               />
             </label>
             <label>
-              Description
+              {tr("Description")}
               <input
                 maxLength={200}
                 value={newRole.description}
@@ -377,10 +391,10 @@ export function StaffDashboard({
             />
             <div className="product-form-actions">
               <button className="button brand-button" disabled={busy}>
-                Create role
+                {tr("Create role")}
               </button>
               <button type="button" className="button" onClick={() => setNewRole(null)}>
-                Cancel
+                {tr("Cancel")}
               </button>
             </div>
           </form>
@@ -403,6 +417,8 @@ function PermissionPicker({
   onChange: (next: Permission[]) => void;
   disabled?: boolean;
 }) {
+  const tr = useAdminText();
+  const bn = useLocale().locale === "bn";
   return (
     <div className="permission-groups">
       {permissionGroups.map(g => {
@@ -427,7 +443,7 @@ function PermissionPicker({
                   )
                 }
               >
-                {all ? "Clear" : "Select all"}
+                {all ? tr("Clear") : tr("Select all")}
               </button>
             </legend>
             <div className="permission-grid">
@@ -446,10 +462,10 @@ function PermissionPicker({
                   />
                   <span>
                     <b>
-                      {permissionInfo[p].label}
+                      {(bn ? permissionInfoBn : permissionInfo)[p].label}
                       {sensitivePermissions.includes(p) ? " · sensitive" : ""}
                     </b>
-                    <small>{permissionInfo[p].detail}</small>
+                    <small>{(bn ? permissionInfoBn : permissionInfo)[p].detail}</small>
                   </span>
                 </label>
               ))}

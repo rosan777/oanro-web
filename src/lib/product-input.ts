@@ -247,12 +247,46 @@ export type CollectionInput = {
 };
 
 /** Validates the admin form for a storefront section (collection). */
+/**
+ * Top-level page addresses. Collections live at /<slug>, so a collection with one of these slugs would
+ * be hidden behind the page; new or renamed collections cannot use them.
+ */
+export const reservedCollectionSlugs = [
+  "about",
+  "account",
+  "admin",
+  "api",
+  "bn",
+  "checkout",
+  "company-profile",
+  "compare",
+  "contact",
+  "delivery-returns",
+  "design-preview",
+  "feed",
+  "guides",
+  "og",
+  "privacy",
+  "products",
+  "reset-password",
+  "services",
+  "shop",
+  "sign-in",
+  "software",
+  "terms",
+  "track",
+  "wishlist",
+  "workspace",
+];
+
 export function parseCollectionInput(data: Record<string, unknown>): CollectionInput {
   const preset = data.preset ?? "general";
   if (typeof preset !== "string" || !collectionPresets.includes(preset as CollectionPreset))
     throw new ProductInputError("preset");
+  const slug = slugField(data);
+  if (reservedCollectionSlugs.includes(slug)) throw new ProductInputError("slug");
   return {
-    slug: slugField(data),
+    slug,
     status: statusField(data),
     preset: preset as CollectionPreset,
     nameEn: text(data, "nameEn", 60, true),
@@ -351,6 +385,18 @@ export function parseCampaignInput(data: Record<string, unknown>): CampaignInput
 // ---- Customer inquiries (public input: strict limits, at least one way to reply, explicit consent)
 export const leadContactMethods = ["phone", "whatsapp", "email", "messenger"] as const;
 export const privacyRequestTypes = ["access", "correct", "delete"] as const;
+/** Project brief options (Studio inquiries). Stored as these ids; labels are translated in the UI. */
+export const projectTypes = [
+  "website",
+  "ecommerce",
+  "mobile-app",
+  "software",
+  "strategy",
+  "other",
+] as const;
+export const budgetRanges = ["discuss", "starter", "growing", "custom"] as const;
+export const projectTimelines = ["exploring", "this-month", "next-quarter", "later"] as const;
+
 export type LeadInput = {
   kind: "product" | "restock" | "service" | "general" | "privacy";
   productSlug: string | null;
@@ -364,6 +410,10 @@ export type LeadInput = {
   message: string;
   preferredContact: (typeof leadContactMethods)[number];
   locale: "en" | "bn";
+  /** Project brief fields; null unless the visitor filled them in. */
+  projectType?: string | null;
+  budgetRange?: string | null;
+  timeline?: string | null;
 };
 
 /**
@@ -437,5 +487,16 @@ export function parseLeadInput(data: Record<string, unknown>): LeadInput {
     ),
     preferredContact: preferred as LeadInput["preferredContact"],
     locale: data.locale === "bn" ? "bn" : "en",
+    projectType: option(data, "projectType", projectTypes),
+    budgetRange: option(data, "budgetRange", budgetRanges),
+    timeline: option(data, "timeline", projectTimelines),
   };
+}
+
+/** An optional choice from a fixed list: missing or empty is null, anything else must be in the list. */
+function option(data: Record<string, unknown>, field: string, allowed: readonly string[]) {
+  const v = data[field];
+  if (v === undefined || v === null || v === "") return null;
+  if (typeof v !== "string" || !allowed.includes(v)) throw new ProductInputError(field);
+  return v;
 }

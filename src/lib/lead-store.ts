@@ -29,6 +29,8 @@ export async function createLead(
   input: LeadInput,
   ipHash: string | null,
   now = new Date(),
+  /** The signed-in customer sending it (set by the server from the session, never from the form). */
+  userId: string | null = null,
 ) {
   if (ipHash) {
     const [recent] = await db
@@ -58,9 +60,16 @@ export async function createLead(
       s?.name ?? demoServices.find(d => d.slug === input.serviceSlug)?.title ?? input.serviceSlug;
   }
   const id = randomUUID();
-  await db
-    .insert(lead)
-    .values({ id, ...input, subject, consentAt: now, ipHash, createdAt: now, updatedAt: now });
+  await db.insert(lead).values({
+    id,
+    ...input,
+    subject,
+    userId,
+    consentAt: now,
+    ipHash,
+    createdAt: now,
+    updatedAt: now,
+  });
   return id;
 }
 export type InboxLead = Awaited<ReturnType<typeof listLeads>>[number];
@@ -198,4 +207,21 @@ export async function addLeadNote(db: CatalogDb, actorId: string, id: string, bo
       reason: "note added",
     });
   });
+}
+
+/** The signed-in customer's own messages (Account → Support): what they asked and its status only. */
+export async function listMyLeads(db: CatalogDb, userId: string) {
+  return db
+    .select({
+      id: lead.id,
+      kind: lead.kind,
+      subject: lead.subject,
+      message: lead.message,
+      status: lead.status,
+      createdAt: lead.createdAt,
+    })
+    .from(lead)
+    .where(eq(lead.userId, userId))
+    .orderBy(desc(lead.createdAt))
+    .limit(20);
 }

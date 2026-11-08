@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdminText } from "./admin-text";
 import { useState } from "react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/catalog";
@@ -34,6 +35,7 @@ export function PublishedProducts({
   initial: PublishedRow[];
   canStock: boolean;
 }) {
+  const tr = useAdminText();
   const [rows, setRows] = useState(initial);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
@@ -85,10 +87,10 @@ export function PublishedProducts({
         </span>
         <input
           type="search"
-          placeholder="Search products…"
+          placeholder={tr("Search products…")}
           value={q}
           onChange={e => setQ(e.target.value)}
-          aria-label="Search published products"
+          aria-label={tr("Search published products")}
         />
       </div>
       <p className="pub-msg" role="status">
@@ -113,9 +115,9 @@ export function PublishedProducts({
                 </div>
                 <span className={`pub-state is-${st}`}>
                   {st === "out"
-                    ? "Out of stock"
+                    ? tr("Out of stock")
                     : r.stock === null
-                      ? "In stock · unlimited"
+                      ? tr("In stock · unlimited")
                       : st === "low"
                         ? `Low · ${r.stock} left`
                         : `In stock · ${r.stock}`}
@@ -126,7 +128,7 @@ export function PublishedProducts({
                       href={`/admin/sections/${r.sectionId}`}
                       className="btn btn-neutral btn-sm"
                     >
-                      Stock per colour/size →
+                      {tr("Stock per colour/size →")}
                     </Link>
                   ) : canStock ? (
                     <>
@@ -151,7 +153,7 @@ export function PublishedProducts({
                         }
                         onClick={() => save(r, draft === "" ? null : Number(draft))}
                       >
-                        Save
+                        {tr("Save")}
                       </button>
                       <button
                         type="button"
@@ -159,7 +161,7 @@ export function PublishedProducts({
                         disabled={busy === r.id || r.stock === 0}
                         onClick={() => save(r, 0)}
                       >
-                        Out of stock
+                        {tr("Out of stock")}
                       </button>
                       <button
                         type="button"
@@ -167,18 +169,18 @@ export function PublishedProducts({
                         disabled={busy === r.id || r.stock === null}
                         onClick={() => save(r, null)}
                       >
-                        Unlimited
+                        {tr("Unlimited")}
                       </button>
                     </>
                   ) : (
-                    <small>View only</small>
+                    <small>{tr("View only")}</small>
                   )}
                 </div>
                 <div className="pub-links">
                   <Link href={`/products/${r.slug}`} target="_blank">
-                    View
+                    {tr("View")}
                   </Link>
-                  <Link href={`/admin/sections/${r.sectionId}`}>Edit</Link>
+                  <Link href={`/admin/sections/${r.sectionId}`}>{tr("Edit")}</Link>
                 </div>
               </li>
             );

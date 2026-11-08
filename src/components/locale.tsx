@@ -199,14 +199,28 @@ export function RegionPicker() {
       <button
         type="button"
         className="region-trigger"
+        aria-label={
+          bn
+            ? "বাংলাদেশ · বাংলা · BDT — দেশ ও ভাষা"
+            : "Bangladesh · English · BDT — country and language"
+        }
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen(v => !v)}
       >
         <BdFlag />
-        <span>
-          {bn ? "বাংলাদেশ" : "Bangladesh"} · {bn ? "বাংলা" : "English"}
-        </span>
+        <span>{bn ? "BN" : "EN"} · BDT</span>
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          aria-hidden="true"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
       </button>
       {open && (
         <div
