@@ -130,10 +130,12 @@ export default async function Home() {
         <ShopTabs
           showServices={config.services}
           chips={
-            f.promiseStrip && (
+            (f.promiseStrip || (f.paymentRow && config.products)) && (
               <>
-                <InfoStrip bn={bn} products={config.products} services={config.services} />
-                {config.products && <PaymentRow bn={bn} cod={cod} />}
+                {f.promiseStrip && (
+                  <InfoStrip bn={bn} products={config.products} services={config.services} />
+                )}
+                {f.paymentRow && config.products && <PaymentRow bn={bn} cod={cod} />}
               </>
             )
           }
