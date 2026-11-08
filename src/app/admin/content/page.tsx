@@ -1,3 +1,4 @@
+import { Localized } from "@/components/locale";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { getSiteContentFresh } from "@/lib/site-content";
 import { catalogDb, getOwnerCatalog } from "@/lib/store-products";
@@ -19,11 +20,14 @@ export default async function ContentPage() {
     .map(p => ({ slug: p.slug, name: p.nameEn, section: sections[p.collectionId] ?? "Store" }));
   return (
     <main id="main-content" className="container auth-page">
-      <h1>Website content</h1>
+      <h1>
+        <Localized en="Website content" bn="ওয়েবসাইটের কনটেন্ট" />
+      </h1>
       <p className="small-note">
-        Change the words on the website, switch sections on or off, and edit guides, studio packages
-        and common questions. Changes go live right after you save. &ldquo;Reset to default&rdquo;
-        brings back the original version of that tab.
+        <Localized
+          en="Change the words on the website, switch sections on or off, and edit guides, studio packages and common questions. Changes go live right after you save. “Reset to default” brings back the original version of that tab."
+          bn="ওয়েবসাইটের লেখা বদলান, সেকশন চালু বা বন্ধ করুন, আর গাইড, স্টুডিও প্যাকেজ ও সাধারণ প্রশ্ন এডিট করুন। সংরক্ষণের সাথে সাথেই পরিবর্তন লাইভ হয়। “ডিফল্টে ফেরান” সেই ট্যাবের মূল সংস্করণ ফিরিয়ে আনে।"
+        />
       </p>
       <ContentEditor initial={content} products={products} />
     </main>

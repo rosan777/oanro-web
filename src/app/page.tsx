@@ -1,10 +1,18 @@
 import { Signature } from "@/components/signature";
+import { InfoStrip, PaymentRow } from "@/components/info-strip";
 import Image from "next/image";
 import Link from "@/components/locale-link";
 import { ArrowUpRight, Mail } from "lucide-react";
 import { getSiteConfig } from "@/lib/site-config";
 import { Localized } from "@/components/locale";
-import { getActiveCampaigns } from "@/lib/store-products";
+import { getActiveCampaigns, getStoreProducts } from "@/lib/store-products";
+import {
+  BrandStrip,
+  DesignHero,
+  DiscoveryTiles,
+  NewFavourites,
+  StudioTeaser,
+} from "@/components/home-design";
 import { CampaignShowcase } from "@/components/campaign-showcase";
 import { MessageReveal } from "@/components/message-reveal";
 import { getSectionState } from "@/lib/website-sections";
@@ -43,35 +51,79 @@ export default async function Home() {
   const content = await getSiteContent();
   const f = content.features;
   const tx = (k: TextKey) => pick(content, k, locale);
+  const t = (en: string, b: string) => (bn ? b : en);
+  // Live products in the owner's display order; the featured product is the owner's choice when it is live.
+  const catalog = config.products ? await getStoreProducts() : [];
+  const featured =
+    catalog.find(p => p.slug === f.featuredProductSlug) ??
+    catalog.find(p => p.inStock !== false) ??
+    null;
   return (
-    <main id="main-content">
-      {/* Hero: brand animation, short intro and the two main buttons. */}
-      <section className="v2-hero" aria-labelledby="hero-title">
-        <div className="v2-hero-copy">
-          <HeroBrand />
-          <p className="v2-lede v2-fade" style={{ animationDelay: "1.2s" }}>
-            {tx("hero.lede")}
-          </p>
-          <div className="v2-actions v2-fade" style={{ animationDelay: "1.5s" }}>
-            {config.products && (
-              <Link className="v2-btn v2-btn-light" href="#products">
-                {tx("hero.ctaShop")}
-                <ArrowUpRight size={17} />
-              </Link>
-            )}
-            {config.services && (
-              <Link className="v2-btn v2-btn-ghost v2-btn-quote" href="#studio">
-                <span className="v2-long">{tx("hero.ctaQuote")}</span>
-                <span className="v2-short">
-                  <Localized en="Free quote" bn="ফ্রি কোট" />
-                </span>
-                <ArrowUpRight size={17} />
-              </Link>
-            )}
+    <main id="main-content" className="o-home">
+      {/* Hero of the approved design: store + studio, with the featured product. */}
+      {f.designHero && (
+        <DesignHero
+          text={k => tx(`home.${k}` as TextKey)}
+          t={t}
+          featured={featured}
+          bn={bn}
+          showStore={config.products}
+          showStudio={config.services}
+        />
+      )}
+      {f.designHero && (
+        <BrandStrip
+          phrases={tx("home.strip")
+            .split("|")
+            .map(x => x.trim())
+            .filter(Boolean)}
+        />
+      )}
+
+      {/* Previous animated brand hero; off unless the owner switches it on in Admin → Website content. */}
+      {f.brandHero && (
+        <section className="v2-hero" aria-labelledby="hero-title">
+          <div className="v2-hero-copy">
+            <HeroBrand />
+            <p className="v2-lede v2-fade" style={{ animationDelay: "1.2s" }}>
+              {tx("hero.lede")}
+            </p>
+            <div className="v2-actions v2-fade" style={{ animationDelay: "1.5s" }}>
+              {config.products && (
+                <Link className="v2-btn v2-btn-light" href="#products">
+                  {tx("hero.ctaShop")}
+                  <ArrowUpRight size={17} />
+                </Link>
+              )}
+              {config.services && (
+                <Link className="v2-btn v2-btn-ghost v2-btn-quote" href="#studio">
+                  <span className="v2-long">{tx("hero.ctaQuote")}</span>
+                  <span className="v2-short">
+                    <Localized en="Free quote" bn="ফ্রি কোট" />
+                  </span>
+                  <ArrowUpRight size={17} />
+                </Link>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="v2-planet" aria-hidden="true" />
-      </section>
+          <div className="v2-planet" aria-hidden="true" />
+        </section>
+      )}
+
+      {f.homeFavourites && config.products && (
+        <NewFavourites title={tx("home.favourites")} products={catalog.slice(0, 3)} t={t} />
+      )}
+      {f.studioTeaser && config.services && (
+        <StudioTeaser
+          title={tx("home.studioTitle")}
+          accent={tx("home.studioAccent")}
+          lede={tx("home.studioLede")}
+          t={t}
+        />
+      )}
+      {f.discoveryTiles && (
+        <DiscoveryTiles title={tx("home.tiles")} t={t} store={config.products} />
+      )}
 
       {/* Shop tabs (products / services) with the scrolling strip of promises. */}
       {f.shopTabs && (config.products || config.services) && (
@@ -80,52 +132,8 @@ export default async function Home() {
           chips={
             f.promiseStrip && (
               <>
-                <span>
-                  <Localized en="Delivery across Bangladesh" bn="সারা বাংলাদেশে ডেলিভারি" />
-                </span>
-                {cod && (
-                  <span>
-                    <Localized en="Cash on delivery" bn="ক্যাশ অন ডেলিভারি" />
-                  </span>
-                )}
-                <span className="is-bkash">
-                  <Localized en="bKash" bn="বিকাশ" />
-                </span>
-                <span className="is-nagad">
-                  <Localized en="Nagad" bn="নগদ" />
-                </span>
-                {rules.returnDays > 0 && (
-                  <span>
-                    {bn
-                      ? `${bnDigits(String(rules.returnDays))} দিনের মধ্যে সমাধান`
-                      : `Problem? Fixed within ${rules.returnDays} days`}
-                  </span>
-                )}
-                <span>
-                  <Localized en="Hand-picked products" bn="বাছাই করা পণ্য" />
-                </span>
-                {config.services && (
-                  <span>
-                    <Localized
-                      en="Software, website & app development"
-                      bn="সফটওয়্যার, ওয়েবসাইট ও অ্যাপ ডেভেলপমেন্ট"
-                    />
-                  </span>
-                )}
-                {config.services && (
-                  <span>
-                    <Localized
-                      en="Working with clients worldwide"
-                      bn="বিশ্বজুড়ে ক্লায়েন্টদের সাথে কাজ"
-                    />
-                  </span>
-                )}
-                <span>
-                  <Localized en="A real person replies" bn="উত্তর দেন একজন মানুষ" />
-                </span>
-                <span>
-                  <Localized en="Shop in Bangla or English" bn="বাংলা বা ইংরেজিতে কেনাকাটা" />
-                </span>
+                <InfoStrip bn={bn} products={config.products} services={config.services} />
+                {config.products && <PaymentRow bn={bn} cod={cod} />}
               </>
             )
           }
@@ -189,7 +197,7 @@ export default async function Home() {
               <div className="ring1" />
               <div className="ring2" />
               <div className="core">
-                <Image src="/logo.svg" alt="" width={56} height={56} />
+                <Image src="/logo-on-dark.svg" alt="" width={56} height={56} />
               </div>
             </div>
           </div>

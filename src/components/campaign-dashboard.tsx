@@ -1,4 +1,5 @@
 "use client";
+import { useAdminText } from "./admin-text";
 import { useState, type FormEvent } from "react";
 import { ArrowDown, ArrowUp, Pin, PinOff, X } from "lucide-react";
 import { slugify, type ProductStatus } from "@/lib/product-input";
@@ -62,6 +63,7 @@ export function CampaignDashboard({
   initial: OwnerCampaign[];
   products: Pick[];
 }) {
+  const tr = useAdminText();
   const [items, setItems] = useState(initial);
   const [editing, setEditing] = useState<{
     id: string | null;
@@ -109,8 +111,8 @@ export function CampaignDashboard({
     };
     if (
       await (editing.id
-        ? call("PATCH", { id: editing.id, ...body }, "Campaign saved.")
-        : call("POST", body, "Campaign created. Now attach products to it."))
+        ? call("PATCH", { id: editing.id, ...body }, tr("Campaign saved."))
+        : call("POST", body, tr("Campaign created. Now attach products to it.")))
     )
       setEditing(null);
   }
@@ -150,19 +152,19 @@ export function CampaignDashboard({
           disabled={busy}
           onClick={() => open(null)}
         >
-          New campaign
+          {tr("New campaign")}
         </button>
       )}
       {editing && (
         <form className="pulse-form product-form" onSubmit={save}>
-          <h3>{editing.id ? `Edit ${editing.draft.nameEn || "campaign"}` : "New campaign"}</h3>
-          {field("nameEn", "Campaign name (e.g. Winter Sale 2026)", {
+          <h3>{editing.id ? `Edit ${editing.draft.nameEn || "campaign"}` : tr("New campaign")}</h3>
+          {field("nameEn", tr("Campaign name (e.g. Winter Sale 2026)"), {
             required: true,
             maxLength: 80,
           })}
-          {field("headlineEn", "Headline on the banner", { maxLength: 120 })}
+          {field("headlineEn", tr("Headline on the banner"), { maxLength: 120 })}
           <label>
-            Short description
+            {tr("Short description")}
             <textarea
               rows={2}
               maxLength={400}
@@ -172,11 +174,11 @@ export function CampaignDashboard({
             />
           </label>
           <div className="product-form-row">
-            {field("startsAt", "Starts (Dhaka time)", { type: "datetime-local" })}
-            {field("endsAt", "Ends (Dhaka time)", { type: "datetime-local" })}
+            {field("startsAt", tr("Starts (Dhaka time)"), { type: "datetime-local" })}
+            {field("endsAt", tr("Ends (Dhaka time)"), { type: "datetime-local" })}
           </div>
           <details>
-            <summary>Bangla text (optional)</summary>
+            <summary>{tr("Bangla text (optional)")}</summary>
             {field("nameBn", "ক্যাম্পেইনের নাম", { maxLength: 80 })}
             {field("headlineBn", "ব্যানারের শিরোনাম", { maxLength: 120 })}
             <label>
@@ -191,7 +193,7 @@ export function CampaignDashboard({
             </label>
           </details>
           <PhotoPicker
-            legend="Banner image (wide photos work best)"
+            legend={tr("Banner image (wide photos work best)")}
             value={photo}
             hasCurrent={editing.hasImage}
             disabled={busy}
@@ -204,14 +206,14 @@ export function CampaignDashboard({
             onChange={status => set({ status })}
           />
           <details>
-            <summary>Advanced</summary>
-            {field("slug", "Web address", {
+            <summary>{tr("Advanced")}</summary>
+            {field("slug", tr("Web address"), {
               required: true,
               maxLength: 60,
               pattern: "[a-z0-9]+(-[a-z0-9]+)*",
               onInput: () => setSlugTouched(true),
             })}
-            {field("displayOrder", "Order when several run at once (lower first)", {
+            {field("displayOrder", tr("Order when several run at once (lower first)"), {
               type: "number",
               min: -1000,
               max: 1000,
@@ -220,7 +222,7 @@ export function CampaignDashboard({
           </details>
           <div className="product-form-actions">
             <button className="button brand-button" disabled={busy}>
-              {busy ? "Saving…" : editing.id ? "Save campaign" : "Create campaign"}
+              {busy ? tr("Saving…") : editing.id ? tr("Save campaign") : tr("Create campaign")}
             </button>
             <button
               type="button"
@@ -228,7 +230,7 @@ export function CampaignDashboard({
               disabled={busy}
               onClick={() => setEditing(null)}
             >
-              Cancel
+              {tr("Cancel")}
             </button>
           </div>
         </form>
@@ -237,9 +239,13 @@ export function CampaignDashboard({
         <div className="pulse-form product-form">
           <h3>Products in “{picking.name}”</h3>
           <small>
-            Pinned products show first. Removing a product here only takes it out of this campaign.
+            {tr(
+              tr(
+                "Pinned products show first. Removing a product here only takes it out of this campaign.",
+              ),
+            )}
           </small>
-          {picking.list.length === 0 && <p>No products attached yet.</p>}
+          {picking.list.length === 0 && <p>{tr("No products attached yet.")}</p>}
           <ol className="campaign-pick-list">
             {picking.list.map((item, index) => {
               const p = productName(item.productId);
@@ -248,15 +254,15 @@ export function CampaignDashboard({
                   <div>
                     <strong>
                       {item.pinned ? "📌 " : ""}
-                      {p?.name ?? "Unavailable product"}
+                      {p?.name ?? tr("Unavailable product")}
                     </strong>
                     <small>{p ? `${p.section} · ${statusLabel[p.status]}` : ""}</small>
                   </div>
                   <div className="admin-product-actions">
                     <button
                       type="button"
-                      title={item.pinned ? "Unpin" : "Pin to the front"}
-                      aria-label={item.pinned ? "Unpin" : "Pin"}
+                      title={item.pinned ? tr("Unpin") : tr("Pin to the front")}
+                      aria-label={item.pinned ? tr("Unpin") : tr("Pin")}
                       onClick={() =>
                         setPicking(
                           x =>
@@ -273,7 +279,7 @@ export function CampaignDashboard({
                     </button>
                     <button
                       type="button"
-                      aria-label="Move up"
+                      aria-label={tr("Move up")}
                       disabled={index === 0}
                       onClick={() => move(index, -1)}
                     >
@@ -281,7 +287,7 @@ export function CampaignDashboard({
                     </button>
                     <button
                       type="button"
-                      aria-label="Move down"
+                      aria-label={tr("Move down")}
                       disabled={index === picking.list.length - 1}
                       onClick={() => move(index, 1)}
                     >
@@ -289,7 +295,7 @@ export function CampaignDashboard({
                     </button>
                     <button
                       type="button"
-                      aria-label="Remove from campaign"
+                      aria-label={tr("Remove from campaign")}
                       onClick={() =>
                         setPicking(x => x && { ...x, list: x.list.filter((_, k) => k !== index) })
                       }
@@ -302,7 +308,7 @@ export function CampaignDashboard({
             })}
           </ol>
           <label>
-            Add a product
+            {tr("Add a product")}
             <select
               value=""
               onChange={e => {
@@ -313,7 +319,7 @@ export function CampaignDashboard({
                   );
               }}
             >
-              <option value="">Choose a product…</option>
+              <option value="">{tr("Choose a product…")}</option>
               {products
                 .filter(p => !picking.list.some(i => i.productId === p.id))
                 .map(p => (
@@ -334,13 +340,13 @@ export function CampaignDashboard({
                   await call(
                     "PATCH",
                     { id: picking.id, items: picking.list },
-                    "Campaign products saved.",
+                    tr("Campaign products saved."),
                   )
                 )
                   setPicking(null);
               }}
             >
-              Save products
+              {tr("Save products")}
             </button>
             <button
               type="button"
@@ -348,12 +354,12 @@ export function CampaignDashboard({
               disabled={busy}
               onClick={() => setPicking(null)}
             >
-              Cancel
+              {tr("Cancel")}
             </button>
           </div>
         </div>
       )}
-      {items.length === 0 && !editing && <p>No campaigns yet.</p>}
+      {items.length === 0 && !editing && <p>{tr("No campaigns yet.")}</p>}
       <ul className="admin-product-list">
         {items.map(c => {
           const [label, tone] = phaseLabel[c.phase];
@@ -364,7 +370,7 @@ export function CampaignDashboard({
                   {c.nameEn} <span className={`switch-badge small ${tone}`}>{label}</span>
                 </strong>
                 <small>
-                  {c.startsAt ? `From ${formatDhaka(c.startsAt)}` : "No start limit"} ·{" "}
+                  {c.startsAt ? `From ${formatDhaka(c.startsAt)}` : tr("No start limit")} ·{" "}
                   {c.endsAt ? `until ${formatDhaka(c.endsAt)}` : "no end"} · {c.items.length}{" "}
                   product{c.items.length === 1 ? "" : "s"}
                   {c.hasImage ? " · banner" : ""}
@@ -391,10 +397,10 @@ export function CampaignDashboard({
                     setPicking({ id: c.id, name: c.nameEn, list: c.items });
                   }}
                 >
-                  Products
+                  {tr("Products")}
                 </button>
                 <button type="button" disabled={busy} onClick={() => open(c)}>
-                  Edit
+                  {tr("Edit")}
                 </button>
                 <button
                   type="button"
@@ -404,7 +410,7 @@ export function CampaignDashboard({
                       void call("DELETE", { id: c.id }, `${c.nameEn} archived.`);
                   }}
                 >
-                  Archive
+                  {tr("Archive")}
                 </button>
               </div>
             </li>

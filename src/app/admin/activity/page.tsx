@@ -1,3 +1,6 @@
+import { requestLocale } from "@/lib/request-locale";
+import { adminTextFor } from "@/lib/admin-text-server";
+import { Localized } from "@/components/locale";
 import Link from "next/link";
 import { and, count, desc, eq, ilike, lt, or, type SQL } from "drizzle-orm";
 import { requireAdminPage } from "@/lib/admin-guard";
@@ -40,6 +43,7 @@ export default async function ActivityPage({
 }: {
   searchParams: Promise<{ group?: string; q?: string; before?: string }>;
 }) {
+  const tr = adminTextFor((await requestLocale()).locale);
   const { access } = await requireAdminPage("audit.read");
   const sp = await searchParams;
   const group = groups.some(([g]) => g === sp.group) ? (sp.group ?? "") : "";
@@ -95,7 +99,9 @@ export default async function ActivityPage({
   return (
     <main id="main-content" className="container auth-page admin-activity">
       <AdminBack />
-      <h1>Activity log</h1>
+      <h1>
+        <Localized en="Activity log" bn="কার্যক্রমের লগ" />
+      </h1>
       <p>
         Every change made in the admin, with the person&apos;s name, newest first. Entries
         can&apos;t be edited. Only the owner can delete them, and each deletion is recorded.{" "}
@@ -105,7 +111,7 @@ export default async function ActivityPage({
       </p>
       <form className="activity-filters" method="get" action="/admin/activity">
         <label>
-          Area
+          {tr("Area")}
           <select name="group" defaultValue={group}>
             {groups.map(([g, l]) => (
               <option key={g} value={g}>
@@ -115,18 +121,18 @@ export default async function ActivityPage({
           </select>
         </label>
         <label>
-          Search
+          {tr("Search")}
           <input
             name="q"
             defaultValue={q}
-            placeholder="Name, email, order code, product…"
+            placeholder={tr("Name, email, order code, product…")}
             maxLength={60}
           />
         </label>
-        <button className="btn btn-primary">Filter</button>
+        <button className="btn btn-primary">{tr("Filter")}</button>
         {(group || q) && (
           <Link className="btn btn-neutral" href="/admin/activity">
-            Clear
+            {tr("Clear")}
           </Link>
         )}
       </form>
@@ -134,7 +140,7 @@ export default async function ActivityPage({
         <ActivityDeleteAll total={Number(total?.n ?? 0)} />
       )}
       {!shown.length ? (
-        <p className="report-empty">No activity matches.</p>
+        <p className="report-empty">{tr("No activity matches.")}</p>
       ) : (
         <ol className="activity-list">
           {shown.map(r => (
@@ -147,17 +153,17 @@ export default async function ActivityPage({
                 {r.email && <small> {r.email}</small>}
                 <span className="activity-action">{r.action}</span>
               </div>
-              <p>{r.reason || <em>No details</em>}</p>
+              <p>{r.reason || <em>{tr("No details")}</em>}</p>
               {access.owner && <ActivityDeleteOne id={r.id} />}
             </li>
           ))}
         </ol>
       )}
       {(before || more) && (
-        <nav className="activity-pages" aria-label="Pages">
+        <nav className="activity-pages" aria-label={tr("Pages")}>
           {before && (
             <Link className="btn btn-neutral" href={link({})}>
-              Newest
+              {tr("Newest")}
             </Link>
           )}
           {more && (
@@ -165,7 +171,7 @@ export default async function ActivityPage({
               className="btn btn-neutral"
               href={link({ before: shown.at(-1)!.at.toISOString() })}
             >
-              Older entries
+              {tr("Older entries")}
             </Link>
           )}
         </nav>

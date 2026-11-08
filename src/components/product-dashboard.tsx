@@ -4,6 +4,7 @@
 // the full product form with photos, colours, stock per colour × size, Bangla text, the homepage
 // feature story and cost price. What each person can do follows their product permissions.
 
+import { useAdminText } from "./admin-text";
 import { useRef, useState, type FormEvent } from "react";
 import { formatPrice } from "@/lib/catalog";
 import { productCategories } from "@/lib/categories";
@@ -162,13 +163,14 @@ export function ProductDashboard({
   costs?: Record<string, number | null> | null;
   rights?: Rights;
 }) {
+  const tr = useAdminText();
   const [costs, setCosts] = useState(initialCosts);
 
   // Cost prices go through their own endpoint (separate permission and activity log entry).
 
   const costApi = useAdminCall<{ costs: Record<string, number | null> }>(
     "/api/admin/costs",
-    { costPrice: "Cost price" },
+    { costPrice: tr("Cost price") },
     data => setCosts(data.costs),
   );
   const [all, setAll] = useState(initial.products);
@@ -337,14 +339,14 @@ export function ProductDashboard({
     );
   return (
     <section className="admin-sections admin-products" aria-labelledby="products-heading">
-      <h2 id="products-heading">Products in this section</h2>
+      <h2 id="products-heading">{tr("Products in this section")}</h2>
       {!rights.manage && (
         <p className="admin-callout">
           Your role:{" "}
           {[rights.draft && "write drafts", rights.publish && "publish", rights.hide && "hide"]
             .filter(Boolean)
             .join(", ") || "view only"}
-          . {rights.draft ? "You can edit products only while they are drafts." : ""}
+          . {rights.draft ? tr("You can edit products only while they are drafts.") : ""}
         </p>
       )}
       {!editing && rights.draft && (
@@ -354,7 +356,7 @@ export function ProductDashboard({
           disabled={busy}
           onClick={() => open(null)}
         >
-          Add product
+          {tr("Add product")}
         </button>
       )}
       {editing && (
@@ -364,7 +366,7 @@ export function ProductDashboard({
               ? `Edit ${editing.draft.nameEn || "product"}`
               : `New product in ${section?.nameEn ?? "this section"}`}
           </h3>
-          {field("nameEn", "Name", { required: true, maxLength: 80 })}
+          {field("nameEn", tr("Name"), { required: true, maxLength: 80 })}
           <CategoryPicker
             key={editing.id ?? "new"}
             options={options}
@@ -374,7 +376,7 @@ export function ProductDashboard({
             onChange={(en, bn) => set({ categoryEn: en, categoryBn: bn })}
           />
           <div className="product-form-row">
-            {field("price", "Price (৳ BDT)", {
+            {field("price", tr("Price (৳ BDT)"), {
               required: true,
               type: "number",
               min: 0,
@@ -383,7 +385,7 @@ export function ProductDashboard({
               inputMode: "numeric",
             })}
             <label>
-              Original price (optional)
+              {tr("Original price (optional)")}
               <input
                 name="compareAtPrice"
                 type="number"
@@ -392,7 +394,7 @@ export function ProductDashboard({
                 step={1}
                 inputMode="numeric"
                 value={editing.draft.compareAtPrice}
-                placeholder="For a sale"
+                placeholder={tr("For a sale")}
                 disabled={busy}
                 onChange={e => set({ compareAtPrice: e.target.value })}
               />
@@ -401,11 +403,13 @@ export function ProductDashboard({
                 editing.draft.price &&
                 Number(editing.draft.compareAtPrice) > Number(editing.draft.price)
                   ? `Shows ৳${editing.draft.compareAtPrice} crossed out, ${Math.round(((Number(editing.draft.compareAtPrice) - Number(editing.draft.price)) / Number(editing.draft.compareAtPrice)) * 100)}% off.`
-                  : "Shown crossed out next to the price. Must be higher than the price. Blank = no sale."}
+                  : tr(
+                      "Shown crossed out next to the price. Must be higher than the price. Blank = no sale.",
+                    )}
               </small>
             </label>
             <label>
-              Restock alert at
+              {tr("Restock alert at")}
               <input
                 name="lowStockAt"
                 type="number"
@@ -425,7 +429,7 @@ export function ProductDashboard({
             </label>
             {!opts.track && (
               <label>
-                Stock quantity
+                {tr("Stock quantity")}
                 <input
                   name="stock"
                   type="number"
@@ -434,7 +438,7 @@ export function ProductDashboard({
                   step={1}
                   inputMode="numeric"
                   value={editing.draft.stock}
-                  placeholder="Unlimited"
+                  placeholder={tr("Unlimited")}
                   disabled={busy}
                   onChange={e => set({ stock: e.target.value })}
                 />
@@ -448,7 +452,7 @@ export function ProductDashboard({
           {costs && (
             <div className="cost-field">
               <label>
-                <span className="private-tag">Private</span> Cost price per unit (৳)
+                <span className="private-tag">{tr("Private")}</span> Cost price per unit (৳)
                 <input
                   name="costPrice"
                   type="number"
@@ -457,7 +461,7 @@ export function ProductDashboard({
                   step={1}
                   inputMode="numeric"
                   value={editing.draft.costPrice}
-                  placeholder="What one unit costs you"
+                  placeholder={tr("What one unit costs you")}
                   disabled={busy}
                   onChange={e => set({ costPrice: e.target.value })}
                 />
@@ -495,11 +499,11 @@ export function ProductDashboard({
                 })()}
             </div>
           )}
-          {field("taglineEn", "Short tagline", { maxLength: 140 })}
-          {area("descriptionEn", "Description")}
-          {field("sizes", "Sizes or options (comma separated)", { required: true })}
+          {field("taglineEn", tr("Short tagline"), { maxLength: 140 })}
+          {area("descriptionEn", tr("Description"))}
+          {field("sizes", tr("Sizes or options (comma separated)"), { required: true })}
           <fieldset className="variant-editor">
-            <legend>Colours (optional)</legend>
+            <legend>{tr("Colours (optional)")}</legend>
             <small>
               Add each colour this product comes in. Shoppers pick a colour, and its photo is shown.
               Leave empty if there is only one colour.
@@ -507,7 +511,7 @@ export function ProductDashboard({
             {opts.colors.map((c, i) => (
               <div className="color-row" key={c.key}>
                 <label className="color-pick">
-                  Swatch
+                  {tr("Swatch")}
                   <input
                     type="color"
                     value={c.hex}
@@ -516,12 +520,12 @@ export function ProductDashboard({
                   />
                 </label>
                 <label>
-                  Colour name
+                  {tr("Colour name")}
                   <input
                     value={c.en}
                     maxLength={30}
                     required
-                    placeholder="e.g. Red"
+                    placeholder={tr("e.g. Red")}
                     disabled={busy}
                     onChange={e => setColor(i, { en: e.target.value })}
                   />
@@ -536,7 +540,7 @@ export function ProductDashboard({
                     onChange={e => setColor(i, { bn: e.target.value })}
                   />
                 </label>
-                <div className="color-quick" aria-label="Quick swatches">
+                <div className="color-quick" aria-label={tr("Quick swatches")}>
                   {swatches.map(h => (
                     <button
                       type="button"
@@ -571,7 +575,7 @@ export function ProductDashboard({
                   }
                 >
                   <ActionIcon name="remove" size={14} />
-                  Remove colour
+                  {tr("Remove colour")}
                 </button>
               </div>
             ))}
@@ -596,12 +600,12 @@ export function ProductDashboard({
                 }
               >
                 <ActionIcon name="add" size={14} />
-                Add colour
+                {tr("Add colour")}
               </button>
             )}
           </fieldset>
           <fieldset className="variant-editor">
-            <legend>Stock per colour and size</legend>
+            <legend>{tr("Stock per colour and size")}</legend>
             <label className="check-row">
               <input
                 type="checkbox"
@@ -617,7 +621,7 @@ export function ProductDashboard({
                 const rows = opts.colors.filter(c => c.en.trim());
                 const ids = rows.length
                   ? rows.map(c => ({ id: slugify(c.en).slice(0, 30), label: c.en }))
-                  : [{ id: "", label: "Stock" }];
+                  : [{ id: "", label: tr("Stock") }];
                 const sizes = sizeList(editing.draft.sizes);
                 const total = ids.reduce(
                   (s, c) =>
@@ -678,9 +682,13 @@ export function ProductDashboard({
                 );
               })()}
           </fieldset>
-          {area("specsEn", "Specifications", "One per line, for example “Material: Cotton”.")}
+          {area(
+            "specsEn",
+            tr("Specifications"),
+            tr("One per line, for example “Material: Cotton”."),
+          )}
           <details>
-            <summary>Bangla text (optional)</summary>
+            <summary>{tr("Bangla text (optional)")}</summary>
             {field("nameBn", "নাম", { maxLength: 80 })}
             {field("taglineBn", "ট্যাগলাইন", { maxLength: 140 })}
             {area("descriptionBn", "বিবরণ")}
@@ -694,7 +702,7 @@ export function ProductDashboard({
             onError={setNotice}
           />
           <fieldset className="variant-editor">
-            <legend>Homepage feature story (optional)</legend>
+            <legend>{tr("Homepage feature story (optional)")}</legend>
             <label className="check-row">
               <input
                 type="checkbox"
@@ -712,11 +720,13 @@ export function ProductDashboard({
               <>
                 {area(
                   "featuredNoteEn",
-                  "Extra story or tutorial text (optional)",
-                  "Shown only in the homepage feature story. Leave blank to use the normal product content without an extra block.",
+                  tr("Extra story or tutorial text (optional)"),
+                  tr(
+                    "Shown only in the homepage feature story. Leave blank to use the normal product content without an extra block.",
+                  ),
                 )}
                 <label>
-                  Video URL (optional)
+                  {tr("Video URL (optional)")}
                   <input
                     type="url"
                     value={editing.draft.featuredVideoUrl}
@@ -724,10 +734,10 @@ export function ProductDashboard({
                     disabled={busy}
                     onChange={e => set({ featuredVideoUrl: e.target.value })}
                   />
-                  <small>Use an HTTPS link. Nothing is shown when this is blank.</small>
+                  <small>{tr("Use an HTTPS link. Nothing is shown when this is blank.")}</small>
                 </label>
                 <PhotoPicker
-                  legend="Close-up or special feature photo (optional)"
+                  legend={tr("Close-up or special feature photo (optional)")}
                   value={featuredPhoto}
                   hasCurrent={editing.hasFeaturedImage}
                   disabled={busy}
@@ -735,7 +745,7 @@ export function ProductDashboard({
                   onError={setNotice}
                 />
                 <details>
-                  <summary>Bangla feature text (optional)</summary>
+                  <summary>{tr("Bangla feature text (optional)")}</summary>
                   {area("featuredNoteBn", "বিশেষ লেখা বা টিউটোরিয়াল")}
                 </details>
               </>
@@ -749,7 +759,7 @@ export function ProductDashboard({
               allowed={allowedStatuses(rights, "draft")}
             />
             <label>
-              Section
+              {tr("Section")}
               <select
                 value={editing.draft.collectionId}
                 disabled={busy}
@@ -764,8 +774,8 @@ export function ProductDashboard({
             </label>
           </div>
           <details>
-            <summary>Advanced</summary>
-            {field("slug", "Web address", {
+            <summary>{tr("Advanced")}</summary>
+            {field("slug", tr("Web address"), {
               required: true,
               maxLength: 60,
               pattern: "[a-z0-9]+(-[a-z0-9]+)*",
@@ -775,7 +785,7 @@ export function ProductDashboard({
               Product page: /products/{editing.draft.slug || "…"} — filled in from the name
               automatically.
             </small>
-            {field("displayOrder", "Display order (lower shows first)", {
+            {field("displayOrder", tr("Display order (lower shows first)"), {
               type: "number",
               min: -1000,
               max: 1000,
@@ -784,7 +794,7 @@ export function ProductDashboard({
           </details>
           <div className="product-form-actions">
             <button type="submit" className="button brand-button" disabled={busy}>
-              {busy ? "Saving…" : editing.id ? "Save changes" : "Create product"}
+              {busy ? tr("Saving…") : editing.id ? tr("Save changes") : tr("Create product")}
             </button>
             <button
               type="button"
@@ -792,7 +802,7 @@ export function ProductDashboard({
               disabled={busy}
               onClick={() => setEditing(null)}
             >
-              Cancel
+              {tr("Cancel")}
             </button>
           </div>
         </form>
@@ -811,11 +821,11 @@ export function ProductDashboard({
             <div>
               <strong>{item.nameEn}</strong>
               <small>
-                {item.categoryEn || "No category"} · {formatPrice(item.price)} ·{" "}
+                {item.categoryEn || tr("No category")} · {formatPrice(item.price)} ·{" "}
                 {outOfStock(item.stock) ? (
-                  <b className="stock-badge">Out of stock</b>
+                  <b className="stock-badge">{tr("Out of stock")}</b>
                 ) : item.stock === null ? (
-                  "In stock (not counted)"
+                  tr("In stock (not counted)")
                 ) : (
                   `${item.stock} in stock${item.variants ? " (per colour/size)" : ""}`
                 )}
@@ -856,7 +866,7 @@ export function ProductDashboard({
                     )
                   }
                 >
-                  {outOfStock(item.stock) ? "Back in stock" : "Mark out of stock"}
+                  {outOfStock(item.stock) ? tr("Back in stock") : tr("Mark out of stock")}
                 </button>
               )}
               {(rights.manage || (rights.draft && item.status === "draft")) && (
@@ -867,7 +877,7 @@ export function ProductDashboard({
                   onClick={() => open(item)}
                 >
                   <ActionIcon name="edit" />
-                  Edit
+                  {tr("Edit")}
                 </button>
               )}
               {rights.manage && (
@@ -885,7 +895,7 @@ export function ProductDashboard({
                   }}
                 >
                   <ActionIcon name="archive" />
-                  Archive
+                  {tr("Archive")}
                 </button>
               )}
             </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdminText } from "./admin-text";
 import { useState, type FormEvent } from "react";
 import { formatPrice } from "@/lib/catalog";
 
@@ -51,6 +52,7 @@ export function DiscountManager({
   sections: Section[];
   products: Item[];
 }) {
+  const tr = useAdminText();
   const [rows, setRows] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
@@ -87,7 +89,7 @@ export function DiscountManager({
       { discounts?: Row[]; field?: string } | undefined;
     setBusy(false);
     if (!res?.ok || !data?.discounts) {
-      setMsg(errText[data?.field ?? ""] ?? "Could not save. Please try again.");
+      setMsg(errText[data?.field ?? ""] ?? tr("Could not save. Please try again."));
       return false;
     }
     setRows(data.discounts);
@@ -126,7 +128,7 @@ export function DiscountManager({
 
   const scopeText = (r: Row) =>
     !r.collections.length && !r.products.length
-      ? "Everything"
+      ? tr("Everything")
       : [...r.collections.map(sectionName), ...r.products.map(productName)].join(", ");
   const q = search.trim().toLowerCase();
   const shown = products.filter(p => !q || p.name.toLowerCase().includes(q) || p.slug.includes(q));
@@ -136,7 +138,7 @@ export function DiscountManager({
     <section className="disc-wrap">
       <form className="disc-form" onSubmit={submit} key={e?.code ?? "new"}>
         <label>
-          Code
+          {tr("Code")}
           <input
             name="code"
             required
@@ -149,14 +151,14 @@ export function DiscountManager({
           />
         </label>
         <label>
-          Type
+          {tr("Type")}
           <select name="kind" defaultValue={e?.kind ?? "percent"}>
             <option value="percent">% off</option>
             <option value="amount">৳ off</option>
           </select>
         </label>
         <label>
-          Value
+          {tr("Value")}
           <input
             name="value"
             type="number"
@@ -167,7 +169,7 @@ export function DiscountManager({
           />
         </label>
         <label>
-          Minimum order (৳)
+          {tr("Minimum order (৳)")}
           <input
             name="minSubtotal"
             type="number"
@@ -177,35 +179,35 @@ export function DiscountManager({
           />
         </label>
         <label>
-          Use limit
+          {tr("Use limit")}
           <input
             name="maxUses"
             type="number"
             min={1}
-            placeholder="Unlimited"
+            placeholder={tr("Unlimited")}
             defaultValue={e?.maxUses ?? ""}
           />
         </label>
         <label>
-          Starts
+          {tr("Starts")}
           <input name="startsAt" type="date" defaultValue={day(e?.startsAt ?? null)} />
         </label>
         <label>
-          Ends
+          {tr("Ends")}
           <input name="endsAt" type="date" defaultValue={day(e?.endsAt ?? null)} />
         </label>
         <label className="wide">
-          Note (team only)
+          {tr("Note (team only)")}
           <input
             name="note"
             maxLength={120}
-            placeholder="Facebook ad, November"
+            placeholder={tr("Facebook ad, November")}
             defaultValue={e?.note}
           />
         </label>
 
         <fieldset className="wide disc-scope">
-          <legend>Applies to</legend>
+          <legend>{tr("Applies to")}</legend>
           <div className="disc-scope-mode">
             <label>
               <input
@@ -228,7 +230,7 @@ export function DiscountManager({
                 price. The minimum order counts only these items too.
               </p>
               <div className="disc-pick">
-                <strong>Sections</strong>
+                <strong>{tr("Sections")}</strong>
                 {sections.length ? (
                   sections.map(s => (
                     <label key={s.id}>
@@ -241,17 +243,17 @@ export function DiscountManager({
                     </label>
                   ))
                 ) : (
-                  <p className="small-note">No sections yet.</p>
+                  <p className="small-note">{tr("No sections yet.")}</p>
                 )}
               </div>
               <div className="disc-pick">
-                <strong>Single products</strong>
+                <strong>{tr("Single products")}</strong>
                 <input
                   type="search"
-                  placeholder="Search products…"
+                  placeholder={tr("Search products…")}
                   value={search}
                   onChange={ev => setSearch(ev.target.value)}
-                  aria-label="Search products"
+                  aria-label={tr("Search products")}
                 />
                 <div className="disc-pick-list">
                   {shown.map(p => (
@@ -268,7 +270,7 @@ export function DiscountManager({
                       </small>
                     </label>
                   ))}
-                  {!shown.length && <p className="small-note">No products match.</p>}
+                  {!shown.length && <p className="small-note">{tr("No products match.")}</p>}
                 </div>
               </div>
               {(pickSections.length > 0 || pickProducts.length > 0) && (
@@ -282,11 +284,11 @@ export function DiscountManager({
         </fieldset>
 
         <button className="btn btn-primary" disabled={busy}>
-          {e ? "Save changes" : "Save code"}
+          {e ? tr("Save changes") : tr("Save code")}
         </button>
         {e && (
           <button type="button" className="btn btn-neutral" onClick={() => startEdit(null)}>
-            Cancel
+            {tr("Cancel")}
           </button>
         )}
         <p className="small-note" role="status">
@@ -294,18 +296,18 @@ export function DiscountManager({
         </p>
       </form>
       {rows.length === 0 ? (
-        <p className="small-note">No discount codes yet.</p>
+        <p className="small-note">{tr("No discount codes yet.")}</p>
       ) : (
         <table className="disc-table">
           <thead>
             <tr>
-              <th>Code</th>
-              <th>Discount</th>
-              <th>Applies to</th>
-              <th>Min. order</th>
-              <th>Used</th>
-              <th>Dates</th>
-              <th>Status</th>
+              <th>{tr("Code")}</th>
+              <th>{tr("Discount")}</th>
+              <th>{tr("Applies to")}</th>
+              <th>{tr("Min. order")}</th>
+              <th>{tr("Used")}</th>
+              <th>{tr("Dates")}</th>
+              <th>{tr("Status")}</th>
               <th />
             </tr>
           </thead>
@@ -326,7 +328,7 @@ export function DiscountManager({
                 <td>
                   {when(r.startsAt)} → {when(r.endsAt)}
                 </td>
-                <td>{r.active ? "On" : "Off"}</td>
+                <td>{r.active ? "On" : tr("Off")}</td>
                 <td>
                   <button
                     type="button"
@@ -336,7 +338,7 @@ export function DiscountManager({
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
                   >
-                    Edit
+                    {tr("Edit")}
                   </button>{" "}
                   <button
                     type="button"
@@ -344,7 +346,7 @@ export function DiscountManager({
                     disabled={busy}
                     onClick={() => call("PATCH", { code: r.code, active: !r.active })}
                   >
-                    {r.active ? "Turn off" : "Turn on"}
+                    {r.active ? tr("Turn off") : tr("Turn on")}
                   </button>
                 </td>
               </tr>

@@ -103,7 +103,7 @@ export default async function ServicePage({ params }: Props) {
       <nav className="category-breadcrumb" aria-label={bn ? "আপনি এখানে আছেন" : "Breadcrumb"}>
         <Link href="/">{bn ? "হোম" : "Home"}</Link>
         <span aria-hidden="true"> / </span>
-        <Link href="/#services">{bn ? "সেবা" : "Services"}</Link>
+        <Link href="/services">{bn ? "স্টুডিও" : "Studio"}</Link>
         <span aria-hidden="true"> / </span>
         <span aria-current="page">{copy.title}</span>
       </nav>

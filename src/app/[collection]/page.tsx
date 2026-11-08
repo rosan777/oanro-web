@@ -113,33 +113,49 @@ export default async function CategoryPage({ params }: Props) {
     })),
   };
   return (
-    <main id="main-content" className="container category-page">
+    <main id="main-content" className="category-page">
       <JsonLd data={breadcrumb} />
       {items.length > 0 && <JsonLd data={itemList} />}
-      <nav className="category-breadcrumb" aria-label={bn ? "আপনি এখানে আছেন" : "Breadcrumb"}>
-        <Link href="/">{bn ? "হোম" : "Home"}</Link>
-        <span aria-hidden="true"> / </span>
-        <span aria-current="page">{copy.name}</span>
-      </nav>
-      <p className="eyebrow">{presetLabel[collection.preset][locale]}</p>
-      <h1>{copy.name}</h1>
-      <p className="category-intro">
-        {[copy.headline, copy.description].filter(Boolean).join(". ")}
-      </p>
-      {items.length ? (
-        <CollectionBrowser items={items} />
-      ) : (
-        <p className="category-empty">
-          {bn ? "এই সেকশনের পণ্য শীঘ্রই আসছে।" : "Products for this section are coming soon."}
-        </p>
-      )}
-      <section className="category-guide">
+      <section className="o-shop-banner">
+        <div>
+          <nav className="o-breadcrumb" aria-label={bn ? "আপনি এখানে আছেন" : "Breadcrumb"}>
+            <Link href="/">{bn ? "হোম" : "Home"}</Link>
+            <span aria-hidden="true"> / </span>
+            <Link href="/shop">{bn ? "স্টোর" : "Store"}</Link>
+            <span aria-hidden="true"> / </span>
+            <span aria-current="page">{copy.name}</span>
+          </nav>
+          <span className="o-eyebrow">{presetLabel[collection.preset][locale]}</span>
+          <h1>
+            <mark>{copy.name}</mark>
+          </h1>
+          <p>{[copy.headline, copy.description].filter(Boolean).join(". ")}</p>
+        </div>
+        <span className="o-banner-flower" aria-hidden="true">
+          ✳
+        </span>
+      </section>
+      <section className="o-section">
+        {items.length ? (
+          <CollectionBrowser items={items} />
+        ) : (
+          <div className="o-empty">
+            <h2>
+              {bn ? "এই সেকশনের পণ্য শীঘ্রই আসছে।" : "Products for this section are coming soon."}
+            </h2>
+            <Link className="o-button" href="/shop">
+              {bn ? "সব পণ্য দেখুন" : "Shop everything"}
+            </Link>
+          </div>
+        )}
+      </section>
+      <section className="o-section o-category-guide">
         <h2>{guide.heading}</h2>
         {guide.paragraphs.map(text => (
           <p key={text.slice(0, 24)}>{text}</p>
         ))}
         <p>
-          <Link href="/delivery-returns" className="text-link">
+          <Link href="/delivery-returns" className="o-underlined">
             {bn ? "ডেলিভারি ও রিটার্ন" : "Delivery & Returns"}
           </Link>
         </p>

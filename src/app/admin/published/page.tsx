@@ -1,3 +1,4 @@
+import { Localized } from "@/components/locale";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { canProduct, productPermissions } from "@/lib/permissions";
 import { getOwnerCatalog } from "@/lib/store-products";
@@ -29,10 +30,14 @@ export default async function PublishedPage() {
   return (
     <main id="main-content" className="container auth-page">
       <AdminBack />
-      <h1>Published products</h1>
+      <h1>
+        <Localized en="Published products" bn="প্রকাশিত পণ্য" />
+      </h1>
       <p className="small-note">
-        Everything customers can see in the store right now, in one list. Change stock here; edit
-        the full product inside its section.
+        <Localized
+          en="Everything customers can see in the store right now, in one list. Change stock here; edit the full product inside its section."
+          bn="এই মুহূর্তে স্টোরে গ্রাহকরা যা দেখতে পান, এক তালিকায়। স্টক এখানে বদলান; পুরো পণ্য তার সেকশনের ভেতরে এডিট করুন।"
+        />
       </p>
       <PublishedProducts initial={rows} canStock={canStock} />
     </main>

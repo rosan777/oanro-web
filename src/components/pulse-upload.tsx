@@ -1,4 +1,5 @@
 "use client";
+import { useAdminText } from "./admin-text";
 import type { ChangeEvent } from "react";
 
 type Preview = { thumbnailUrl: string; previewToken: string };
@@ -22,6 +23,7 @@ export function PulseUpload({
   onError: (message: string) => void;
   onFinish: () => void;
 }) {
+  const tr = useAdminText();
   async function select(event: ChangeEvent<HTMLInputElement>) {
     const file = event.currentTarget.files?.[0];
     event.currentTarget.value = "";
@@ -63,14 +65,14 @@ export function PulseUpload({
       if (!response.ok) throw new Error("Upload failed. Check your sign-in and try again.");
       onReady((await response.json()) as Preview, url);
     } catch (error) {
-      onError(error instanceof Error ? error.message : "Could not process this photo.");
+      onError(error instanceof Error ? error.message : tr("Could not process this photo."));
     } finally {
       onFinish();
     }
   }
   return (
     <label>
-      Upload your own thumbnail
+      {tr("Upload your own thumbnail")}
       <input
         type="file"
         accept="image/jpeg,image/png,image/webp"
@@ -78,7 +80,11 @@ export function PulseUpload({
         onChange={select}
       />
       <small>
-        JPG, PNG or WebP · up to 5 MB. Resized automatically. Preview and approve before saving.
+        {tr(
+          tr(
+            "JPG, PNG or WebP · up to 5 MB. Resized automatically. Preview and approve before saving.",
+          ),
+        )}
       </small>
     </label>
   );

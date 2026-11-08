@@ -21,3 +21,6 @@ scripts/dev-migrate.ts
 # Vercel CLI project link (local only)
 .vercel
 .env*.local
+
+# Local test file storage for Workspace uploads (OANRO_FILE_STORAGE=local)
+.local-storage/

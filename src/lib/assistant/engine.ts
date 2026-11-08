@@ -36,6 +36,7 @@ import {
 import {
   allowedAmounts,
   getPolicy,
+  getSearchTrends,
   getProduct,
   policyInput,
   productInput,
@@ -64,6 +65,7 @@ import type { CatalogDb } from "../product-store";
 import { z } from "zod";
 
 const siteInfoInput = z.object({ query: z.string().trim().min(1).max(120) }).strict();
+const trendsInput = z.object({}).strict();
 
 export type EngineDeps = {
   db: CatalogDb;
@@ -322,6 +324,24 @@ export async function chat(deps: EngineDeps, input: ChatInput): Promise<ChatRepl
           : { found: false };
       },
     }),
+    // Owner-approved, read-only: aggregate search trends (no individual searches). Only offered when available.
+    ...(deps.tools.searchTrends
+      ? {
+          getSearchTrends: tool({
+            description:
+              "Get what visitors have been searching for recently (aggregate counts only, popular terms only), each with the published products it matches now. Use for questions like 'what is popular' or to suggest trending items. Never invent trends; if unavailable, answer normally.",
+            inputSchema: trendsInput,
+            execute: async () => {
+              const r = await getSearchTrends(deps.tools);
+              if (r.available)
+                r.terms.forEach(t =>
+                  t.matchingProducts.forEach(p => sink.info.push(`${p.name} ${p.price}`)),
+                );
+              return r;
+            },
+          }),
+        }
+      : {}),
     getPolicy: tool({
       description:
         "Get the shop's current delivery, payment, returns, cash-on-delivery or tracking rules.",

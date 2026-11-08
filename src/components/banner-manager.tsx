@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdminText } from "./admin-text";
 import { useState, type FormEvent } from "react";
 
 type Row = {
@@ -15,6 +16,7 @@ type Row = {
 const day = (iso: string | null) => (iso ? iso.slice(0, 10) : "");
 /** Add, edit, switch and delete announcement bar messages. */
 export function BannerManager({ initial }: { initial: Row[] }) {
+  const tr = useAdminText();
   const [rows, setRows] = useState(initial);
   const [editing, setEditing] = useState<Row | null>(null);
   const [busy, setBusy] = useState(false);
@@ -36,10 +38,10 @@ export function BannerManager({ initial }: { initial: Row[] }) {
     if (!data?.banners) {
       setMsg(
         data?.field === "link"
-          ? "Links must start with / (a page on this site), e.g. /seasonal"
+          ? tr("Links must start with / (a page on this site), e.g. /seasonal")
           : data?.field
             ? `Please check: ${data.field}`
-            : "Could not save.",
+            : tr("Could not save."),
       );
       return false;
     }
@@ -71,18 +73,18 @@ export function BannerManager({ initial }: { initial: Row[] }) {
     <section className="disc-wrap">
       <form className="disc-form" onSubmit={submit} key={e?.id ?? "new"}>
         <label className="wide">
-          Message (English)
+          {tr("Message (English)")}
           <input
             name="textEn"
             required
             minLength={3}
             maxLength={120}
             defaultValue={e?.textEn}
-            placeholder="Winter sale: 10% off with code WINTER10"
+            placeholder={tr("Winter sale: 10% off with code WINTER10")}
           />
         </label>
         <label className="wide">
-          Message (Bangla)
+          {tr("Message (Bangla)")}
           <input
             name="textBn"
             maxLength={160}
@@ -91,11 +93,11 @@ export function BannerManager({ initial }: { initial: Row[] }) {
           />
         </label>
         <label>
-          Link (optional)
+          {tr("Link (optional)")}
           <input name="link" maxLength={200} defaultValue={e?.link} placeholder="/seasonal" />
         </label>
         <label>
-          Order
+          {tr("Order")}
           <input
             name="displayOrder"
             type="number"
@@ -105,22 +107,22 @@ export function BannerManager({ initial }: { initial: Row[] }) {
           />
         </label>
         <label>
-          Starts
+          {tr("Starts")}
           <input name="startsAt" type="date" defaultValue={day(e?.startsAt ?? null)} />
         </label>
         <label>
-          Ends
+          {tr("Ends")}
           <input name="endsAt" type="date" defaultValue={day(e?.endsAt ?? null)} />
         </label>
         <label className="disc-check">
           <input type="checkbox" name="enabled" defaultChecked={e ? e.enabled : true} /> On
         </label>
         <button className="btn btn-primary" disabled={busy}>
-          {e ? "Save changes" : "Add message"}
+          {e ? tr("Save changes") : tr("Add message")}
         </button>
         {e && (
           <button type="button" className="btn btn-neutral" onClick={() => setEditing(null)}>
-            Cancel
+            {tr("Cancel")}
           </button>
         )}
         <p className="small-note" role="status">
@@ -128,15 +130,15 @@ export function BannerManager({ initial }: { initial: Row[] }) {
         </p>
       </form>
       {rows.length === 0 ? (
-        <p className="small-note">No custom messages yet.</p>
+        <p className="small-note">{tr("No custom messages yet.")}</p>
       ) : (
         <table className="disc-table">
           <thead>
             <tr>
-              <th>Message</th>
-              <th>Link</th>
-              <th>Dates</th>
-              <th>Status</th>
+              <th>{tr("Message")}</th>
+              <th>{tr("Link")}</th>
+              <th>{tr("Dates")}</th>
+              <th>{tr("Status")}</th>
               <th />
             </tr>
           </thead>
@@ -151,14 +153,14 @@ export function BannerManager({ initial }: { initial: Row[] }) {
                 <td>
                   {day(r.startsAt) || "—"} → {day(r.endsAt) || "—"}
                 </td>
-                <td>{r.enabled ? "On" : "Off"}</td>
+                <td>{r.enabled ? "On" : tr("Off")}</td>
                 <td>
                   <button
                     type="button"
                     className="btn btn-neutral btn-sm"
                     onClick={() => setEditing(r)}
                   >
-                    Edit
+                    {tr("Edit")}
                   </button>{" "}
                   <button
                     type="button"
@@ -168,7 +170,7 @@ export function BannerManager({ initial }: { initial: Row[] }) {
                       if (window.confirm("Delete this message?")) call("DELETE", { id: r.id });
                     }}
                   >
-                    Delete
+                    {tr("Delete")}
                   </button>
                 </td>
               </tr>

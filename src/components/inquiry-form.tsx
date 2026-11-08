@@ -12,12 +12,21 @@ export function InquiryForm({
   productName,
   size,
   services = [],
+  brief = false,
+  prefill,
+  defaultType,
 }: {
   kind: Kind;
   productSlug?: string;
   productName?: string;
   size?: string;
   services?: { slug: string; title: string }[];
+  /** Show the project brief questions (type, budget, timeline) used by the Studio. */
+  brief?: boolean;
+  /** Signed-in customers: their name and email filled in. */
+  prefill?: { name?: string; email?: string };
+  /** Pre-selected project type for the brief (for example "software" from the Software page). */
+  defaultType?: string;
 }) {
   const { locale } = useLocale();
   const bn = locale === "bn";
@@ -208,7 +217,13 @@ export function InquiryForm({
       <div className="product-form-row">
         <label>
           {L(bn, "Your name", "আপনার নাম")}
-          <input name="name" required maxLength={80} autoComplete="name" />
+          <input
+            name="name"
+            required
+            maxLength={80}
+            autoComplete="name"
+            defaultValue={prefill?.name}
+          />
         </label>
         <label>
           {L(bn, "Phone / WhatsApp", "ফোন / হোয়াটসঅ্যাপ")}
@@ -224,7 +239,13 @@ export function InquiryForm({
       <div className="product-form-row">
         <label>
           {L(bn, "Email (optional)", "ইমেইল (ঐচ্ছিক)")}
-          <input name="email" type="email" maxLength={200} autoComplete="email" />
+          <input
+            name="email"
+            type="email"
+            maxLength={200}
+            autoComplete="email"
+            defaultValue={prefill?.email}
+          />
         </label>
         <label>
           {L(bn, "Best way to reach you", "যোগাযোগের সুবিধাজনক উপায়")}
@@ -236,6 +257,42 @@ export function InquiryForm({
           </select>
         </label>
       </div>
+      {brief && (
+        <div className="product-form-row inquiry-brief">
+          <label>
+            {L(bn, "What are you building?", "কী বানাতে চান?")}
+            <select name="projectType" defaultValue={defaultType ?? ""}>
+              <option value="">{L(bn, "Choose…", "বেছে নিন…")}</option>
+              <option value="website">{L(bn, "Website", "ওয়েবসাইট")}</option>
+              <option value="ecommerce">{L(bn, "Online store", "অনলাইন স্টোর")}</option>
+              <option value="mobile-app">{L(bn, "Mobile app", "মোবাইল অ্যাপ")}</option>
+              <option value="software">{L(bn, "Business software", "বিজনেস সফটওয়্যার")}</option>
+              <option value="strategy">{L(bn, "Strategy & support", "পরিকল্পনা ও সাপোর্ট")}</option>
+              <option value="other">{L(bn, "Something else", "অন্য কিছু")}</option>
+            </select>
+          </label>
+          <label>
+            {L(bn, "Budget", "বাজেট")}
+            <select name="budgetRange" defaultValue="">
+              <option value="">{L(bn, "Choose…", "বেছে নিন…")}</option>
+              <option value="discuss">{L(bn, "Let’s discuss", "আলোচনা করতে চাই")}</option>
+              <option value="starter">{L(bn, "Starter project", "ছোট প্রজেক্ট")}</option>
+              <option value="growing">{L(bn, "Growing business", "বড় হচ্ছে এমন ব্যবসা")}</option>
+              <option value="custom">{L(bn, "Custom platform", "কাস্টম প্ল্যাটফর্ম")}</option>
+            </select>
+          </label>
+          <label>
+            {L(bn, "When do you want to start?", "কবে শুরু করতে চান?")}
+            <select name="timeline" defaultValue="">
+              <option value="">{L(bn, "Choose…", "বেছে নিন…")}</option>
+              <option value="exploring">{L(bn, "Exploring options", "ভেবে দেখছি")}</option>
+              <option value="this-month">{L(bn, "This month", "এই মাসে")}</option>
+              <option value="next-quarter">{L(bn, "Next quarter", "আগামী তিন মাসে")}</option>
+              <option value="later">{L(bn, "Later", "পরে")}</option>
+            </select>
+          </label>
+        </div>
+      )}
       {kind === "product" && (
         <label className="inquiry-qty">
           {L(bn, "Quantity", "পরিমাণ")}

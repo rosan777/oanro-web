@@ -1,4 +1,5 @@
 "use client";
+import { useAdminText } from "./admin-text";
 import { areaLabel } from "@/lib/delivery-fee";
 import { OrderExtras } from "./team-extras";
 import Link from "next/link";
@@ -67,6 +68,7 @@ function DeliveryControls({
   busy: boolean;
   act: (body: Record<string, unknown>, done: string) => Promise<boolean>;
 }) {
+  const tr = useAdminText();
   const [stage, setStage] = useState<string | null>(null);
   const [courier, setCourier] = useState(order.courier ?? "");
   const [tracking, setTracking] = useState("");
@@ -106,13 +108,13 @@ function DeliveryControls({
           {stage === "shipped" && (
             <>
               <label>
-                Courier
+                {tr("Courier")}
                 <input
                   list={`couriers-${order.id}`}
                   value={courier}
                   maxLength={40}
                   onChange={e => setCourier(e.target.value)}
-                  placeholder="e.g. Pathao Courier"
+                  placeholder={tr("e.g. Pathao Courier")}
                 />
               </label>
               <datalist id={`couriers-${order.id}`}>
@@ -121,7 +123,7 @@ function DeliveryControls({
                 ))}
               </datalist>
               <label>
-                Tracking / consignment number (optional)
+                {tr("Tracking / consignment number (optional)")}
                 <input
                   value={tracking}
                   maxLength={60}
@@ -131,7 +133,9 @@ function DeliveryControls({
             </>
           )}
           <label>
-            {stage === "returned" ? "Reason (required)" : "Note for the customer (optional)"}
+            {stage === "returned"
+              ? tr("Reason (required)")
+              : tr("Note for the customer (optional)")}
             <input
               value={note}
               maxLength={300}
@@ -167,6 +171,7 @@ function ShippingCost({
   busy: boolean;
   act: (body: Record<string, unknown>, done: string) => Promise<boolean>;
 }) {
+  const tr = useAdminText();
   const [value, setValue] = useState(order.shippingCost === null ? "" : String(order.shippingCost));
   const saved = order.shippingCost === null ? "" : String(order.shippingCost);
   return (
@@ -181,7 +186,7 @@ function ShippingCost({
       }}
     >
       <label>
-        Courier charge you paid (৳)
+        {tr("Courier charge you paid (৳)")}
         <input
           type="number"
           min={0}
@@ -189,19 +194,21 @@ function ShippingCost({
           step={1}
           inputMode="numeric"
           value={value}
-          placeholder="e.g. 60"
+          placeholder={tr("e.g. 60")}
           disabled={busy}
           onChange={e => setValue(e.target.value)}
         />
       </label>
       <button className="btn btn-neutral btn-sm" disabled={busy || value === saved}>
         <ActionIcon name="save" />
-        Save charge
+        {tr("Save charge")}
       </button>
       {order.shippingCost === null &&
         order.deliveryStatus &&
         order.deliveryStatus !== "processing" && (
-          <small className="shipping-missing">Not added yet: profit reports count it as ৳0.</small>
+          <small className="shipping-missing">
+            {tr("Not added yet: profit reports count it as ৳0.")}
+          </small>
         )}
     </form>
   );
@@ -216,6 +223,7 @@ function Refund({
   busy: boolean;
   act: (body: Record<string, unknown>, done: string) => Promise<boolean>;
 }) {
+  const tr = useAdminText();
   const [open, setOpen] = useState(order.refundAmount > 0);
   const [amount, setAmount] = useState(order.refundAmount ? String(order.refundAmount) : ""),
     [note, setNote] = useState(order.refundNote ?? "");
@@ -229,7 +237,7 @@ function Refund({
         onClick={() => setOpen(true)}
       >
         <ActionIcon name="returned" />
-        Record a refund
+        {tr("Record a refund")}
       </button>
     );
   return (
@@ -246,7 +254,7 @@ function Refund({
       }}
     >
       <label>
-        Refund sent to customer (৳)
+        {tr("Refund sent to customer (৳)")}
         <input
           type="number"
           min={0}
@@ -260,11 +268,11 @@ function Refund({
         />
       </label>
       <label>
-        Reason
+        {tr("Reason")}
         <input
           value={note}
           maxLength={200}
-          placeholder="e.g. one item damaged, partial refund"
+          placeholder={tr("e.g. one item damaged, partial refund")}
           disabled={busy}
           onChange={e => setNote(e.target.value)}
         />
@@ -276,13 +284,15 @@ function Refund({
         }
       >
         <ActionIcon name="save" />
-        Save refund
+        {tr("Save refund")}
       </button>
       <small>
         Up to {formatPrice(received)} (what was received).{" "}
         {order.deliveryStatus === "returned"
-          ? "This order was returned: its product money is already left out of revenue, so don't record that again."
-          : "It is subtracted from net profit. Enter 0 to clear."}
+          ? tr(
+              "This order was returned: its product money is already left out of revenue, so don't record that again.",
+            )
+          : tr("It is subtracted from net profit. Enter 0 to clear.")}
       </small>
     </form>
   );
@@ -306,6 +316,7 @@ function RulesCard({
   busy: boolean;
   save: (body: Record<string, unknown>) => void;
 }) {
+  const tr = useAdminText();
   const [d, setD] = useState({
     deliveryCharge: String(rules.deliveryCharge),
     outsideCharge: String(rules.outsideCharge),
@@ -328,7 +339,7 @@ function RulesCard({
         save({ action: "rules", ...d });
       }}
     >
-      <h2>Delivery &amp; payment rules</h2>
+      <h2>{tr("Delivery & payment rules")}</h2>
       <small>
         These numbers appear at checkout and on the public{" "}
         <a href="/delivery-returns" target="_blank" rel="noreferrer">
@@ -337,10 +348,10 @@ function RulesCard({
         page, which updates automatically when you save. Only you (the owner) can change them.
       </small>
       <fieldset>
-        <legend>Charges</legend>
+        <legend>{tr("Charges")}</legend>
         <div className="product-form-row">
           <label>
-            Delivery charge inside Dhaka (৳)
+            {tr("Delivery charge inside Dhaka (৳)")}
             <input
               type="number"
               min={0}
@@ -353,11 +364,11 @@ function RulesCard({
               disabled={busy}
             />
             <small>
-              Non-refundable. For cash on delivery this is the only amount paid in advance.
+              {tr("Non-refundable. For cash on delivery this is the only amount paid in advance.")}
             </small>
           </label>
           <label>
-            Delivery charge outside Dhaka (৳)
+            {tr("Delivery charge outside Dhaka (৳)")}
             <input
               type="number"
               min={0}
@@ -370,11 +381,15 @@ function RulesCard({
               disabled={busy}
             />
             <small>
-              The customer picks the area at checkout and pays this charge for outside Dhaka.
+              {tr(
+                tr(
+                  "The customer picks the area at checkout and pays this charge for outside Dhaka.",
+                ),
+              )}
             </small>
           </label>
           <label>
-            Cash on delivery limit (৳)
+            {tr("Cash on delivery limit (৳)")}
             <input
               type="number"
               min={0}
@@ -387,16 +402,20 @@ function RulesCard({
               disabled={busy}
             />
             <small>
-              Orders with a product total above this must pay in full. 0 turns cash on delivery off.
+              {tr(
+                tr(
+                  "Orders with a product total above this must pay in full. 0 turns cash on delivery off.",
+                ),
+              )}
             </small>
           </label>
         </div>
       </fieldset>
       <fieldset>
-        <legend>Delivery time and returns</legend>
+        <legend>{tr("Delivery time and returns")}</legend>
         <div className="product-form-row three">
           <label>
-            Inside Dhaka (days)
+            {tr("Inside Dhaka (days)")}
             <input
               value={d.dhakaDays}
               onChange={set("dhakaDays")}
@@ -408,7 +427,7 @@ function RulesCard({
             />
           </label>
           <label>
-            Outside Dhaka (days)
+            {tr("Outside Dhaka (days)")}
             <input
               value={d.outsideDays}
               onChange={set("outsideDays")}
@@ -420,7 +439,7 @@ function RulesCard({
             />
           </label>
           <label>
-            Report a problem within (days)
+            {tr("Report a problem within (days)")}
             <input
               type="number"
               min={0}
@@ -437,7 +456,7 @@ function RulesCard({
         </div>
       </fieldset>
       <div className="rules-preview" aria-live="polite">
-        <strong>Customers will see:</strong>
+        <strong>{tr("Customers will see:")}</strong>
         <ul>
           <li>
             Delivery charge{" "}
@@ -449,7 +468,7 @@ function RulesCard({
           <li>
             {limit > 0
               ? `Cash on delivery for orders up to ${formatPrice(limit)}; pay the delivery charge first.`
-              : "Cash on delivery is turned off."}
+              : tr("Cash on delivery is turned off.")}
           </li>
           <li>
             Delivery in {days(d.dhakaDays) || "?"} days inside Dhaka, {days(d.outsideDays) || "?"}{" "}
@@ -458,18 +477,18 @@ function RulesCard({
           <li>
             {ret > 0
               ? `Report a wrong, damaged or missing item within ${ret} day${ret === 1 ? "" : "s"} of delivery.`
-              : "Returns are not accepted."}
+              : tr("Returns are not accepted.")}
           </li>
         </ul>
       </div>
       <div className="product-form-actions">
         <button className="btn btn-primary" disabled={busy}>
           <ActionIcon name="save" />
-          Save rules
+          {tr("Save rules")}
         </button>
         <a className="btn btn-neutral" href="/delivery-returns" target="_blank" rel="noreferrer">
           <ActionIcon name="route" />
-          View public page
+          {tr("View public page")}
         </a>
       </div>
     </form>
@@ -503,6 +522,7 @@ export function OrdersDashboard({
   openId?: string;
   query?: string;
 }) {
+  const tr = useAdminText();
   const [rules, setRules] = useState(initialRules);
   const mailTest = useAdminCall<{ sentTo: string }>("/api/admin/orders", {}, () => {});
   const [orders, setOrders] = useState(initial);
@@ -528,14 +548,14 @@ export function OrdersDashboard({
     "/api/admin/orders",
     {
       bkash: "bKash number",
-      nagad: "Nagad number",
-      decision: "Decision",
-      shippingCost: "Courier charge",
-      deliveryCharge: "Delivery charge",
-      codLimit: "Cash on delivery limit",
-      dhakaDays: "Inside Dhaka (days, like 1-3)",
-      outsideDays: "Outside Dhaka (days, like 3-5)",
-      returnDays: "Report a problem within (0–30 days)",
+      nagad: tr("Nagad number"),
+      decision: tr("Decision"),
+      shippingCost: tr("Courier charge"),
+      deliveryCharge: tr("Delivery charge"),
+      codLimit: tr("Cash on delivery limit"),
+      dhakaDays: tr("Inside Dhaka (days, like 1-3)"),
+      outsideDays: tr("Outside Dhaka (days, like 3-5)"),
+      returnDays: tr("Report a problem within (0–30 days)"),
     },
     data => {
       setOrders(data.orders);
@@ -560,11 +580,11 @@ export function OrdersDashboard({
             void call(
               "PUT",
               { bkash: f.get("bkash"), nagad: f.get("nagad") },
-              "Payment numbers saved. Customers now see these at checkout.",
+              tr("Payment numbers saved. Customers now see these at checkout."),
             );
           }}
         >
-          <h2>Your payment numbers</h2>
+          <h2>{tr("Your payment numbers")}</h2>
           <small>
             Customers send money to these personal numbers. Leave one empty to hide that option.
             Only you (the owner) can change them.
@@ -581,7 +601,7 @@ export function OrdersDashboard({
               />
             </label>
             <label>
-              Nagad personal number
+              {tr("Nagad personal number")}
               <input
                 name="nagad"
                 inputMode="tel"
@@ -594,7 +614,7 @@ export function OrdersDashboard({
           <div className="product-form-actions">
             <button className="btn btn-primary" disabled={busy}>
               <ActionIcon name="save" />
-              Save numbers
+              {tr("Save numbers")}
             </button>
             <button
               type="button"
@@ -604,12 +624,12 @@ export function OrdersDashboard({
                 void mailTest.call(
                   "POST",
                   { action: "test-email" },
-                  "Test email sent to your address. Check your inbox (and Spam/Junk).",
+                  tr("Test email sent to your address. Check your inbox (and Spam/Junk)."),
                 )
               }
             >
               <ActionIcon name="inquiry" />
-              {mailTest.busy ? "Sending…" : "Send test email"}
+              {mailTest.busy ? tr("Sending…") : tr("Send test email")}
             </button>
           </div>
           {mailTest.notice && <small role="status">{mailTest.notice}</small>}
@@ -627,7 +647,7 @@ export function OrdersDashboard({
             void call(
               "PUT",
               body,
-              "Rules saved. Checkout and the Delivery & returns page now show the new values.",
+              tr("Rules saved. Checkout and the Delivery & returns page now show the new values."),
             )
           }
         />
@@ -638,7 +658,7 @@ export function OrdersDashboard({
           {mode === "orders" && isOwner && (
             <>
               {" "}
-              <Link href="/admin/settings">Add one in Payment &amp; delivery</Link>.
+              <Link href="/admin/settings">{tr("Add one in Payment & delivery")}</Link>.
             </>
           )}
         </p>
@@ -650,12 +670,12 @@ export function OrdersDashboard({
               type="search"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search order code, name, phone or Transaction ID"
-              aria-label="Search orders"
+              placeholder={tr("Search order code, name, phone or Transaction ID")}
+              aria-label={tr("Search orders")}
               maxLength={60}
             />
           </div>
-          <div className="order-filters" role="tablist" aria-label="Filter orders">
+          <div className="order-filters" role="tablist" aria-label={tr("Filter orders")}>
             {(
               [
                 "pending",
@@ -677,7 +697,9 @@ export function OrdersDashboard({
               </button>
             ))}
           </div>
-          {!shown.length && <p>{term ? "No orders match your search." : "No orders here."}</p>}
+          {!shown.length && (
+            <p>{term ? tr("No orders match your search.") : tr("No orders here.")}</p>
+          )}
           <ul className="admin-order-list">
             {shown.map(o => (
               <li
@@ -714,7 +736,7 @@ export function OrdersDashboard({
                   <div className="order-body" id={`order-${o.id}`}>
                     <dl className="order-facts">
                       <div>
-                        <dt>Customer</dt>
+                        <dt>{tr("Customer")}</dt>
                         <dd>
                           {o.customerName}{" "}
                           <small>
@@ -723,13 +745,13 @@ export function OrdersDashboard({
                         </dd>
                       </div>
                       <div>
-                        <dt>Phone</dt>
+                        <dt>{tr("Phone")}</dt>
                         <dd>
                           <a href={`tel:${o.phone}`}>{o.phone}</a>
                         </dd>
                       </div>
                       <div>
-                        <dt>{o.paymentType === "cod" ? "Advance received" : "Amount"}</dt>
+                        <dt>{o.paymentType === "cod" ? tr("Advance received") : tr("Amount")}</dt>
                         <dd>
                           <strong>{formatPrice(o.total)}</strong>
                           {o.deliveryCharge > 0 && (
@@ -738,24 +760,24 @@ export function OrdersDashboard({
                         </dd>
                       </div>
                       <div>
-                        <dt>Paid with</dt>
+                        <dt>{tr("Paid with")}</dt>
                         <dd>
                           {o.method === "bkash" ? "bKash" : "Nagad"} from{" "}
                           <strong>{o.payerNumber}</strong> to {o.payTo}
                         </dd>
                       </div>
                       <div>
-                        <dt>Transaction ID</dt>
+                        <dt>{tr("Transaction ID")}</dt>
                         <dd>
                           <code>{o.trxId}</code>
                         </dd>
                       </div>
                       <div>
-                        <dt>Placed</dt>
+                        <dt>{tr("Placed")}</dt>
                         <dd>{formatDhaka(o.createdAt, "en", { year: true })}</dd>
                       </div>
                       <div className="wide">
-                        <dt>Items</dt>
+                        <dt>{tr("Items")}</dt>
                         <dd>
                           {o.items
                             .map(
@@ -766,7 +788,7 @@ export function OrdersDashboard({
                         </dd>
                       </div>
                       <div className="wide">
-                        <dt>Deliver to</dt>
+                        <dt>{tr("Deliver to")}</dt>
                         <dd>
                           <strong>{areaLabel(o.deliveryArea)}</strong> · {o.address}
                           {o.note && (
@@ -779,13 +801,13 @@ export function OrdersDashboard({
                       </div>
                       {o.rejectReason && (
                         <div className="wide">
-                          <dt>Reject reason</dt>
+                          <dt>{tr("Reject reason")}</dt>
                           <dd>{o.rejectReason}</dd>
                         </div>
                       )}
                       {o.courier && (
                         <div>
-                          <dt>Courier</dt>
+                          <dt>{tr("Courier")}</dt>
                           <dd>
                             {o.courier}
                             {o.trackingCode && (
@@ -798,7 +820,7 @@ export function OrdersDashboard({
                         </div>
                       )}
                       <div className="wide">
-                        <dt>Timeline</dt>
+                        <dt>{tr("Timeline")}</dt>
                         <dd>
                           <ol className="order-timeline compact">
                             {o.events.map((e, i) => (
@@ -822,24 +844,24 @@ export function OrdersDashboard({
                           <div className={`cod-panel ${tone}`}>
                             <h3>
                               <ActionIcon name="wallet" />
-                              Cash on delivery
+                              {tr("Cash on delivery")}
                             </h3>
                             <dl>
                               <div>
-                                <dt>Advance (delivery charge)</dt>
+                                <dt>{tr("Advance (delivery charge)")}</dt>
                                 <dd>
                                   {formatPrice(o.deliveryCharge)} by{" "}
                                   {o.method === "bkash" ? "bKash" : "Nagad"}
                                 </dd>
                               </div>
                               <div>
-                                <dt>Cash to collect</dt>
+                                <dt>{tr("Cash to collect")}</dt>
                                 <dd>
                                   <strong>{formatPrice(o.codDue)}</strong>
                                 </dd>
                               </div>
                               <div>
-                                <dt>Cash status</dt>
+                                <dt>{tr("Cash status")}</dt>
                                 <dd>
                                   <span className="cod-state">{label}</span>
                                   {o.codCollectedAt && (
@@ -881,7 +903,7 @@ export function OrdersDashboard({
                       })()}
                     {o.hasScreenshot && (
                       <details className="order-shot">
-                        <summary>View payment screenshot</summary>
+                        <summary>{tr("View payment screenshot")}</summary>
                         {/* eslint-disable-next-line @next/next/no-img-element -- private, auth-checked image; not optimizable */}
                         <img
                           src={`/api/admin/orders/${o.id}/screenshot`}
@@ -905,18 +927,18 @@ export function OrdersDashboard({
                               void call(
                                 "PATCH",
                                 { id: o.id, decision: "approve" },
-                                `${o.code} approved. The customer now sees "Payment successful".`,
+                                `${o.code} approved. The customer now sees tr("Payment successful").`,
                               );
                           }}
                         >
                           <ActionIcon name="approve" />
-                          Approve: money received
+                          {tr("Approve: money received")}
                         </button>
                         {rejecting === o.id ? (
                           <span className="reject-box">
                             <input
-                              aria-label="Reason for rejecting"
-                              placeholder="e.g. Transaction ID not found"
+                              aria-label={tr("Reason for rejecting")}
+                              placeholder={tr("e.g. Transaction ID not found")}
                               value={reason}
                               maxLength={300}
                               onChange={e => setReason(e.target.value)}
@@ -939,7 +961,7 @@ export function OrdersDashboard({
                               }}
                             >
                               <ActionIcon name="reject" />
-                              Confirm reject
+                              {tr("Confirm reject")}
                             </button>
                             <button
                               type="button"
@@ -947,7 +969,7 @@ export function OrdersDashboard({
                               onClick={() => setRejecting(null)}
                             >
                               <ActionIcon name="cancel" />
-                              Cancel
+                              {tr("Cancel")}
                             </button>
                           </span>
                         ) : (
@@ -961,7 +983,7 @@ export function OrdersDashboard({
                             }}
                           >
                             <ActionIcon name="reject" />
-                            Reject
+                            {tr("Reject")}
                           </button>
                         )}
                       </div>

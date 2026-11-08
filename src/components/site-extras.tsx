@@ -101,9 +101,9 @@ export function CustomCursor() {
 /** Footer newsletter sign-up with explicit consent; a welcome email follows. */
 export function NewsletterSignup() {
   const t = useT();
-  const [state, setState] = useState<"idle" | "busy" | "done" | "error" | "limited" | "down">(
-    "idle",
-  );
+  const [state, setState] = useState<
+    "idle" | "busy" | "subscribed" | "already" | "invalid" | "limited" | "down"
+  >("idle");
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
@@ -118,46 +118,49 @@ export function NewsletterSignup() {
         locale: document.documentElement.lang === "bn" ? "bn" : "en",
       }),
     }).catch(() => null);
-    // Say what actually went wrong: too many tries from this device (429), service unavailable (503/no connection), or a bad email (400).
+    const data = (await res?.json().catch(() => ({}))) as { result?: string };
+    // Success is shown only after the server saved the sign-up. Otherwise say what went wrong.
     setState(
       res?.ok
-        ? "done"
+        ? data.result === "already"
+          ? "already"
+          : "subscribed"
         : res?.status === 429
           ? "limited"
           : !res || res.status >= 500
             ? "down"
-            : "error",
+            : "invalid",
     );
   }
-  if (state === "done")
+  if (state === "subscribed" || state === "already")
     return (
-      <p className="news-done" role="status">
-        {t(
-          "You're on the list — check your inbox for a welcome email.",
-          "আপনি তালিকায় আছেন — স্বাগত ইমেইলের জন্য ইনবক্স দেখুন।",
-        )}
+      <p className="o-news-done" role="status">
+        {state === "already"
+          ? t("You're already on the list. Thank you!", "আপনি আগেই তালিকায় আছেন। ধন্যবাদ!")
+          : t(
+              "You're on the list. Check your inbox for a welcome email.",
+              "আপনি তালিকায় যুক্ত হয়েছেন। স্বাগত ইমেইলের জন্য ইনবক্স দেখুন।",
+            )}
       </p>
     );
   return (
-    <form className="news-form" onSubmit={submit}>
-      <label htmlFor="news-email">
-        {t("Get new drops and offers first", "নতুন কালেকশন আর অফার সবার আগে পান")}
-      </label>
-      <div className="news-row">
+    <form className="o-news" onSubmit={submit} noValidate={false}>
+      <div className="o-news-row">
+        <label className="o-sr" htmlFor="news-email">
+          {t("Email address for offers", "অফারের জন্য ইমেইল ঠিকানা")}
+        </label>
         <input
           id="news-email"
           name="email"
           type="email"
           required
+          maxLength={200}
           placeholder={t("Your email", "আপনার ইমেইল")}
           autoComplete="email"
+          aria-describedby="news-status"
         />
-        <button
-          className="button brand-button"
-          disabled={state === "busy"}
-          aria-busy={state === "busy"}
-        >
-          {t("Sign up", "যোগ দিন")}
+        <button disabled={state === "busy"} aria-busy={state === "busy"}>
+          {state === "busy" ? t("Joining…", "যুক্ত হচ্ছে…") : t("Join", "যুক্ত হোন")}
         </button>
       </div>
       <input
@@ -167,37 +170,30 @@ export function NewsletterSignup() {
         className="inquiry-trap"
         aria-hidden="true"
       />
-      <label className="news-consent">
+      <label className="o-news-consent">
         <input type="checkbox" name="consent" required />
-        {t(
-          "I agree to receive OANRO emails. Unsubscribe any time.",
-          "OANRO-র ইমেইল পেতে রাজি। যেকোনো সময় বন্ধ করা যাবে।",
-        )}
+        <span>
+          {t("Email me offers. Unsubscribe anytime.", "ইমেইলে অফার চাই। যেকোনো সময় বন্ধ করুন।")}
+        </span>
       </label>
-      {state === "limited" && (
-        <p className="news-error" role="alert">
-          {t(
-            "Too many sign-up attempts from this device. Please try again in an hour.",
-            "এই ডিভাইস থেকে অনেকবার চেষ্টা হয়েছে। এক ঘণ্টা পরে আবার চেষ্টা করুন।",
-          )}
-        </p>
-      )}
-      {state === "down" && (
-        <p className="news-error" role="alert">
-          {t(
-            "Sign-up is not available right now. Please try again in a few minutes.",
-            "এই মুহূর্তে যোগ দেওয়া যাচ্ছে না। কয়েক মিনিট পরে আবার চেষ্টা করুন।",
-          )}
-        </p>
-      )}
-      {state === "error" && (
-        <p className="news-error" role="alert">
-          {t(
-            "Couldn't sign you up. Check the email and try again.",
-            "যোগ করা যায়নি। ইমেইল দেখে আবার চেষ্টা করুন।",
-          )}
-        </p>
-      )}
+      <p id="news-status" className="o-news-status" role="status" aria-live="polite">
+        {state === "invalid"
+          ? t(
+              "Check your email address and tick the box, then try again.",
+              "ইমেইল ঠিকানা দেখুন ও বক্সে টিক দিন, তারপর আবার চেষ্টা করুন।",
+            )
+          : state === "limited"
+            ? t(
+                "Too many sign-up attempts from this device. Please try again in an hour.",
+                "এই ডিভাইস থেকে অনেকবার চেষ্টা হয়েছে। এক ঘণ্টা পরে আবার চেষ্টা করুন।",
+              )
+            : state === "down"
+              ? t(
+                  "Couldn't sign you up right now. Please try again.",
+                  "এই মুহূর্তে যুক্ত করা যায়নি। আবার চেষ্টা করুন।",
+                )
+              : ""}
+      </p>
     </form>
   );
 }

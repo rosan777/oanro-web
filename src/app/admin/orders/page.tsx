@@ -1,3 +1,6 @@
+import { requestLocale } from "@/lib/request-locale";
+import { adminTextFor } from "@/lib/admin-text-server";
+import { Localized } from "@/components/locale";
 import { ExportButton } from "@/components/team-extras";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { getCheckoutRules, getPaymentNumbers, listOrders } from "@/lib/order-store";
@@ -11,6 +14,7 @@ export default async function OrdersAdminPage({
 }: {
   searchParams: Promise<{ q?: string; open?: string }>;
 }) {
+  const tr = adminTextFor((await requestLocale()).locale);
   const { access } = await requireAdminPage("orders.read");
   const sp = await searchParams;
   const db = catalogDb();
@@ -22,10 +26,12 @@ export default async function OrdersAdminPage({
   ]);
   return (
     <main id="main-content" className="container auth-page admin-orders">
-      <h1>Orders &amp; payments</h1>
+      <h1>
+        <Localized en="Orders & payments" bn="অর্ডার ও পেমেন্ট" />
+      </h1>
       {access.permissions.has("data.export") && (
         <p className="admin-tools">
-          <ExportButton type="orders" label="Export orders (CSV)" />
+          <ExportButton type="orders" label={tr("Export orders (CSV)")} />
         </p>
       )}
       <p>
