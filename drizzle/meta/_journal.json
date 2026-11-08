@@ -141,6 +141,20 @@
       "when": 1793520000000,
       "tag": "0019_audit_owner_purge",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793882200782,
+      "tag": "0020_redesign_features",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793883520527,
+      "tag": "0021_search_newsletter",
+      "breakpoints": true
     }
   ]
 }

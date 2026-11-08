@@ -1,3 +1,4 @@
+import { Localized } from "@/components/locale";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { getStaffOverview } from "@/lib/rbac";
 import { catalogDb } from "@/lib/store-products";
@@ -9,7 +10,9 @@ export default async function StaffPage() {
   return (
     <main id="main-content" className="container auth-page">
       <AdminBack />
-      <h1>Staff & roles</h1>
+      <h1>
+        <Localized en="Staff & roles" bn="স্টাফ ও রোল" />
+      </h1>
       <StaffDashboard
         initial={await getStaffOverview(catalogDb())}
         selfId={session.user.id}

@@ -5,6 +5,7 @@ import { ProductStoreError } from "@/lib/product-store";
 import { catalogDb } from "@/lib/store-products";
 import { originMatchesHost } from "@/lib/same-host";
 import { appSecret } from "@/lib/app-secret";
+import { currentSession } from "@/lib/access";
 export const runtime = "nodejs";
 
 const noStore = { "Cache-Control": "no-store" };
@@ -30,7 +31,15 @@ export async function POST(request: Request) {
     request.headers.get("x-real-ip") ||
     "";
   try {
-    await createLead(catalogDb(), parseLeadInput(data), ip ? hashIp(ip, appSecret("oanro")) : null);
+    // Signed-in customers: the inquiry is linked to their account so they can follow it under Account → Support.
+    const session = await currentSession().catch(() => null);
+    await createLead(
+      catalogDb(),
+      parseLeadInput(data),
+      ip ? hashIp(ip, appSecret("oanro")) : null,
+      new Date(),
+      session?.user.id ?? null,
+    );
     return Response.json({ ok: true }, { headers: noStore });
   } catch (error) {
     if (error instanceof ProductInputError)

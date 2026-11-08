@@ -2,8 +2,15 @@
 // "Email everyone" messages carry an unsubscribe link; people who unsubscribe are skipped by it.
 import "server-only";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
-import { and, eq, notExists, sql } from "drizzle-orm";
-import { auditEvent, staffMember, storeSetting, systemOwner, user } from "./db/schema";
+import { and, eq, isNotNull, notExists, sql } from "drizzle-orm";
+import {
+  auditEvent,
+  newsletterSubscriber,
+  staffMember,
+  storeSetting,
+  systemOwner,
+  user,
+} from "./db/schema";
 import { DELETED_DOMAIN } from "./customer-store";
 import { mailConfigured, sendMail } from "./mailer";
 import { siteUrl } from "./site-url";
@@ -80,7 +87,12 @@ async function audience(db: CatalogDb) {
         notExists(sql`(select 1 from ${systemOwner} where ${systemOwner.userId} = ${user.id})`),
       ),
     );
-  const out = new Set(await optedOut(db));
+  // Excluded: the account opt-out list and anyone who unsubscribed from the newsletter (any route).
+  const unsubscribed = await db
+    .select({ email: newsletterSubscriber.email })
+    .from(newsletterSubscriber)
+    .where(isNotNull(newsletterSubscriber.unsubscribedAt));
+  const out = new Set([...(await optedOut(db)), ...unsubscribed.map(u => u.email.toLowerCase())]);
   return rows.filter(r => !out.has(r.email.toLowerCase()));
 }
 export async function audienceCount(db: CatalogDb) {

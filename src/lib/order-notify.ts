@@ -75,10 +75,10 @@ const method = (o: Order) => (o.method === "bkash" ? "bKash" : "Nagad");
 /** Simple inline-styled HTML email (email apps ignore stylesheets); all text is escaped. */
 export function layout(title: string, paragraphs: string[], cta?: { label: string; href: string }) {
   return `<div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:560px;margin:0 auto;color:#151515">
-<div style="background:#1f513c;color:#fff;padding:16px 20px;font-weight:700;letter-spacing:.04em">OANRO</div>
+<div style="background:#5b3d87;color:#fff;padding:16px 20px;font-weight:700;letter-spacing:.04em">OANRO</div>
 <div style="padding:20px;border:1px solid #deded8;border-top:0;background:#fff"><h2 style="margin:0 0 12px;font-size:18px">${esc(title)}</h2>
 ${paragraphs.map(p => `<p style="margin:0 0 12px;line-height:1.55;white-space:pre-line">${esc(p)}</p>`).join("")}
-${cta ? `<p style="margin:18px 0 4px"><a href="${cta.href}" style="background:#1f513c;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600">${esc(cta.label)}</a></p>` : ""}
+${cta ? `<p style="margin:18px 0 4px"><a href="${cta.href}" style="background:#5b3d87;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600">${esc(cta.label)}</a></p>` : ""}
 </div><p style="font-size:12px;color:#686862;padding:10px 20px">This is an automatic message from OANRO. Never share your bKash/Nagad PIN with anyone, including us.</p></div>`;
 }
 

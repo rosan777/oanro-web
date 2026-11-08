@@ -1,4 +1,5 @@
 "use client";
+import { useAdminText } from "./admin-text";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 /** Admin: delete a customer's account (type DELETE to confirm). Blocked while orders are in progress. */
@@ -11,6 +12,7 @@ export function CustomerDelete({
   name: string;
   blockers: string[];
 }) {
+  const tr = useAdminText();
   const router = useRouter();
   const [typed, setTyped] = useState("");
   const [reason, setReason] = useState("");
@@ -35,13 +37,13 @@ export function CustomerDelete({
       body?.error?.startsWith("ACTIVE_ORDERS")
         ? `Orders still in progress: ${body.error.slice(14)}. Finish or reject them first.`
         : body?.error === "FORBIDDEN"
-          ? "You don't have permission to delete customers."
-          : "Couldn't delete the account. Try again.",
+          ? tr("You don't have permission to delete customers.")
+          : tr("Couldn't delete the account. Try again."),
     );
   }
   return (
     <section className="profile-card delete-account">
-      <h2>Delete account</h2>
+      <h2>{tr("Delete account")}</h2>
       <p>
         Erases {name || "this customer"}&apos;s name, email, phone, addresses, sign-in methods,
         two-step setup and inquiry contact details, and signs them out. Their orders stay
@@ -56,16 +58,16 @@ export function CustomerDelete({
       ) : (
         <div className="delete-confirm">
           <label>
-            Reason (optional, saved in the activity log)
+            {tr("Reason (optional, saved in the activity log)")}
             <input
               value={reason}
               onChange={e => setReason(e.target.value)}
               maxLength={150}
-              placeholder="e.g. customer asked by email"
+              placeholder={tr("e.g. customer asked by email")}
             />
           </label>
           <label>
-            Type DELETE to confirm
+            {tr("Type DELETE to confirm")}
             <input
               value={typed}
               onChange={e => setTyped(e.target.value)}
@@ -80,7 +82,7 @@ export function CustomerDelete({
               disabled={busy || typed.trim() !== "DELETE"}
               onClick={remove}
             >
-              {busy ? "Deleting…" : "Delete account"}
+              {busy ? tr("Deleting…") : tr("Delete account")}
             </button>
           </div>
         </div>

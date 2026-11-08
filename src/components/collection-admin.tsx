@@ -1,4 +1,5 @@
 "use client";
+import { useAdminText } from "./admin-text";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { collectionPresets, presetLabel, type CollectionPreset } from "@/lib/categories";
@@ -34,6 +35,7 @@ const toDraft = (s: Section) => ({
 
 /** Section settings: names and texts shown above the storefront row, visibility, order, archive. */
 export function CollectionSettings({ section }: { section: Section }) {
+  const tr = useAdminText();
   const router = useRouter();
   const [draft, setDraft] = useState(toDraft(section));
   const [open, setOpen] = useState(false);
@@ -68,7 +70,7 @@ export function CollectionSettings({ section }: { section: Section }) {
       await call(
         "PATCH",
         { id: section.id, ...draft },
-        "Section saved. Refresh the storefront to see it.",
+        tr("Section saved. Refresh the storefront to see it."),
       )
     )
       setOpen(false);
@@ -77,13 +79,13 @@ export function CollectionSettings({ section }: { section: Section }) {
     <section className="admin-sections section-settings">
       <div className="admin-section-row">
         <div>
-          <strong>Section visibility</strong>
+          <strong>{tr("Section visibility")}</strong>
           <small>
             {draft.status === "published"
-              ? "Shown on the storefront"
+              ? tr("Shown on the storefront")
               : draft.status === "hidden"
-                ? "Hidden from the storefront"
-                : "Draft, not shown yet"}{" "}
+                ? tr("Hidden from the storefront")
+                : tr("Draft, not shown yet")}{" "}
             · type: {presetLabel[draft.preset].en}
           </small>
         </div>
@@ -99,13 +101,13 @@ export function CollectionSettings({ section }: { section: Section }) {
                 "PATCH",
                 { id: section.id, ...next },
                 status === "published"
-                  ? "Section is now visible."
-                  : "Section is no longer visible.",
+                  ? tr("Section is now visible.")
+                  : tr("Section is no longer visible."),
               );
             }}
           />
           <button type="button" disabled={busy} onClick={() => setOpen(o => !o)}>
-            {open ? "Close settings" : "Edit section texts"}
+            {open ? tr("Close settings") : tr("Edit section texts")}
           </button>
           {!section.builtIn && (
             <button
@@ -114,22 +116,22 @@ export function CollectionSettings({ section }: { section: Section }) {
               onClick={async () => {
                 if (
                   window.confirm(`Archive the section “${section.nameEn}”? It must be empty.`) &&
-                  (await call("DELETE", { id: section.id }, "Section archived."))
+                  (await call("DELETE", { id: section.id }, tr("Section archived.")))
                 )
                   router.push("/admin");
               }}
             >
-              Archive section
+              {tr("Archive section")}
             </button>
           )}
         </div>
       </div>
       {open && (
         <form className="pulse-form product-form" onSubmit={save}>
-          {input("nameEn", "Section name (small label above the row)", 60, true)}
-          {input("headlineEn", "Headline (large text)", 100)}
+          {input("nameEn", tr("Section name (small label above the row)"), 60, true)}
+          {input("headlineEn", tr("Headline (large text)"), 100)}
           <label>
-            Description
+            {tr("Description")}
             <textarea
               rows={2}
               maxLength={300}
@@ -139,7 +141,7 @@ export function CollectionSettings({ section }: { section: Section }) {
             />
           </label>
           <details>
-            <summary>Bangla text (optional)</summary>
+            <summary>{tr("Bangla text (optional)")}</summary>
             {input("nameBn", "সেকশনের নাম", 60)}
             {input("headlineBn", "শিরোনাম", 100)}
             <label>
@@ -155,7 +157,7 @@ export function CollectionSettings({ section }: { section: Section }) {
           </details>
           <div className="product-form-row">
             <label>
-              Section type (sets the category list)
+              {tr("Section type (sets the category list)")}
               <select
                 value={draft.preset}
                 disabled={busy}
@@ -169,7 +171,7 @@ export function CollectionSettings({ section }: { section: Section }) {
               </select>
             </label>
             <label>
-              Display order (lower shows first)
+              {tr("Display order (lower shows first)")}
               <input
                 type="number"
                 min={-1000}
@@ -183,7 +185,7 @@ export function CollectionSettings({ section }: { section: Section }) {
           </div>
           <div className="product-form-actions">
             <button className="button brand-button" disabled={busy}>
-              {busy ? "Saving…" : "Save section"}
+              {busy ? tr("Saving…") : tr("Save section")}
             </button>
           </div>
         </form>
@@ -197,6 +199,7 @@ export function CollectionSettings({ section }: { section: Section }) {
 
 /** Create a new storefront section (e.g. a second tech section). Opens its page once created. */
 export function CreateCollection() {
+  const tr = useAdminText();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState({
@@ -227,19 +230,19 @@ export function CreateCollection() {
       className="pulse-form product-form"
       onSubmit={e => {
         e.preventDefault();
-        void call("POST", { ...draft, slug: slugify(draft.nameEn) }, "Section created.");
+        void call("POST", { ...draft, slug: slugify(draft.nameEn) }, tr("Section created."));
       }}
     >
-      <h3>New section</h3>
+      <h3>{tr("New section")}</h3>
       <label>
-        Section name
+        {tr("Section name")}
         <input
           required
           maxLength={60}
           value={draft.nameEn}
           disabled={busy}
           onChange={e => setDraft(d => ({ ...d, nameEn: e.target.value }))}
-          placeholder="e.g. Gaming gear"
+          placeholder={tr("e.g. Gaming gear")}
         />
       </label>
       <label>
@@ -252,17 +255,17 @@ export function CreateCollection() {
         />
       </label>
       <label>
-        Headline (large text on the storefront)
+        {tr("Headline (large text on the storefront)")}
         <input
           maxLength={100}
           value={draft.headlineEn}
           disabled={busy}
           onChange={e => setDraft(d => ({ ...d, headlineEn: e.target.value }))}
-          placeholder="e.g. Level up your setup."
+          placeholder={tr("e.g. Level up your setup.")}
         />
       </label>
       <label>
-        Section type (sets the category list)
+        {tr("Section type (sets the category list)")}
         <select
           value={draft.preset}
           disabled={busy}
@@ -275,13 +278,15 @@ export function CreateCollection() {
           ))}
         </select>
       </label>
-      <small>New sections start as drafts. Add products, then set the section to Published.</small>
+      <small>
+        {tr("New sections start as drafts. Add products, then set the section to Published.")}
+      </small>
       <div className="product-form-actions">
         <button className="button brand-button" disabled={busy || !draft.nameEn.trim()}>
-          {busy ? "Creating…" : "Create section"}
+          {busy ? tr("Creating…") : tr("Create section")}
         </button>
         <button type="button" className="button" disabled={busy} onClick={() => setOpen(false)}>
-          Cancel
+          {tr("Cancel")}
         </button>
       </div>
       <p role="status" aria-live="polite">

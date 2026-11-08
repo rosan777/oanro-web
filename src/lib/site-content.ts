@@ -83,6 +83,7 @@ const cleaners = {
   features: cleanFeatures,
   guides: cleanGuides,
   packages: cleanPackages,
+  softwarePlans: cleanPackages,
   faq: cleanFaq,
   contact: cleanContact,
 } as const;

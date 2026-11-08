@@ -454,6 +454,12 @@ export const lead = pgTable(
     email: text("email").notNull().default(""),
     message: text("message").notNull().default(""),
     preferredContact: text("preferred_contact").notNull().default("phone"),
+    // Project brief fields (Studio inquiries); fixed option lists in lead-store.ts. Null on older leads.
+    projectType: text("project_type"),
+    budgetRange: text("budget_range"),
+    timeline: text("timeline"),
+    // The signed-in customer who sent it (account Support tab and briefs); null for guests.
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
     locale: text("locale").notNull().default("en"),
     consentAt: time("consent_at").notNull(),
     ipHash: text("ip_hash"),
@@ -708,6 +714,8 @@ export const newsletterSubscriber = pgTable("newsletter_subscriber", {
   token: text("token").notNull().unique(),
   consentAt: time("consent_at").notNull().defaultNow(),
   unsubscribedAt: time("unsubscribed_at"),
+  /** Where consent was given: footer, account. Older rows were all from the footer form. */
+  source: text("source").notNull().default("footer"),
 });
 /** A signed-in shopper's bag, saved so one reminder email can be sent if they leave without ordering. */
 export const savedBag = pgTable("saved_bag", {
@@ -875,3 +883,322 @@ export const assistantHandoff = pgTable("assistant_handoff", {
     .references(() => lead.id, { onDelete: "cascade" }),
   createdAt: time("created_at").notNull().defaultNow(),
 });
+
+// Redesign features (2026-11): wishlist, saved addresses, case studies and the client Workspace.
+
+/** Products a signed-in shopper saved. Guests keep their list in the browser only. */
+export const wishlistItem = pgTable(
+  "wishlist_item",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    productId: text("product_id")
+      .notNull()
+      .references(() => product.id, { onDelete: "cascade" }),
+    createdAt: time("created_at").notNull().defaultNow(),
+  },
+  t => [primaryKey({ columns: [t.userId, t.productId] })],
+);
+
+/** Saved delivery addresses (up to 10 per customer). Orders still keep their own copy of the address. */
+export const customerAddress = pgTable(
+  "customer_address",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    label: text("label").notNull().default(""),
+    name: text("name").notNull().default(""),
+    phone: text("phone").notNull().default(""),
+    address: text("address").notNull(),
+    area: text("area").notNull().default(""),
+    city: text("city").notNull().default(""),
+    postcode: text("postcode").notNull().default(""),
+    insideDhaka: boolean("inside_dhaka").notNull().default(true),
+    isDefault: boolean("is_default").notNull().default(false),
+    createdAt: time("created_at").notNull().defaultNow(),
+    updatedAt: time("updated_at").notNull().defaultNow(),
+  },
+  t => [index("customer_address_user_idx").on(t.userId, t.isDefault)],
+);
+
+/**
+ * Studio case studies, written by staff with content.manage. Nothing is shown publicly until a case
+ * study is published; client names appear only when clientConsent is true.
+ */
+export const caseStudy = pgTable(
+  "case_study",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    status: text("status").$type<ProductStatus>().notNull().default("draft"),
+    titleEn: text("title_en").notNull(),
+    titleBn: text("title_bn").notNull().default(""),
+    summaryEn: text("summary_en").notNull().default(""),
+    summaryBn: text("summary_bn").notNull().default(""),
+    problemEn: text("problem_en").notNull().default(""),
+    problemBn: text("problem_bn").notNull().default(""),
+    approachEn: text("approach_en").notNull().default(""),
+    approachBn: text("approach_bn").notNull().default(""),
+    outcomeEn: text("outcome_en").notNull().default(""),
+    outcomeBn: text("outcome_bn").notNull().default(""),
+    clientName: text("client_name").notNull().default(""),
+    clientConsent: boolean("client_consent").notNull().default(false),
+    tags: jsonb("tags").$type<string[]>().notNull().default([]),
+    technologies: jsonb("technologies").$type<string[]>().notNull().default([]),
+    externalUrl: text("external_url").notNull().default(""),
+    imageData: text("image_data"),
+    imageAlt: text("image_alt").notNull().default(""),
+    displayOrder: integer("display_order").notNull().default(0),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id),
+    updatedBy: text("updated_by")
+      .notNull()
+      .references(() => user.id),
+    createdAt: time("created_at").notNull().defaultNow(),
+    updatedAt: time("updated_at").notNull().defaultNow(),
+  },
+  t => [
+    index("case_study_public_idx").on(t.status, t.displayOrder),
+    check("case_study_status_check", sql`${t.status} in ('draft', 'published', 'hidden')`),
+  ],
+);
+
+export const projectStatuses = [
+  "planning",
+  "in_progress",
+  "in_review",
+  "completed",
+  "on_hold",
+  "cancelled",
+] as const;
+export const milestoneStatuses = ["todo", "in_progress", "in_review", "done"] as const;
+export const approvalStatuses = ["requested", "approved", "changes_requested"] as const;
+export const invoiceStatuses = ["draft", "issued", "payment_submitted", "paid", "void"] as const;
+
+/** A Studio client project. Staff need projects.* permissions; clients see it through membership. */
+export const clientProject = pgTable(
+  "client_project",
+  {
+    id: text("id").primaryKey(),
+    title: text("title").notNull(),
+    clientName: text("client_name").notNull().default(""),
+    projectType: text("project_type").notNull().default("website"),
+    status: text("status").$type<(typeof projectStatuses)[number]>().notNull().default("planning"),
+    summary: text("summary").notNull().default(""),
+    leadId: text("lead_id").references(() => lead.id, { onDelete: "set null" }),
+    startDate: text("start_date"),
+    targetDate: text("target_date"),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id),
+    updatedBy: text("updated_by")
+      .notNull()
+      .references(() => user.id),
+    createdAt: time("created_at").notNull().defaultNow(),
+    updatedAt: time("updated_at").notNull().defaultNow(),
+  },
+  t => [
+    index("client_project_status_idx").on(t.status, t.updatedAt),
+    check(
+      "client_project_status_check",
+      sql`${t.status} in ('planning', 'in_progress', 'in_review', 'completed', 'on_hold', 'cancelled')`,
+    ),
+  ],
+);
+
+/** Client access to a project. userId is set when the invite is accepted by a signed-in account. */
+export const clientProjectMember = pgTable(
+  "client_project_member",
+  {
+    id: text("id").primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => clientProject.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash"),
+    expiresAt: time("expires_at"),
+    acceptedAt: time("accepted_at"),
+    invitedBy: text("invited_by")
+      .notNull()
+      .references(() => user.id),
+    createdAt: time("created_at").notNull().defaultNow(),
+  },
+  t => [
+    uniqueIndex("client_project_member_email_idx").on(t.projectId, t.email),
+    index("client_project_member_user_idx").on(t.userId),
+  ],
+);
+
+export const clientProjectMilestone = pgTable(
+  "client_project_milestone",
+  {
+    id: text("id").primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => clientProject.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    dueDate: text("due_date"),
+    status: text("status").$type<(typeof milestoneStatuses)[number]>().notNull().default("todo"),
+    displayOrder: integer("display_order").notNull().default(0),
+    createdAt: time("created_at").notNull().defaultNow(),
+    updatedAt: time("updated_at").notNull().defaultNow(),
+  },
+  t => [
+    index("client_project_milestone_idx").on(t.projectId, t.displayOrder),
+    check(
+      "client_project_milestone_status_check",
+      sql`${t.status} in ('todo', 'in_progress', 'in_review', 'done')`,
+    ),
+  ],
+);
+
+/** Uploaded project files. The bytes live in file storage (see file-storage.ts); this row is the index. */
+export const clientProjectFile = pgTable(
+  "client_project_file",
+  {
+    id: text("id").primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => clientProject.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    mime: text("mime").notNull(),
+    size: integer("size").notNull(),
+    storageKey: text("storage_key").notNull(),
+    visibility: text("visibility").$type<"shared" | "staff">().notNull().default("shared"),
+    uploadedBy: text("uploaded_by")
+      .notNull()
+      .references(() => user.id),
+    createdAt: time("created_at").notNull().defaultNow(),
+  },
+  t => [
+    index("client_project_file_idx").on(t.projectId, t.createdAt),
+    check("client_project_file_visibility_check", sql`${t.visibility} in ('shared', 'staff')`),
+  ],
+);
+
+export const clientProjectApproval = pgTable(
+  "client_project_approval",
+  {
+    id: text("id").primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => clientProject.id, { onDelete: "cascade" }),
+    milestoneId: text("milestone_id").references(() => clientProjectMilestone.id, {
+      onDelete: "set null",
+    }),
+    fileId: text("file_id").references(() => clientProjectFile.id, { onDelete: "set null" }),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    status: text("status")
+      .$type<(typeof approvalStatuses)[number]>()
+      .notNull()
+      .default("requested"),
+    clientComment: text("client_comment").notNull().default(""),
+    requestedBy: text("requested_by")
+      .notNull()
+      .references(() => user.id),
+    decidedBy: text("decided_by").references(() => user.id),
+    decidedAt: time("decided_at"),
+    createdAt: time("created_at").notNull().defaultNow(),
+  },
+  t => [
+    index("client_project_approval_idx").on(t.projectId, t.status),
+    check(
+      "client_project_approval_status_check",
+      sql`${t.status} in ('requested', 'approved', 'changes_requested')`,
+    ),
+  ],
+);
+
+/** A request for payment on a project. Not a tax invoice; no tax fields. Paid manually and confirmed by staff. */
+export const clientInvoice = pgTable(
+  "client_invoice",
+  {
+    id: text("id").primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => clientProject.id, { onDelete: "cascade" }),
+    number: text("number").notNull().unique(),
+    status: text("status").$type<(typeof invoiceStatuses)[number]>().notNull().default("draft"),
+    issueDate: text("issue_date"),
+    dueDate: text("due_date"),
+    total: integer("total").notNull().default(0),
+    note: text("note").notNull().default(""),
+    paymentMethod: text("payment_method"),
+    paymentReference: text("payment_reference"),
+    paymentSubmittedBy: text("payment_submitted_by").references(() => user.id),
+    paymentSubmittedAt: time("payment_submitted_at"),
+    confirmedBy: text("confirmed_by").references(() => user.id),
+    confirmedAt: time("confirmed_at"),
+    voidReason: text("void_reason").notNull().default(""),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id),
+    createdAt: time("created_at").notNull().defaultNow(),
+    updatedAt: time("updated_at").notNull().defaultNow(),
+  },
+  t => [
+    index("client_invoice_project_idx").on(t.projectId, t.createdAt),
+    check(
+      "client_invoice_status_check",
+      sql`${t.status} in ('draft', 'issued', 'payment_submitted', 'paid', 'void')`,
+    ),
+    check("client_invoice_total_check", sql`${t.total} >= 0`),
+  ],
+);
+
+export const clientInvoiceLine = pgTable(
+  "client_invoice_line",
+  {
+    id: text("id").primaryKey(),
+    invoiceId: text("invoice_id")
+      .notNull()
+      .references(() => clientInvoice.id, { onDelete: "cascade" }),
+    description: text("description").notNull(),
+    quantity: integer("quantity").notNull().default(1),
+    unitPrice: integer("unit_price").notNull().default(0),
+    displayOrder: integer("display_order").notNull().default(0),
+  },
+  t => [
+    index("client_invoice_line_idx").on(t.invoiceId, t.displayOrder),
+    check(
+      "client_invoice_line_check",
+      sql`${t.quantity} between 1 and 10000 and ${t.unitPrice} >= 0`,
+    ),
+  ],
+);
+
+/**
+ * Search insights (only with the visitor's Analytics consent). One row per counted search, submission
+ * or result selection; see search-insights.ts for counting, redaction and retention. No account id,
+ * IP, user agent or other personal data is stored; interactionId is a random id that lives in one
+ * browser tab's memory for one search session.
+ */
+export const searchEvent = pgTable(
+  "search_event",
+  {
+    id: text("id").primaryKey(),
+    interactionId: text("interaction_id").notNull(),
+    kind: text("kind").$type<"search" | "submit" | "select">().notNull(),
+    query: text("query").notNull(),
+    normalized: text("normalized").notNull(),
+    locale: text("locale").notNull().default("en"),
+    resultCount: integer("result_count").notNull().default(0),
+    selectedType: text("selected_type"),
+    selectedSlug: text("selected_slug"),
+    position: integer("position"),
+    createdAt: time("created_at").notNull().defaultNow(),
+  },
+  t => [
+    uniqueIndex("search_event_once_idx").on(t.interactionId, t.kind, t.normalized),
+    index("search_event_time_idx").on(t.createdAt),
+    index("search_event_term_idx").on(t.normalized, t.createdAt),
+    check("search_event_kind_check", sql`${t.kind} in ('search', 'submit', 'select')`),
+  ],
+);

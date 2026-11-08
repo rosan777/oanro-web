@@ -1,3 +1,4 @@
+import { Localized } from "@/components/locale";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { getOwnerCampaigns, getOwnerCatalog } from "@/lib/store-products";
 import { AdminBack } from "@/components/admin-nav";
@@ -13,7 +14,9 @@ export default async function CampaignsPage() {
   return (
     <main id="main-content" className="container auth-page">
       <AdminBack />
-      <h1>Seasonal campaigns</h1>
+      <h1>
+        <Localized en="Seasonal campaigns" bn="মৌসুমি ক্যাম্পেইন" />
+      </h1>
       {ready ? (
         <CampaignDashboard
           initial={campaigns}

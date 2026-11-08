@@ -44,6 +44,81 @@ export const textFields = {
     en: "Get a free quote",
     bn: "ফ্রি কোট নিন",
   },
+  // Homepage in the approved design (Store + Studio hero, favourites, studio teaser, tiles).
+  "home.eyebrow": {
+    group: "Homepage — new design",
+    label: "Small line above the headline",
+    en: "A store. A studio. New possibilities.",
+    bn: "একটি স্টোর। একটি স্টুডিও। নতুন সম্ভাবনা।",
+  },
+  "home.line1": {
+    group: "Homepage — new design",
+    label: "Headline, first line",
+    en: "Good things.",
+    bn: "পছন্দের জিনিস।",
+  },
+  "home.line2": {
+    group: "Homepage — new design",
+    label: "Headline, highlighted second line",
+    en: "Bigger ideas.",
+    bn: "বড় আইডিয়া।",
+  },
+  "home.lede": {
+    group: "Homepage — new design",
+    label: "Paragraph under the headline",
+    long: true,
+    en: "Find something for your everyday. Build something for your tomorrow. Welcome to a different kind of OANRO.",
+    bn: "প্রতিদিনের জন্য কিছু খুঁজুন। আগামী দিনের জন্য কিছু তৈরি করুন। OANRO-তে স্বাগতম।",
+  },
+  "home.ctaStore": {
+    group: "Homepage — new design",
+    label: "Store button",
+    en: "Explore the store",
+    bn: "স্টোর ঘুরে দেখুন",
+  },
+  "home.ctaStudio": {
+    group: "Homepage — new design",
+    label: "Studio button",
+    en: "Meet the studio",
+    bn: "স্টুডিও দেখুন",
+  },
+  "home.strip": {
+    group: "Homepage — new design",
+    label: "Brand strip (separate the phrases with |)",
+    en: "Chosen with care|Made for everyday|Designed for what’s next",
+    bn: "যত্নে বাছাই|প্রতিদিনের জন্য|আগামীর কথা ভেবে",
+  },
+  "home.favourites": {
+    group: "Homepage — new design",
+    label: "Newest products heading",
+    en: "New favourites.",
+    bn: "নতুন পছন্দ।",
+  },
+  "home.studioTitle": {
+    group: "Homepage — new design",
+    label: "Studio teaser heading",
+    en: "Not just a website.",
+    bn: "শুধু ওয়েবসাইট নয়।",
+  },
+  "home.studioAccent": {
+    group: "Homepage — new design",
+    label: "Studio teaser second line",
+    en: "Your next chapter.",
+    bn: "আপনার নতুন অধ্যায়।",
+  },
+  "home.studioLede": {
+    group: "Homepage — new design",
+    label: "Studio teaser paragraph",
+    long: true,
+    en: "Websites, apps and business software. Thoughtfully connected, from the first idea to the everyday details.",
+    bn: "ওয়েবসাইট, অ্যাপ ও বিজনেস সফটওয়্যার। প্রথম আইডিয়া থেকে প্রতিদিনের কাজে।",
+  },
+  "home.tiles": {
+    group: "Homepage — new design",
+    label: "Wishlist / workspace / account tiles heading",
+    en: "One OANRO. Your way.",
+    bn: "এক OANRO। আপনার মতো।",
+  },
   "about.eyebrow": {
     group: "Homepage — who we are",
     label: "Small label",
@@ -166,6 +241,7 @@ export type FeatureKey = keyof typeof featureFields;
 
 /** Switches that start off for a new or never-saved site. */
 const offByDefault: FeatureKey[] = [
+  "brandHero",
   "intro",
   "categoryTiles",
   "trustStrip",
@@ -180,6 +256,11 @@ const offByDefault: FeatureKey[] = [
 // On/off switches for page sections and features.
 
 export const featureFields = {
+  designHero: { group: "Homepage", label: "Hero: store + studio (new design)" },
+  brandHero: { group: "Homepage", label: "Hero: animated brand headline (previous design)" },
+  homeFavourites: { group: "Homepage", label: "New favourites (newest products)" },
+  studioTeaser: { group: "Homepage", label: "Studio teaser with workspace preview" },
+  discoveryTiles: { group: "Homepage", label: "Wishlist / workspace / account tiles" },
   shopTabs: { group: "Homepage", label: "Shop tabs and product cards" },
   promiseStrip: { group: "Homepage", label: "Moving promise strip (delivery, bKash, Nagad…)" },
   deliveryPanel: { group: "Homepage", label: "Delivery checker and payment panel" },
@@ -297,6 +378,8 @@ export type SiteContent = {
   features: FeatureSettings;
   guides: Guide[];
   packages: Package[];
+  /** Software page plans (quote-only: no prices, no subscriptions). */
+  softwarePlans: Package[];
   faq: Faq[];
   contact: Contact;
   media: Partial<Record<MediaSlot, string>>;
@@ -311,6 +394,40 @@ export const emptyContact = (): Contact => ({
   pixelId: "",
   pulseWhere: "everywhere",
 });
+
+/** Software page plans from the approved design. Quote-only: no prices or subscriptions are offered. */
+const biText = (en: string, bn: string): Bi => ({ en, bn });
+export const defaultSoftwarePlans: Package[] = [
+  {
+    name: biText("Essential", "এসেনশিয়াল"),
+    for: biText("A clear place to start.", "শুরুর জন্য পরিষ্কার জায়গা।"),
+    includes: [
+      biText("Project overview", "প্রজেক্টের সারসংক্ষেপ"),
+      biText("Shared files", "শেয়ার করা ফাইল"),
+      biText("Progress updates", "অগ্রগতির আপডেট"),
+    ],
+  },
+  {
+    name: biText("Business", "বিজনেস"),
+    for: biText("Bring the whole picture together.", "পুরো ছবিটা এক জায়গায়।"),
+    includes: [
+      biText("Everything in Essential", "এসেনশিয়ালের সব কিছু"),
+      biText("Approval workflows", "অনুমোদনের ধাপ"),
+      biText("Invoices & reporting", "ইনভয়েস ও রিপোর্ট"),
+      biText("Team collaboration", "টিমের সাথে কাজ"),
+    ],
+  },
+  {
+    name: biText("Custom", "কাস্টম"),
+    for: biText("Built around your business.", "আপনার ব্যবসাকে ঘিরে তৈরি।"),
+    includes: [
+      biText("Custom workflows", "নিজস্ব কাজের ধারা"),
+      biText("Integrations & migration", "ইন্টিগ্রেশন ও ডেটা স্থানান্তর"),
+      biText("Roles & permissions", "রোল ও অনুমতি"),
+      biText("Dedicated implementation", "নিবেদিত বাস্তবায়ন"),
+    ],
+  },
+];
 
 /** Built-in content used until the owner saves changes. */
 export function defaultContent(): SiteContent {
@@ -328,6 +445,7 @@ export function defaultContent(): SiteContent {
     } as FeatureSettings,
     guides: defaultGuides,
     packages: defaultPackages,
+    softwarePlans: defaultSoftwarePlans,
     faq: defaultFaq,
     contact: emptyContact(),
     media: {},
@@ -469,12 +587,14 @@ export function mergeContent(
   if (!saved) return d;
   const guides = cleanGuides(saved.guides),
     packages = cleanPackages(saved.packages),
+    softwarePlans = cleanPackages(saved.softwarePlans),
     faq = cleanFaq(saved.faq);
   return {
     text: { ...d.text, ...cleanText(saved.text) },
     features: { ...d.features, ...cleanFeatures(saved.features) },
     guides: saved.guides !== undefined ? guides : d.guides,
     packages: saved.packages !== undefined ? packages : d.packages,
+    softwarePlans: saved.softwarePlans !== undefined ? softwarePlans : d.softwarePlans,
     faq: saved.faq !== undefined ? faq : d.faq,
     contact: saved.contact !== undefined ? cleanContact(saved.contact) : d.contact,
     media: {},

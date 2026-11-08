@@ -2,7 +2,7 @@
 // Every email has an unsubscribe link, and people who unsubscribed never get these.
 import "server-only";
 import { randomBytes } from "node:crypto";
-import { and, eq, gt, inArray, isNull, lt, notExists, sql } from "drizzle-orm";
+import { and, desc, eq, gt, ilike, inArray, isNull, lt, notExists, sql } from "drizzle-orm";
 import { newsletterSubscriber, product, savedBag, shopOrder, user } from "./db/schema";
 import { optedOut, unsubscribeUrl } from "./customer-mail";
 import { sendMail } from "./mailer";
@@ -14,7 +14,13 @@ const footer = (email: string) =>
   `\n\nDon't want these emails? Unsubscribe: ${unsubscribeUrl(email)}`;
 
 /** Sign up (or sign up again after unsubscribing). Welcome email only for new sign-ups. */
-export async function subscribe(db: CatalogDb, rawEmail: string, locale: "en" | "bn") {
+export async function subscribe(
+  db: CatalogDb,
+  rawEmail: string,
+  locale: "en" | "bn",
+  /** Where consent was given (footer form or account preferences). */
+  source: "footer" | "account" = "footer",
+) {
   const email = rawEmail.trim().toLowerCase();
   const [existing] = await db
     .select()
@@ -24,10 +30,10 @@ export async function subscribe(db: CatalogDb, rawEmail: string, locale: "en" | 
   if (existing && !existing.unsubscribedAt) return "already";
   await db
     .insert(newsletterSubscriber)
-    .values({ email, locale, token: randomBytes(16).toString("hex") })
+    .values({ email, locale, source, token: randomBytes(16).toString("hex") })
     .onConflictDoUpdate({
       target: newsletterSubscriber.email,
-      set: { unsubscribedAt: null, consentAt: new Date(), locale },
+      set: { unsubscribedAt: null, consentAt: new Date(), locale, source },
     });
   const text =
     locale === "bn"
@@ -171,4 +177,31 @@ export async function sendReviewRequest(db: CatalogDb, orderId: string) {
     text.join("\n\n") + `\n\n${href}` + footer(o.email),
     layout("How was your order?", text, { label: "Share your feedback", href }),
   );
+}
+
+/** Admin → Newsletter: subscribers with status, consent time and source (newsletter.read). */
+export async function listSubscribers(db: CatalogDb, search = "", limit = 200) {
+  const q = search.trim().toLowerCase().slice(0, 100);
+  return db
+    .select({
+      email: newsletterSubscriber.email,
+      locale: newsletterSubscriber.locale,
+      source: newsletterSubscriber.source,
+      consentAt: newsletterSubscriber.consentAt,
+      unsubscribedAt: newsletterSubscriber.unsubscribedAt,
+    })
+    .from(newsletterSubscriber)
+    .where(q ? ilike(newsletterSubscriber.email, `%${q.replace(/[%_\\]/g, "")}%`) : undefined)
+    .orderBy(desc(newsletterSubscriber.consentAt))
+    .limit(limit);
+}
+
+export async function subscriberCounts(db: CatalogDb) {
+  const [row] = await db
+    .select({
+      active: sql<number>`count(*) filter (where ${newsletterSubscriber.unsubscribedAt} is null)::int`,
+      unsubscribed: sql<number>`count(*) filter (where ${newsletterSubscriber.unsubscribedAt} is not null)::int`,
+    })
+    .from(newsletterSubscriber);
+  return { active: Number(row?.active ?? 0), unsubscribed: Number(row?.unsubscribed ?? 0) };
 }

@@ -1,3 +1,4 @@
+import { Localized } from "@/components/locale";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { getOwnerPulseStories, getSectionState } from "@/lib/website-sections";
 import { AdminBack } from "@/components/admin-nav";
@@ -9,7 +10,9 @@ export default async function PulseAdminPage() {
   return (
     <main id="main-content" className="container auth-page">
       <AdminBack />
-      <h1>Global Pulse</h1>
+      <h1>
+        <Localized en="Global Pulse" bn="গ্লোবাল পালস" />
+      </h1>
       <SectionDashboard initial={sections} initialStories={stories} />
     </main>
   );

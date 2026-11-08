@@ -6,15 +6,44 @@
    company profile in company-profile/company-profile.css. */
 
 :root {
-  --background: #f7f7f4;
-  --foreground: #151515;
+  --background: #faf8f5;
+  --foreground: #242329;
   --surface: #ffffff;
-  --muted: #686862;
-  --line: #deded8;
-  --brand: #1f513c;
-  --brand-strong: #153c2c;
-  --accent: #c49a4a;
+  --muted: #62625c;
+  --line: #ddded6;
+  --brand: #5b3d87;
+  --brand-strong: #44296b;
+  --accent: #ad873c;
   color-scheme: light;
+
+  /* OANRO semantic colour tokens (homepage visual system, 2026-11-05). The design system's --o-*
+     tokens in oanro.css point at these. Contrast (WCAG): text on bg 14.8:1, muted text on bg 6.4:1,
+     ivory on surface-dark 13.9:1, on-dark muted 9.2:1, lavender on surface-dark 6.6:1, ink on
+     primary yellow 10:1, border on bg 3.3:1. JUNO keeps its own tokens and does not use these. */
+  --color-bg: #f7f4ee;
+  --color-surface: #fffdf9;
+  --color-surface-muted: #efe9df;
+  --color-surface-dark: #292432;
+  --color-surface-dark-raised: #342d3f;
+  --color-surface-dark-deep: #211d29;
+  --color-surface-ink: #1f2024;
+  --color-text: #1f2024;
+  --color-text-muted: #5c5763;
+  --color-text-on-dark: #f8f5ef;
+  --color-text-on-dark-muted: #cfc6db;
+  --color-primary: #e8c94a;
+  --color-primary-hover: #dcba33;
+  --color-primary-foreground: #1f2024;
+  --color-primary-foreground-muted: #3d3621;
+  --color-secondary: #b9a1d5;
+  --color-secondary-foreground: #1f2024;
+  --color-secondary-strong: #5b3d87;
+  --color-secondary-soft: #ece5f3;
+  --color-border: #8e829f;
+  --color-border-subtle: #ddd6cb;
+  --color-border-on-dark: #4b4257;
+  /* Focus ring: deep lavender on light surfaces; dark and yellow surfaces re-point it locally. */
+  --color-focus: #5b3d87;
 }
 @theme inline {
   --color-background: var(--background);
@@ -496,7 +525,7 @@ svg {
     115deg,
     transparent 35%,
     #c49a4a20 48%,
-    #1f513c10 60%,
+    #5b3d8710 60%,
     transparent 70%
   );
   pointer-events: none;
@@ -2615,7 +2644,7 @@ html:has([data-motion="paused"]) {
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #1f513c;
+  color: var(--brand);
   cursor: pointer;
 }
 .password-toggle:hover {
@@ -2652,8 +2681,8 @@ html:has([data-motion="paused"]) {
   cursor: pointer;
 }
 .email-hint-actions button:first-child {
-  background: #1f513c;
-  border-color: #1f513c;
+  background: var(--brand);
+  border-color: var(--brand);
   color: #fff;
 }
 /* "Resend verification email" under the sign-in / sign-up form (src/components/auth-panel.tsx). */
@@ -4455,8 +4484,8 @@ a.shelf-quick {
 
 /* ---- Cash on delivery ---- */
 .pay-method.pay-cod {
-  --pc: #1f513c;
-  --pc-dark: #1f513c;
+  --pc: var(--brand);
+  --pc-dark: var(--brand);
 }
 .pay-method[aria-disabled="true"] {
   opacity: 0.5;
@@ -4507,7 +4536,7 @@ a.shelf-quick {
   font-variant-numeric: tabular-nums;
 }
 .order-status.is-cod {
-  background: #1f513c;
+  background: var(--brand);
   color: #fff;
 }
 .cod-panel {
@@ -4569,7 +4598,7 @@ a.shelf-quick {
   background: color-mix(in srgb, #6b7280 12%, transparent);
 }
 i.is-cod {
-  background: #1f513c;
+  background: var(--brand);
 }
 
 /* ---- Account actions: Owner/Staff workspace + Sign out ---- */
@@ -5853,7 +5882,7 @@ h2 {
 }
 .checkout-area button[aria-checked="true"] {
   border-color: var(--brand, currentColor);
-  background: color-mix(in srgb, var(--brand, #1f513c) 10%, transparent);
+  background: color-mix(in srgb, var(--brand, var(--brand)) 10%, transparent);
   box-shadow: inset 0 0 0 1px var(--brand, currentColor);
 }
 .checkout-area button:focus-visible {

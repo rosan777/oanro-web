@@ -1,4 +1,5 @@
 "use client";
+import { useAdminText } from "./admin-text";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -23,6 +24,7 @@ function failText(res: Response | null) {
 
 /** Small "Delete" button beside one log entry; asks once before deleting. */
 export function ActivityDeleteOne({ id }: { id: string }) {
+  const tr = useAdminText();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -44,13 +46,14 @@ export function ActivityDeleteOne({ id }: { id: string }) {
         setBusy(false);
       }}
     >
-      {failed ? "Try again" : "Delete"}
+      {failed ? tr("Try again") : tr("Delete")}
     </button>
   );
 }
 
 /** Delete the whole log: type DELETE to confirm. The deletion is recorded as the first new entry. */
 export function ActivityDeleteAll({ total }: { total: number }) {
+  const tr = useAdminText();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState("");
@@ -63,13 +66,13 @@ export function ActivityDeleteAll({ total }: { total: number }) {
       </button>
     );
   return (
-    <section className="activity-delete-all" aria-label="Delete all activity">
+    <section className="activity-delete-all" aria-label={tr("Delete all activity")}>
       <p>
         This permanently deletes all {total} activity entries. Products, orders, customers and
         everything else stay as they are. One new entry will record that you did it.
       </p>
       <label>
-        Type DELETE to confirm
+        {tr("Type DELETE to confirm")}
         <input value={typed} onChange={e => setTyped(e.target.value)} autoComplete="off" />
       </label>
       <div className="product-form-actions">
@@ -90,7 +93,7 @@ export function ActivityDeleteAll({ total }: { total: number }) {
             setBusy(false);
           }}
         >
-          Delete everything
+          {tr("Delete everything")}
         </button>
         <button
           type="button"
@@ -100,7 +103,7 @@ export function ActivityDeleteAll({ total }: { total: number }) {
             setTyped("");
           }}
         >
-          Cancel
+          {tr("Cancel")}
         </button>
       </div>
       {msg && <p className="security-msg is-error">{msg}</p>}

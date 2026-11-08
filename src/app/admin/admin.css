@@ -46,10 +46,10 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 2px solid #3ddc97;
+  border: 2px solid #d8c2ee;
   box-shadow:
     inset 0 0 0 8px #07090a,
-    inset 0 0 0 12px #3ddc97;
+    inset 0 0 0 12px #d8c2ee;
 }
 .admin-side-brand strong {
   font-family: var(--font-display), sans-serif;
@@ -61,8 +61,8 @@
   font:
     500 0.65rem var(--font-label),
     monospace;
-  color: #3ddc97;
-  border: 1px solid #1f513c;
+  color: #d8c2ee;
+  border: 1px solid var(--brand);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -92,7 +92,7 @@
   border-radius: 4px;
 }
 .admin-side-search:hover {
-  border-color: #3ddc97;
+  border-color: #d8c2ee;
   color: #f6f5f0;
 }
 .admin-side-group {
@@ -126,14 +126,14 @@
   color: #fff;
 }
 .admin-side-link.is-on {
-  background: #1f513c;
+  background: var(--brand);
   color: #fff;
 }
 .admin-side-count {
   min-width: 22px;
   padding: 2px 7px;
   border-radius: 999px;
-  background: #3ddc97;
+  background: #d8c2ee;
   color: #07090a;
   font:
     500 0.7rem var(--font-label),
@@ -162,7 +162,7 @@
   background: #f5b547;
 }
 .admin-side-store.is-live i {
-  background: #3ddc97;
+  background: #d8c2ee;
 }
 .admin-side-store small {
   color: #a6aeaa;
@@ -178,7 +178,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #1f513c;
+  background: var(--brand);
   display: grid;
   place-items: center;
   font-weight: 600;
@@ -575,7 +575,7 @@ a.today-stat:hover {
   --tone-bg: rgb(140 149 144 / 0.12);
 }
 .admin-side-group[data-group="daily-work"] {
-  --tone: #3ddc97;
+  --tone: #d8c2ee;
   --tone-bg: rgb(61 220 151 / 0.14);
 }
 .admin-side-group[data-group="store"] {
@@ -710,7 +710,7 @@ a.today-stat:hover {
   gap: 0.9rem;
   padding: 0.8rem 1rem;
   border: 1px solid var(--line);
-  border-left: 4px solid #3ddc97;
+  border-left: 4px solid #d8c2ee;
   border-radius: 10px;
   background: var(--surface);
 }
@@ -742,7 +742,7 @@ a.today-stat:hover {
 .pub-state {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #1f513c;
+  color: var(--brand);
 }
 .pub-state.is-out {
   color: #b45309;
@@ -1163,7 +1163,7 @@ a.today-stat:hover {
   height: 34px;
   border-radius: 8px;
   border: 1px solid var(--line);
-  color: #1f513c;
+  color: var(--brand);
 }
 .cpe-add {
   display: flex;

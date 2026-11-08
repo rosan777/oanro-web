@@ -1,4 +1,5 @@
 "use client";
+import { useAdminText } from "./admin-text";
 import { useRef, useState, type FormEvent } from "react";
 import { PulseThumbnail } from "./pulse-thumbnail";
 import { PulseUpload } from "./pulse-upload";
@@ -28,6 +29,7 @@ export function SectionDashboard({
   initialStories: Story[];
   part?: "all" | "sections" | "pulse";
 }) {
+  const tr = useAdminText();
   const formRef = useRef<HTMLFormElement>(null);
   const [preview, setPreview] = useState<{
     url: string;
@@ -55,11 +57,15 @@ export function SectionDashboard({
       const result = (await response.json()) as { thumbnailUrl: string; previewToken: string };
       setPreview({ ...result, url });
       setNotice(
-        "Review the image and confirm permission before including it. Preview expires in 10 minutes.",
+        tr(
+          "Review the image and confirm permission before including it. Preview expires in 10 minutes.",
+        ),
       );
     } catch {
       setNotice(
-        "No usable image found. The publisher may block previews, or the image may be too large. You can publish with the OANRO fallback.",
+        tr(
+          "No usable image found. The publisher may block previews, or the image may be too large. You can publish with the OANRO fallback.",
+        ),
       );
     } finally {
       setBusy(false);
@@ -132,7 +138,9 @@ export function SectionDashboard({
       setNotice("Story published. It appears when Global Pulse is enabled.");
     } catch {
       setNotice(
-        "Could not publish. Check duplicate links and rights; if using a thumbnail, generate a fresh preview and approve it again.",
+        tr(
+          "Could not publish. Check duplicate links and rights; if using a thumbnail, generate a fresh preview and approve it again.",
+        ),
       );
     } finally {
       setBusy(false);
@@ -179,8 +187,8 @@ export function SectionDashboard({
       );
       setNotice(
         archive
-          ? "Story archived. It's off the website; restore it any time from Archived stories."
-          : "Story restored as hidden. Press Show to put it back on the website.",
+          ? tr("Story archived. It's off the website; restore it any time from Archived stories.")
+          : tr("Story restored as hidden. Press Show to put it back on the website."),
       );
     } catch {
       setNotice("Story update failed.");
@@ -212,9 +220,13 @@ export function SectionDashboard({
     <div className="admin-sections">
       {part !== "pulse" && (
         <>
-          <h2>Website sections</h2>
+          <h2>{tr("Website sections")}</h2>
           <p>
-            These controls change the public presentation without deleting products or news records.
+            {tr(
+              tr(
+                "These controls change the public presentation without deleting products or news records.",
+              ),
+            )}
           </p>
           {Object.entries(labels).map(([code, label]) => (
             <div className="admin-section-row" key={code}>
@@ -223,10 +235,10 @@ export function SectionDashboard({
                 type="button"
                 disabled={busy}
                 onClick={() => toggle(code as SectionCode)}
-                aria-label={`${sections[code as SectionCode] ? "Disable" : "Enable"} ${label}`}
+                aria-label={`${sections[code as SectionCode] ? tr("Disable") : tr("Enable")} ${label}`}
                 aria-pressed={sections[code as SectionCode]}
               >
-                {sections[code as SectionCode] ? "On" : "Off"}
+                {sections[code as SectionCode] ? "On" : tr("Off")}
               </button>
             </div>
           ))}
@@ -234,7 +246,7 @@ export function SectionDashboard({
       )}
       {part !== "sections" && (
         <>
-          <h2>Global Pulse editorial</h2>
+          <h2>{tr("Global Pulse editorial")}</h2>
           <p>
             Publish only an original publisher link and headline that you checked. Preview an
             optional article thumbnail, then approve its reuse. Without approval, the story uses the
@@ -243,15 +255,15 @@ export function SectionDashboard({
           <form ref={formRef} className="pulse-form" onSubmit={publish}>
             <fieldset disabled={busy}>
               <label>
-                Publisher
+                {tr("Publisher")}
                 <input name="publisher" required maxLength={80} />
               </label>
               <label>
-                Original headline
+                {tr("Original headline")}
                 <input name="headline" required maxLength={220} />
               </label>
               <label>
-                Original HTTPS article URL
+                {tr("Original HTTPS article URL")}
                 <input
                   name="url"
                   type="url"
@@ -265,7 +277,7 @@ export function SectionDashboard({
                 />
               </label>
               <button type="button" className="button" onClick={previewImage}>
-                Find thumbnail preview
+                {tr("Find thumbnail preview")}
               </button>
               <PulseUpload
                 disabled={busy}
@@ -307,12 +319,14 @@ export function SectionDashboard({
                 have permission to display this headline and link.
               </label>
               <button disabled={busy} className="button brand-button">
-                Publish reviewed story
+                {tr("Publish reviewed story")}
               </button>
             </fieldset>
           </form>
           <h3>Stories ({stories.filter(s => !s.archived).length})</h3>
-          {!stories.some(s => !s.archived) && <p className="report-empty">No stories yet.</p>}
+          {!stories.some(s => !s.archived) && (
+            <p className="report-empty">{tr("No stories yet.")}</p>
+          )}
           {stories
             .filter(s => !s.archived)
             .map(story => (
@@ -320,7 +334,7 @@ export function SectionDashboard({
                 <div className="admin-section-row">
                   <span>
                     <span className={`stock-pill ${story.visible ? "is-good" : "is-warn"}`}>
-                      {story.visible ? "Live" : "Hidden"}
+                      {story.visible ? tr("Live") : tr("Hidden")}
                     </span>{" "}
                     {story.publisher}: {story.headline}
                   </span>
@@ -331,7 +345,7 @@ export function SectionDashboard({
                       disabled={busy}
                       onClick={() => toggleStory(story)}
                     >
-                      {story.visible ? "Hide" : "Show"}
+                      {story.visible ? tr("Hide") : tr("Show")}
                     </button>
                     <button
                       type="button"
@@ -339,7 +353,7 @@ export function SectionDashboard({
                       disabled={busy}
                       onClick={() => archiveStory(story, true)}
                     >
-                      Archive
+                      {tr("Archive")}
                     </button>
                     <button
                       type="button"
@@ -347,7 +361,7 @@ export function SectionDashboard({
                       disabled={busy}
                       onClick={() => deleteStory(story)}
                     >
-                      Delete permanently
+                      {tr("Delete permanently")}
                     </button>
                   </div>
                 </div>
@@ -358,7 +372,7 @@ export function SectionDashboard({
             <details className="pulse-archived">
               <summary>Archived stories ({stories.filter(s => s.archived).length})</summary>
               <p className="small-note">
-                Kept off the website. Restore to edit or show again, or delete for good.
+                {tr("Kept off the website. Restore to edit or show again, or delete for good.")}
               </p>
               {stories
                 .filter(s => s.archived)
@@ -374,7 +388,7 @@ export function SectionDashboard({
                         disabled={busy}
                         onClick={() => archiveStory(story, false)}
                       >
-                        Restore
+                        {tr("Restore")}
                       </button>
                       <button
                         type="button"
@@ -382,7 +396,7 @@ export function SectionDashboard({
                         disabled={busy}
                         onClick={() => deleteStory(story)}
                       >
-                        Delete permanently
+                        {tr("Delete permanently")}
                       </button>
                     </div>
                   </div>
@@ -398,6 +412,7 @@ export function SectionDashboard({
 
 /** Find, preview and approve a thumbnail for a story that was published without one. */
 function StoryThumbnailEditor({ story }: { story: Story }) {
+  const tr = useAdminText();
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<{ thumbnailUrl: string; previewToken: string } | null>(
     null,
@@ -453,7 +468,7 @@ function StoryThumbnailEditor({ story }: { story: Story }) {
   return (
     <div className="pulse-existing-thumbnail">
       <button type="button" className="button" disabled={busy} onClick={findImage}>
-        {busy ? "Please wait…" : "Find / replace thumbnail"}
+        {busy ? tr("Please wait…") : tr("Find / replace thumbnail")}
       </button>
       <PulseUpload
         disabled={busy}
@@ -494,7 +509,7 @@ function StoryThumbnailEditor({ story }: { story: Story }) {
             disabled={busy || !loaded || !approved}
             onClick={saveImage}
           >
-            Save approved thumbnail
+            {tr("Save approved thumbnail")}
           </button>
         </div>
       )}
