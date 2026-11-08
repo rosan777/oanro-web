@@ -13,10 +13,13 @@ import { TrustBar } from "@/components/trust-bar";
 import { publicRules } from "@/lib/public-rules";
 import { Experience, Intro } from "@/components/experience";
 import { Header, Footer } from "@/components/shell";
+import { QuickViewHost, ToastHost, WishlistSync } from "@/components/product-card";
 import { LocaleProvider } from "@/components/locale";
 import { getSiteConfig } from "@/lib/site-config";
 import "./globals.css";
 import "./v2.css";
+// The approved OANRO design system; loaded after the older sheets so it decides shared styles.
+import "./oanro.css";
 import { CustomCursor, FloatingHelp } from "@/components/site-extras";
 import { PrivacyCenter } from "@/components/privacy-center";
 import { AssistantLoader } from "@/components/assistant-loader";
@@ -193,17 +196,23 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 </a>
                 <div id="top" />
                 {content.features.intro && <Intro />}
-                <TrustBar
-                  rules={rules}
-                  locale={locale}
-                  live={storeLive()}
-                  services={site.services}
-                  custom={custom}
-                />
-                <Header config={site} />
-                {children}
-                <PlacedPulse stories={stories} where={content.contact.pulseWhere} />
-                <Footer config={site} />
+                {/* The design-system scope (.o). JUNO, the bottom bar and the floating buttons stay outside it. */}
+                <div className="o">
+                  <TrustBar
+                    rules={rules}
+                    locale={locale}
+                    live={storeLive()}
+                    services={site.services}
+                    custom={custom}
+                  />
+                  <Header config={site} />
+                  {children}
+                  <PlacedPulse stories={stories} where={content.contact.pulseWhere} />
+                  <Footer config={site} />
+                  <QuickViewHost />
+                  <ToastHost />
+                  {config.products && <WishlistSync />}
+                </div>
                 {content.features.cursorRing && <CustomCursor />}
                 <FloatingHelp
                   whatsappUrl={contactLinks(content).whatsappButton}

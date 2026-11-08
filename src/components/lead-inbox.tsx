@@ -1,4 +1,7 @@
 "use client";
+import { useAdminText } from "./admin-text";
+import { useRouter } from "next/navigation";
+import { budgetLabel, projectTypeLabel, timelineLabel } from "@/lib/workspace-labels";
 import { useState } from "react";
 import type { InboxLead, LeadStatus } from "@/lib/lead-store";
 import { useAdminCall } from "./admin-ui";
@@ -28,19 +31,25 @@ export function LeadInbox({
   people,
   signoff,
   canManage,
+  canProject = false,
 }: {
   initial: InboxLead[];
   people: { id: string; name: string }[];
   /** The team's saved sign-off for email replies. */
   signoff: string;
   canManage: boolean;
+  /** Staff with projects.manage can turn an inquiry into a client project. */
+  canProject?: boolean;
 }) {
+  const tr = useAdminText();
+  const router = useRouter();
   const [leads, setLeads] = useState(initial);
   const [filter, setFilter] = useState<LeadStatus | "all" | "open">("open");
+  const [view, setView] = useState<"list" | "board">("list");
   const [note, setNote] = useState<Record<string, string>>({});
   const { busy, notice, call } = useAdminCall<{ leads: InboxLead[] }>(
     "/api/admin/leads",
-    { note: "Note" },
+    { note: tr("Note") },
     d => setLeads(d.leads),
   );
 
@@ -56,7 +65,7 @@ export function LeadInbox({
   const count = (s: LeadStatus) => leads.filter(l => l.status === s).length;
   return (
     <section className="admin-sections lead-inbox">
-      <div className="lead-filters" role="group" aria-label="Filter inquiries">
+      <div className="lead-filters" role="group" aria-label={tr("Filter inquiries")}>
         {(["open", "all", ...statuses] as const).map(f => (
           <button key={f} type="button" aria-pressed={filter === f} onClick={() => setFilter(f)}>
             {f === "open"
@@ -67,14 +76,73 @@ export function LeadInbox({
           </button>
         ))}
       </div>
-      {!canManage && (
+      <div className="lead-filters" role="group" aria-label={tr("View")}>
+        <button type="button" aria-pressed={view === "list"} onClick={() => setView("list")}>
+          {tr("List")}
+        </button>
+        <button type="button" aria-pressed={view === "board"} onClick={() => setView("board")}>
+          {tr("Board")}
+        </button>
+      </div>
+      {view === "board" && (
+        <div className="o-kanban lead-board" aria-label={tr("Inquiries by status")}>
+          {statuses.map(st => (
+            <section key={st} aria-labelledby={`lead-col-${st}`}>
+              <h3 id={`lead-col-${st}`}>
+                {statusText[st]}
+                <span>{count(st)}</span>
+              </h3>
+              {leads
+                .filter(l => l.status === st)
+                .map(l => (
+                  <article key={l.id} className="o-kanban-card">
+                    <span className="o-status">{kindText[l.kind]}</span>
+                    <h4>{l.name}</h4>
+                    <p>
+                      {[
+                        l.subject && !l.subject.startsWith("privacy:") ? l.subject : "",
+                        projectTypeLabel(l.projectType, false),
+                      ]
+                        .filter(Boolean)
+                        .join(" · ") || l.message.slice(0, 80)}
+                    </p>
+                    <small>{when(l.createdAt)}</small>
+                    {canManage && (
+                      <label>
+                        <span className="o-sr">Move {l.name} to</span>
+                        <select
+                          value={l.status}
+                          disabled={busy}
+                          onChange={e =>
+                            call(
+                              "PATCH",
+                              { id: l.id, status: e.target.value },
+                              `Moved to ${statusText[e.target.value as LeadStatus].toLowerCase()}.`,
+                            )
+                          }
+                        >
+                          {statuses.map(s => (
+                            <option key={s} value={s}>
+                              {statusText[s]}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
+                  </article>
+                ))}
+            </section>
+          ))}
+        </div>
+      )}
+      {view === "list" && !canManage && (
         <p className="admin-callout">
           You can view inquiries. Changing status, assigning or adding notes needs the “Handle
           inquiries” permission.
         </p>
       )}
-      {shown.length === 0 && <p>No inquiries here.</p>}
-      <ul className="admin-product-list">
+      {view === "list" && shown.length === 0 && <p>{tr("No inquiries here.")}</p>}
+      <ul className="admin-product-list" hidden={view !== "list"}>
         {shown.map(l => (
           <li key={l.id} className={`lead-card status-${l.status}`}>
             <details>
@@ -91,7 +159,7 @@ export function LeadInbox({
               <dl className="lead-details">
                 {l.phone && (
                   <>
-                    <dt>Phone</dt>
+                    <dt>{tr("Phone")}</dt>
                     <dd>
                       <a href={`tel:${l.phone}`}>{l.phone}</a>
                       {l.preferredContact === "whatsapp" && (
@@ -103,7 +171,7 @@ export function LeadInbox({
                             target="_blank"
                             rel="noreferrer"
                           >
-                            WhatsApp
+                            {tr("WhatsApp")}
                           </a>
                         </>
                       )}
@@ -112,7 +180,7 @@ export function LeadInbox({
                 )}
                 {l.email && (
                   <>
-                    <dt>Email</dt>
+                    <dt>{tr("Email")}</dt>
                     <dd>
                       <a href={`mailto:${l.email}`}>{l.email}</a>
                     </dd>
@@ -120,9 +188,9 @@ export function LeadInbox({
                 )}
                 {l.subject.startsWith("Shop assistant") && (
                   <>
-                    <dt>Source</dt>
+                    <dt>{tr("Source")}</dt>
                     <dd>
-                      <strong>Shop assistant chat</strong>
+                      <strong>{tr("Shop assistant chat")}</strong>
                       {l.subject.includes(" · ") ? (
                         <>
                           {" "}
@@ -137,11 +205,11 @@ export function LeadInbox({
                     </dd>
                   </>
                 )}
-                <dt>Prefers</dt>
+                <dt>{tr("Prefers")}</dt>
                 <dd>{l.preferredContact}</dd>
                 {l.productSlug && (
                   <>
-                    <dt>Product</dt>
+                    <dt>{tr("Product")}</dt>
                     <dd>
                       <a href={`/products/${l.productSlug}`} target="_blank" rel="noreferrer">
                         {l.subject}
@@ -151,18 +219,55 @@ export function LeadInbox({
                     </dd>
                   </>
                 )}
+                {(l.projectType || l.budgetRange || l.timeline) && (
+                  <>
+                    <dt>{tr("Project brief")}</dt>
+                    <dd>
+                      {[
+                        projectTypeLabel(l.projectType, false),
+                        budgetLabel(l.budgetRange, false),
+                        timelineLabel(l.timeline, false),
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </dd>
+                  </>
+                )}
+                {l.userId && (
+                  <>
+                    <dt>{tr("Account")}</dt>
+                    <dd>{tr("Sent while signed in")}</dd>
+                  </>
+                )}
                 {l.message && (
                   <>
-                    <dt>Message</dt>
+                    <dt>{tr("Message")}</dt>
                     <dd className="lead-message">{l.message}</dd>
                   </>
                 )}
-                <dt>Language</dt>
-                <dd>{l.locale === "bn" ? "Bangla" : "English"}</dd>
+                <dt>{tr("Language")}</dt>
+                <dd>{l.locale === "bn" ? tr("Bangla") : tr("English")}</dd>
               </dl>
+              {canProject && (l.kind === "service" || l.kind === "general") && (
+                <button
+                  type="button"
+                  className="btn btn-neutral btn-sm"
+                  onClick={async () => {
+                    const res = await fetch("/api/admin/projects", {
+                      method: "POST",
+                      headers: { "content-type": "application/json" },
+                      body: JSON.stringify({ action: "create", leadId: l.id, clientName: l.name }),
+                    }).catch(() => null);
+                    const data = (await res?.json().catch(() => ({}))) as { id?: string };
+                    if (data.id) router.push(`/admin/projects/${data.id}`);
+                  }}
+                >
+                  {tr("Turn into a client project")}
+                </button>
+              )}
               <div className="admin-product-actions">
                 <label>
-                  Status
+                  {tr("Status")}
                   <select
                     value={l.status}
                     disabled={busy || !canManage}
@@ -182,7 +287,7 @@ export function LeadInbox({
                   </select>
                 </label>
                 <label>
-                  Assigned to
+                  {tr("Assigned to")}
                   <select
                     value={l.assignedTo ?? ""}
                     disabled={busy || !canManage}
@@ -190,11 +295,11 @@ export function LeadInbox({
                       call(
                         "PATCH",
                         { id: l.id, assignedTo: e.target.value || null },
-                        "Assignment saved.",
+                        tr("Assignment saved."),
                       )
                     }
                   >
-                    <option value="">Nobody</option>
+                    <option value="">{tr("Nobody")}</option>
                     {people.map(p => (
                       <option key={p.id} value={p.id}>
                         {p.name}
@@ -216,18 +321,20 @@ export function LeadInbox({
                   <form
                     onSubmit={async e => {
                       e.preventDefault();
-                      if (await call("PATCH", { id: l.id, note: note[l.id] ?? "" }, "Note added."))
+                      if (
+                        await call("PATCH", { id: l.id, note: note[l.id] ?? "" }, tr("Note added."))
+                      )
                         setNote(x => ({ ...x, [l.id]: "" }));
                     }}
                   >
                     <label className="sr-only" htmlFor={`note-${l.id}`}>
-                      Internal note
+                      {tr("Internal note")}
                     </label>
                     <textarea
                       id={`note-${l.id}`}
                       rows={2}
                       maxLength={2000}
-                      placeholder="Internal note (customers never see this)"
+                      placeholder={tr("Internal note (customers never see this)")}
                       value={note[l.id] ?? ""}
                       onChange={e => setNote(x => ({ ...x, [l.id]: e.target.value }))}
                       disabled={busy}
@@ -237,7 +344,7 @@ export function LeadInbox({
                       className="button"
                       disabled={busy || !(note[l.id] ?? "").trim()}
                     >
-                      Add note
+                      {tr("Add note")}
                     </button>
                   </form>
                 )}
@@ -280,6 +387,7 @@ function LeadReplyForm({
   signoff: string;
   onSent: (leads: InboxLead[]) => void;
 }) {
+  const tr = useAdminText();
   const start = replyDefaults(lead);
   const [subject, setSubject] = useState(start.subject),
     [greeting, setGreeting] = useState(start.greeting),
@@ -287,7 +395,12 @@ function LeadReplyForm({
     [closing, setClosing] = useState(signoff);
   const { busy, notice, call } = useAdminCall<{ leads: InboxLead[] }>(
     "/api/admin/leads",
-    { subject: "Subject", greeting: "Greeting", body: "Message", signoff: "Sign-off" },
+    {
+      subject: tr("Subject"),
+      greeting: tr("Greeting"),
+      body: tr("Message"),
+      signoff: tr("Sign-off"),
+    },
     d => onSent(d.leads),
   );
   if (!lead.email)
@@ -301,7 +414,7 @@ function LeadReplyForm({
   const id = (f: string) => `reply-${f}-${lead.id}`;
   return (
     <details className="lead-reply">
-      <summary>Reply by email</summary>
+      <summary>{tr("Reply by email")}</summary>
       <form
         onSubmit={async e => {
           e.preventDefault();
@@ -320,7 +433,7 @@ function LeadReplyForm({
           From <strong>support@oanro.com</strong> to <strong>{lead.email}</strong>. When the
           customer answers, it arrives in the support@oanro.com inbox.
         </p>
-        <label htmlFor={id("subject")}>Subject</label>
+        <label htmlFor={id("subject")}>{tr("Subject")}</label>
         <input
           id={id("subject")}
           value={subject}
@@ -328,7 +441,7 @@ function LeadReplyForm({
           maxLength={150}
           disabled={busy}
         />
-        <label htmlFor={id("greeting")}>Greeting</label>
+        <label htmlFor={id("greeting")}>{tr("Greeting")}</label>
         <input
           id={id("greeting")}
           value={greeting}
@@ -336,17 +449,17 @@ function LeadReplyForm({
           maxLength={120}
           disabled={busy}
         />
-        <label htmlFor={id("body")}>Message</label>
+        <label htmlFor={id("body")}>{tr("Message")}</label>
         <textarea
           id={id("body")}
           rows={6}
           maxLength={5000}
           value={body}
           onChange={e => setBody(e.target.value)}
-          placeholder="Write your answer to the customer (at least 10 letters)."
+          placeholder={tr("Write your answer to the customer (at least 10 letters).")}
           disabled={busy}
         />
-        <label htmlFor={id("signoff")}>Sign-off</label>
+        <label htmlFor={id("signoff")}>{tr("Sign-off")}</label>
         <textarea
           id={id("signoff")}
           rows={3}
@@ -355,9 +468,9 @@ function LeadReplyForm({
           onChange={e => setClosing(e.target.value)}
           disabled={busy}
         />
-        <small>The sign-off you send with is remembered for the next reply.</small>
+        <small>{tr("The sign-off you send with is remembered for the next reply.")}</small>
         <button type="submit" className="btn btn-primary" disabled={busy || !ready}>
-          {busy ? "Sending…" : "Send email"}
+          {busy ? tr("Sending…") : tr("Send email")}
         </button>
         {notice && (
           <p role="status" aria-live="polite">

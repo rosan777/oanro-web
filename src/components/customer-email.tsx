@@ -1,4 +1,5 @@
 "use client";
+import { useAdminText } from "./admin-text";
 import { useState } from "react";
 import { useAdminCall } from "./admin-ui";
 import { ActionIcon } from "./action-icon";
@@ -17,6 +18,7 @@ export function CustomerEmail({
   count?: number;
   limit?: number;
 }) {
+  const tr = useAdminText();
   const all = !customerId;
   const [subject, setSubject] = useState(""),
     [body, setBody] = useState("");
@@ -41,7 +43,7 @@ export function CustomerEmail({
     void call(
       "POST",
       { action: "email-all", test: true, subject, body },
-      "Test sent to your own email. Check how it looks (and your Spam folder).",
+      tr("Test sent to your own email. Check how it looks (and your Spam folder)."),
     );
   const sendAll = async () => {
     if (
@@ -54,7 +56,7 @@ export function CustomerEmail({
       await call(
         "POST",
         { action: "email-all", subject, body },
-        "Sending finished. See the activity log for the count.",
+        tr("Sending finished. See the activity log for the count."),
       )
     ) {
       setSubject("");
@@ -63,7 +65,7 @@ export function CustomerEmail({
   };
   return (
     <section className="profile-card customer-email">
-      <h2>{all ? "Email all customers" : "Send an email"}</h2>
+      <h2>{all ? tr("Email all customers") : tr("Send an email")}</h2>
       <p>
         {all ? (
           <>
@@ -80,7 +82,7 @@ export function CustomerEmail({
         )}
       </p>
       <label>
-        Subject
+        {tr("Subject")}
         <input
           value={subject}
           onChange={e => setSubject(e.target.value)}
@@ -90,13 +92,13 @@ export function CustomerEmail({
         />
       </label>
       <label>
-        Message
+        {tr("Message")}
         <textarea
           value={body}
           onChange={e => setBody(e.target.value)}
           maxLength={5000}
           rows={7}
-          placeholder="Write your message. “Hi [name],” and “— Team OANRO” are added for you."
+          placeholder={tr("Write your message. “Hi [name],” and “— Team OANRO” are added for you.")}
           disabled={busy}
         />
       </label>
@@ -110,7 +112,7 @@ export function CustomerEmail({
               onClick={test}
             >
               <ActionIcon name="inquiry" />
-              Send a test to me
+              {tr("Send a test to me")}
             </button>
             <button
               type="button"
@@ -119,7 +121,7 @@ export function CustomerEmail({
               onClick={() => void sendAll()}
             >
               <ActionIcon name="inquiry" />
-              {busy ? "Sending…" : `Send to ${count} customer${count === 1 ? "" : "s"}`}
+              {busy ? tr("Sending…") : `Send to ${count} customer${count === 1 ? "" : "s"}`}
             </button>
           </>
         ) : (
@@ -130,7 +132,7 @@ export function CustomerEmail({
             onClick={() => void sendOne()}
           >
             <ActionIcon name="inquiry" />
-            {busy ? "Sending…" : "Send email"}
+            {busy ? tr("Sending…") : tr("Send email")}
           </button>
         )}
       </div>

@@ -439,6 +439,29 @@ export async function listMyOrders(db: CatalogDb, userId: string) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- dropping shippingCost on purpose: customers never see courier cost
   return shaped.map(({ shippingCost: _, codCollectedBy: __, ...o }) => o);
 }
+/**
+ * One order for its receipt page: the customer who placed it, or staff with orders.read (cash-on-delivery
+ * orders only with cod.manage, as in the admin list). Null when the viewer may not see it.
+ */
+export async function receiptOrder(
+  db: CatalogDb,
+  id: string,
+  viewer: { userId: string; staff: boolean; includeCod: boolean },
+) {
+  const [row] = await db
+    .select(orderColumns())
+    .from(shopOrder)
+    .where(eq(shopOrder.id, id))
+    .limit(1);
+  if (!row) return null;
+  const own = row.userId === viewer.userId;
+  if (!own && !(viewer.staff && (row.paymentType !== "cod" || viewer.includeCod))) return null;
+  const [order] = shape([row], await detailsFor(db, [row.id]));
+  // Courier cost is internal: never on a receipt.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- dropping internal fields on purpose
+  const { shippingCost: _, codCollectedBy: __, ...shown } = order;
+  return shown;
+}
 export type AdminOrder = Awaited<ReturnType<typeof listOrders>>[number];
 /** COD orders are visible only to staff with "cod.manage" (pass includeCod accordingly). */
 export async function listOrders(

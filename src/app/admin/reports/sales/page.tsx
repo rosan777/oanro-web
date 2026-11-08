@@ -1,3 +1,6 @@
+import { adminTextFor } from "@/lib/admin-text-server";
+import { requestLocale } from "@/lib/request-locale";
+import { Localized } from "@/components/locale";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { catalogDb } from "@/lib/store-products";
 import { parseRange, salesReport } from "@/lib/report-store";
@@ -29,6 +32,7 @@ export default async function SalesReportPage({
 }: {
   searchParams: Promise<{ range?: string }>;
 }) {
+  const tr = adminTextFor((await requestLocale()).locale);
   await requireAdminPage("reports.read");
   const range = parseRange((await searchParams).range);
   const r = await salesReport(catalogDb(), range);
@@ -63,8 +67,10 @@ export default async function SalesReportPage({
       <AdminBack />
       <header className="report-head">
         <div>
-          <p className="eyebrow">Report</p>
-          <h1>Sales &amp; stock</h1>
+          <p className="eyebrow">{tr("Report")}</p>
+          <h1>
+            <Localized en="Sales & stock" bn="বিক্রি ও স্টক" />
+          </h1>
           <p>
             What sold, what is waiting for a payment check, and what needs restocking. Counts only
             approved payments; returned orders are excluded from sales.
@@ -72,14 +78,18 @@ export default async function SalesReportPage({
         </div>
         <CsvButton filename={`oanro-sales-${range}.csv`} rows={csv} />
       </header>
-      <RangeTabs base="/admin/reports/sales" current={range} />
+      <RangeTabs
+        base="/admin/reports/sales"
+        current={range}
+        locale={(await requestLocale()).locale}
+      />
 
       {/* Summary cards, compared with the previous period. */}
-      <section className="stat-grid" aria-label="Summary">
+      <section className="stat-grid" aria-label={tr("Summary")}>
         <StatCard
           icon="coin"
           tone="brand"
-          label="Revenue (products)"
+          label={tr("Revenue (products)")}
           value={formatPrice(r.totals.revenue)}
           now={r.totals.revenue}
           before={r.previous?.revenue}
@@ -87,28 +97,28 @@ export default async function SalesReportPage({
         />
         <StatCard
           icon="receipt"
-          label="Paid orders"
+          label={tr("Paid orders")}
           value={fmtCount(r.totals.orders)}
           now={r.totals.orders}
           before={r.previous?.orders}
         />
         <StatCard
           icon="box"
-          label="Units sold"
+          label={tr("Units sold")}
           value={fmtCount(r.totals.units)}
           now={r.totals.units}
           before={r.previous?.units}
         />
         <StatCard
           icon="wallet"
-          label="Cash with courier (COD)"
+          label={tr("Cash with courier (COD)")}
           value={formatPrice(r.pendingCod.amount)}
           hint={`${r.pendingCod.orders} order${r.pendingCod.orders === 1 ? "" : "s"} · counts as revenue once received`}
         />
         <StatCard
           icon="alert"
           tone={r.restock.length ? "bad" : "good"}
-          label="Need restock"
+          label={tr("Need restock")}
           value={fmtCount(r.restock.length)}
           hint={`${fmtCount(r.totals.reservedUnits)} units reserved · ${fmtCount(r.totals.returnedUnits)} returned`}
         />
@@ -119,7 +129,7 @@ export default async function SalesReportPage({
         <section className="report-panel is-alert" aria-labelledby="restock-h">
           <h2 id="restock-h">
             <ActionIcon name="alert" size={18} />
-            Restock needed
+            {tr("Restock needed")}
           </h2>
           <p>
             These products are at or below their alert level. Set the level per product in its edit
@@ -149,7 +159,7 @@ export default async function SalesReportPage({
           monthly={r.monthly}
         />
         <SplitBar
-          title="Payments received"
+          title={tr("Payments received")}
           parts={r.methods.map(m => ({
             label: m.method === "bkash" ? "bKash" : m.method === "nagad" ? "Nagad" : "COD cash",
             value: m.amount,
@@ -160,7 +170,7 @@ export default async function SalesReportPage({
       </div>
 
       <BarList
-        title="Units sold by product (best to worst)"
+        title={tr("Units sold by product (best to worst)")}
         bars={[...all]
           .filter(x => !x.archived)
           .sort((a, b) => b.sold - a.sold)
@@ -186,22 +196,22 @@ export default async function SalesReportPage({
             <table className="report-table">
               <thead>
                 <tr>
-                  <th scope="col">Product</th>
+                  <th scope="col">{tr("Product")}</th>
                   <th scope="col" className="num">
-                    Price
+                    {tr("Price")}
                   </th>
                   <th scope="col" className="num">
-                    Sold
+                    {tr("Sold")}
                   </th>
                   <th scope="col" className="num">
-                    Reserved
+                    {tr("Reserved")}
                   </th>
                   <th scope="col" className="num">
-                    Returned
+                    {tr("Returned")}
                   </th>
-                  <th scope="col">Stock</th>
+                  <th scope="col">{tr("Stock")}</th>
                   <th scope="col" className="num">
-                    Revenue
+                    {tr("Revenue")}
                   </th>
                 </tr>
               </thead>
@@ -238,26 +248,26 @@ export default async function SalesReportPage({
         <div className="report-panel-head">
           <h2 id="svc-h">
             <ActionIcon name="inquiry" size={18} />
-            Services
+            {tr("Services")}
           </h2>
-          <span>Quoted by inquiry, not sold online</span>
+          <span>{tr("Quoted by inquiry, not sold online")}</span>
         </div>
         {!r.services.length ? (
-          <p className="report-empty">No service inquiries in this period.</p>
+          <p className="report-empty">{tr("No service inquiries in this period.")}</p>
         ) : (
           <div className="table-scroll">
             <table className="report-table">
               <thead>
                 <tr>
-                  <th scope="col">Service</th>
+                  <th scope="col">{tr("Service")}</th>
                   <th scope="col" className="num">
-                    Inquiries
+                    {tr("Inquiries")}
                   </th>
                   <th scope="col" className="num">
-                    Won
+                    {tr("Won")}
                   </th>
                   <th scope="col" className="num">
-                    Win rate
+                    {tr("Win rate")}
                   </th>
                 </tr>
               </thead>

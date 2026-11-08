@@ -1,6 +1,6 @@
 // Small, dependency-free charts for the admin reports. Server-rendered (no client JS), accessible:
 // every chart has a text title and the exact numbers are always printed next to each bar or point.
-import Link from "next/link";
+import Link from "./locale-link";
 import { formatPrice } from "@/lib/catalog";
 import { ActionIcon, type ActionIconName } from "./action-icon";
 
@@ -15,17 +15,26 @@ const pct = (now: number, before: number) =>
     : Math.round(((now - before) / Math.abs(before)) * 1000) / 10;
 
 /** Range tabs as plain links, so the page works without JavaScript and each view has its own URL. */
-export function RangeTabs({ base, current }: { base: string; current: string }) {
+export function RangeTabs({
+  base,
+  current,
+  locale = "en",
+}: {
+  base: string;
+  current: string;
+  locale?: "en" | "bn";
+}) {
+  const bn = locale === "bn";
   const tabs: [string, string][] = [
-    ["today", "Today"],
-    ["7d", "7 days"],
-    ["30d", "30 days"],
-    ["90d", "90 days"],
-    ["365d", "12 months"],
-    ["all", "All time"],
+    ["today", bn ? "আজ" : "Today"],
+    ["7d", bn ? "৭ দিন" : "7 days"],
+    ["30d", bn ? "৩০ দিন" : "30 days"],
+    ["90d", bn ? "৯০ দিন" : "90 days"],
+    ["365d", bn ? "১২ মাস" : "12 months"],
+    ["all", bn ? "সব সময়" : "All time"],
   ];
   return (
-    <nav className="report-range" aria-label="Time period">
+    <nav className="report-range" aria-label={bn ? "সময়কাল" : "Time period"}>
       {tabs.map(([id, label]) => (
         <Link
           key={id}
@@ -50,6 +59,7 @@ export function StatCard({
   tone = "neutral",
   hint,
   invert = false,
+  locale = "en",
 }: {
   icon: ActionIconName;
   label: string;
@@ -59,7 +69,9 @@ export function StatCard({
   tone?: "neutral" | "good" | "bad" | "brand";
   hint?: string;
   invert?: boolean;
+  locale?: "en" | "bn";
 }) {
+  const bn = locale === "bn";
   const change =
     before === undefined || before === null || now === undefined ? undefined : pct(now, before);
   const up = change !== undefined && change !== null && change > 0,
@@ -76,14 +88,22 @@ export function StatCard({
       {change !== undefined && (
         <span className={`stat-change ${good ? "is-good" : bad ? "is-bad" : ""}`}>
           {change === null ? (
-            "New this period"
+            bn ? (
+              "এই সময়ে নতুন"
+            ) : (
+              "New this period"
+            )
           ) : change === 0 ? (
-            "No change vs previous period"
+            bn ? (
+              "আগের সময়ের মতোই"
+            ) : (
+              "No change vs previous period"
+            )
           ) : (
             <>
               <ActionIcon name={up ? "trend-up" : "trend-down"} size={14} />
               {up ? "+" : ""}
-              {change}% vs previous period
+              {change}% {bn ? "আগের সময়ের তুলনায়" : "vs previous period"}
             </>
           )}
         </span>

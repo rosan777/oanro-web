@@ -1,3 +1,4 @@
+import { Localized } from "@/components/locale";
 import { requireAdminPage } from "@/lib/admin-guard";
 import { listDiscounts } from "@/lib/discount-store";
 import { asc, isNull } from "drizzle-orm";
@@ -32,11 +33,14 @@ export default async function DiscountsPage() {
   ]);
   return (
     <main id="main-content" className="container auth-page">
-      <h1>Discount codes</h1>
+      <h1>
+        <Localized en="Discount codes" bn="ডিসকাউন্ট কোড" />
+      </h1>
       <p className="small-note">
-        Codes customers type at checkout. Discounts apply to products only (not the delivery
-        charge). Each order can use one code. A code can cover everything, or only chosen sections
-        or products.
+        <Localized
+          en="Codes customers type at checkout. Discounts apply to products only (not the delivery charge). Each order can use one code. A code can cover everything, or only chosen sections or products."
+          bn="চেকআউটে গ্রাহকরা যে কোড লেখেন। ছাড় শুধু পণ্যে (ডেলিভারি চার্জে নয়)। প্রতি অর্ডারে একটি কোড। একটি কোড সবকিছুতে, অথবা শুধু বাছাই করা সেকশন বা পণ্যে চলতে পারে।"
+        />
       </p>
       <DiscountManager
         sections={sections}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useAdminText } from "./admin-text";
 import { useState } from "react";
 import {
   featureFields,
@@ -15,7 +16,7 @@ import {
 import { platformName, SocialIcon } from "./social-icon";
 import type { Bi } from "@/lib/content";
 
-type Part = "contact" | "text" | "features" | "guides" | "packages" | "faq";
+type Part = "contact" | "text" | "features" | "guides" | "packages" | "softwarePlans" | "faq";
 
 // The editor's tabs. "Images" saves each picture on its own; every other tab saves one part of the content.
 
@@ -26,6 +27,7 @@ const tabs: [Part | "images", string][] = [
   ["features", "Sections on/off"],
   ["guides", "Guides"],
   ["packages", "Studio packages"],
+  ["softwarePlans", "Software plans"],
   ["faq", "Service FAQ"],
 ];
 
@@ -51,12 +53,13 @@ function BiInput({
   onChange: (v: Bi) => void;
   long?: boolean;
 }) {
+  const tr = useAdminText();
   const Field = long ? "textarea" : "input";
   return (
     <div className="ce-bi">
       <span className="ce-label">{label}</span>
       <label>
-        <small>English</small>
+        <small>{tr("English")}</small>
         <Field
           rows={long ? 3 : undefined}
           value={value.en}
@@ -87,6 +90,7 @@ function ItemTools({
   move: (from: number, to: number) => void;
   remove: () => void;
 }) {
+  const tr = useAdminText();
   return (
     <div className="ce-tools">
       <button
@@ -94,7 +98,7 @@ function ItemTools({
         className="btn btn-neutral btn-sm"
         disabled={i === 0}
         onClick={() => move(i, i - 1)}
-        aria-label="Move up"
+        aria-label={tr("Move up")}
       >
         ↑
       </button>
@@ -103,12 +107,12 @@ function ItemTools({
         className="btn btn-neutral btn-sm"
         disabled={i === n - 1}
         onClick={() => move(i, i + 1)}
-        aria-label="Move down"
+        aria-label={tr("Move down")}
       >
         ↓
       </button>
       <button type="button" className="btn btn-neutral btn-sm" onClick={remove}>
-        Remove
+        {tr("Remove")}
       </button>
     </div>
   );
@@ -131,6 +135,7 @@ export function ContentEditor({
   initial: SiteContent;
   products?: { slug: string; name: string; section: string }[];
 }) {
+  const tr = useAdminText();
   const [saved, setSaved] = useState(initial);
   const [draft, setDraft] = useState(initial);
   const [tabSel, setTab] = useState<Part | "images">("contact");
@@ -174,12 +179,14 @@ export function ContentEditor({
       JSON.stringify(data.content.contact) !== JSON.stringify(draft.contact);
     setMsg(
       reset
-        ? "Back to default. Live now."
+        ? tr("Back to default. Live now.")
         : dropped
-          ? "Saved. Items with empty required fields were left out."
+          ? tr("Saved. Items with empty required fields were left out.")
           : changed
-            ? "Saved. Some entries were not valid (links must start with https://, email must be complete) and were cleared or left out — please check."
-            : "Saved. Live now.",
+            ? tr(
+                "Saved. Some entries were not valid (links must start with https://, email must be complete) and were cleared or left out — please check.",
+              )
+            : tr("Saved. Live now."),
     );
   }
 
@@ -218,7 +225,9 @@ export function ContentEditor({
             if (!file) return;
             if (!/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type) || file.size > 11_000) {
               setMsg(
-                "Icon must be a PNG, JPG, WebP or SVG under 11 KB (a small square image, e.g. 64×64).",
+                tr(
+                  "Icon must be a PNG, JPG, WebP or SVG under 11 KB (a small square image, e.g. 64×64).",
+                ),
               );
               return;
             }
@@ -229,13 +238,13 @@ export function ContentEditor({
           return (
             <>
               <fieldset className="ce-group">
-                <legend>Contact details</legend>
+                <legend>{tr("Contact details")}</legend>
                 <p className="small-note">
                   Shown in the footer, on the Contact page and in Google&rsquo;s business info.
                   Leave a box empty to hide it.
                 </p>
                 <label className="ce-one">
-                  Email
+                  {tr("Email")}
                   <input
                     type="email"
                     value={c.email}
@@ -244,7 +253,7 @@ export function ContentEditor({
                   />
                 </label>
                 <label className="ce-one">
-                  Phone (shown as a call link)
+                  {tr("Phone (shown as a call link)")}
                   <input
                     value={c.phone}
                     onChange={e => setC({ phone: e.target.value })}
@@ -253,17 +262,17 @@ export function ContentEditor({
                   />
                 </label>
                 <label className="ce-one">
-                  WhatsApp number (with country code, digits only)
+                  {tr("WhatsApp number (with country code, digits only)")}
                   <input
                     value={c.whatsapp}
                     onChange={e => setC({ whatsapp: e.target.value })}
                     placeholder="8801XXXXXXXXX"
                     inputMode="tel"
                   />
-                  <small>Turn the WhatsApp buttons on or off in the Sections tab.</small>
+                  <small>{tr("Turn the WhatsApp buttons on or off in the Sections tab.")}</small>
                 </label>
                 <label className="ce-one">
-                  Messenger link
+                  {tr("Messenger link")}
                   <input
                     value={c.messenger}
                     onChange={e => setC({ messenger: e.target.value })}
@@ -271,13 +280,13 @@ export function ContentEditor({
                   />
                 </label>
                 <BiInput
-                  label="Address or area (e.g. Mirpur, Dhaka)"
+                  label={tr("Address or area (e.g. Mirpur, Dhaka)")}
                   value={c.address}
                   onChange={v => setC({ address: v })}
                 />
               </fieldset>
               <fieldset className="ce-group">
-                <legend>Social media icons</legend>
+                <legend>{tr("Social media icons")}</legend>
                 <p className="small-note">
                   Each link shows as an icon in the footer and on the Contact page. Use the built-in
                   icon or upload your own small icon.
@@ -288,7 +297,7 @@ export function ContentEditor({
                       <SocialIcon social={x} size={26} />
                     </span>
                     <label>
-                      Platform
+                      {tr("Platform")}
                       <select
                         value={x.platform}
                         onChange={e => setSocial(i, { platform: e.target.value as SocialPlatform })}
@@ -301,7 +310,7 @@ export function ContentEditor({
                       </select>
                     </label>
                     <label className="ce-grow">
-                      Link (https://…)
+                      {tr("Link (https://…)")}
                       <input
                         value={x.url}
                         onChange={e => setSocial(i, { url: e.target.value })}
@@ -309,7 +318,7 @@ export function ContentEditor({
                       />
                     </label>
                     <label>
-                      Hover text (optional)
+                      {tr("Hover text (optional)")}
                       <input
                         value={x.label}
                         maxLength={40}
@@ -319,7 +328,7 @@ export function ContentEditor({
                     </label>
                     <div className="ce-tools">
                       <label className="btn btn-neutral btn-sm ce-file">
-                        {x.icon ? "Change icon" : "Upload icon"}
+                        {x.icon ? tr("Change icon") : tr("Upload icon")}
                         <input
                           type="file"
                           accept="image/png,image/jpeg,image/webp,image/svg+xml"
@@ -332,7 +341,7 @@ export function ContentEditor({
                           className="btn btn-neutral btn-sm"
                           onClick={() => setSocial(i, { icon: "" })}
                         >
-                          Use built-in icon
+                          {tr("Use built-in icon")}
                         </button>
                       )}
                       <button
@@ -340,7 +349,7 @@ export function ContentEditor({
                         className="btn btn-neutral btn-sm"
                         disabled={i === 0}
                         onClick={() => setC({ socials: moved(c.socials, i, i - 1) })}
-                        aria-label="Move up"
+                        aria-label={tr("Move up")}
                       >
                         ↑
                       </button>
@@ -349,7 +358,7 @@ export function ContentEditor({
                         className="btn btn-neutral btn-sm"
                         onClick={() => setC({ socials: c.socials.filter((_, k) => k !== i) })}
                       >
-                        Remove
+                        {tr("Remove")}
                       </button>
                     </div>
                   </div>
@@ -379,9 +388,9 @@ export function ContentEditor({
                 </button>
               </fieldset>
               <fieldset className="ce-group">
-                <legend>Marketing</legend>
+                <legend>{tr("Marketing")}</legend>
                 <label className="ce-one">
-                  Meta Pixel ID (numbers only, from Meta Events Manager)
+                  {tr("Meta Pixel ID (numbers only, from Meta Events Manager)")}
                   <input
                     value={c.pixelId}
                     onChange={e => setC({ pixelId: e.target.value.trim() })}
@@ -400,7 +409,7 @@ export function ContentEditor({
                 </p>
               </fieldset>
               <fieldset className="ce-group">
-                <legend>Global Pulse news strip</legend>
+                <legend>{tr("Global Pulse news strip")}</legend>
                 <label className="ce-switch">
                   <input
                     type="radio"
@@ -408,7 +417,7 @@ export function ContentEditor({
                     checked={c.pulseWhere === "everywhere"}
                     onChange={() => setC({ pulseWhere: "everywhere" })}
                   />
-                  Show on every page
+                  {tr("Show on every page")}
                 </label>
                 <label className="ce-switch">
                   <input
@@ -417,9 +426,9 @@ export function ContentEditor({
                     checked={c.pulseWhere === "services"}
                     onChange={() => setC({ pulseWhere: "services" })}
                   />
-                  Show only on service (Studio) pages
+                  {tr("Show only on service (Studio) pages")}
                 </label>
-                <small>To hide it everywhere, use Admin → Sections.</small>
+                <small>{tr("To hide it everywhere, use Admin → Sections.")}</small>
               </fieldset>
             </>
           );
@@ -464,16 +473,16 @@ export function ContentEditor({
             </fieldset>
           ))}
           <fieldset className="ce-group">
-            <legend>Product scroll story</legend>
+            <legend>{tr("Product scroll story")}</legend>
             <label className="ce-one">
-              Featured product
+              {tr("Featured product")}
               <select
                 value={draft.features.featuredProductSlug}
                 onChange={e =>
                   set("features", { ...draft.features, featuredProductSlug: e.target.value })
                 }
               >
-                <option value="">Automatic — first available product with a photo</option>
+                <option value="">{tr("Automatic — first available product with a photo")}</option>
                 {products.map(p => (
                   <option key={p.slug} value={p.slug}>
                     {p.name} · {p.section}
@@ -495,7 +504,7 @@ export function ContentEditor({
         <>
           {draft.guides.map((g, i) => (
             <fieldset key={i} className="ce-group">
-              <legend>{g.title.en || "New guide"}</legend>
+              <legend>{g.title.en || tr("New guide")}</legend>
               <ItemTools
                 i={i}
                 n={draft.guides.length}
@@ -508,7 +517,7 @@ export function ContentEditor({
                 }
               />
               <label className="ce-one">
-                Web address (lowercase-with-dashes)
+                {tr("Web address (lowercase-with-dashes)")}
                 <input
                   value={g.slug}
                   pattern="[a-z0-9]+(-[a-z0-9]+)*"
@@ -516,12 +525,12 @@ export function ContentEditor({
                 />
               </label>
               <BiInput
-                label="Title"
+                label={tr("Title")}
                 value={g.title}
                 onChange={v => set("guides", at(draft.guides, i, { ...g, title: v }))}
               />
               <BiInput
-                label="Summary"
+                label={tr("Summary")}
                 long
                 value={g.summary}
                 onChange={v => set("guides", at(draft.guides, i, { ...g, summary: v }))}
@@ -568,7 +577,7 @@ export function ContentEditor({
                       )
                     }
                   >
-                    Remove section
+                    {tr("Remove section")}
                   </button>
                 </div>
               ))}
@@ -610,31 +619,37 @@ export function ContentEditor({
         </>
       )}
 
-      {tabSel === "packages" && (
+      {(tabSel === "packages" || tabSel === "softwarePlans") && (
         <>
-          {draft.packages.map((p, i) => (
+          {draft[tabSel as "packages"].map((p, i) => (
             <fieldset key={i} className="ce-group">
-              <legend>{p.name.en || "New package"}</legend>
+              <legend>
+                {p.name.en || tabSel === "softwarePlans" ? tr("New plan") : tr("New package")}
+              </legend>
               <ItemTools
                 i={i}
-                n={draft.packages.length}
-                move={(a, b) => set("packages", moved(draft.packages, a, b))}
+                n={draft[tabSel as "packages"].length}
+                move={(a, b) => set(tabSel as "packages", moved(draft[tabSel as "packages"], a, b))}
                 remove={() =>
                   set(
-                    "packages",
-                    draft.packages.filter((_, k) => k !== i),
+                    tabSel as "packages",
+                    draft[tabSel as "packages"].filter((_, k) => k !== i),
                   )
                 }
               />
               <BiInput
-                label="Name"
+                label={tr("Name")}
                 value={p.name}
-                onChange={v => set("packages", at(draft.packages, i, { ...p, name: v }))}
+                onChange={v =>
+                  set(tabSel as "packages", at(draft[tabSel as "packages"], i, { ...p, name: v }))
+                }
               />
               <BiInput
-                label="Best for"
+                label={tr("Best for")}
                 value={p.for}
-                onChange={v => set("packages", at(draft.packages, i, { ...p, for: v }))}
+                onChange={v =>
+                  set(tabSel as "packages", at(draft[tabSel as "packages"], i, { ...p, for: v }))
+                }
               />
               {p.includes.map((x, j) => (
                 <div key={j} className="ce-sub">
@@ -643,8 +658,11 @@ export function ContentEditor({
                     value={x}
                     onChange={v =>
                       set(
-                        "packages",
-                        at(draft.packages, i, { ...p, includes: at(p.includes, j, v) }),
+                        tabSel as "packages",
+                        at(draft[tabSel as "packages"], i, {
+                          ...p,
+                          includes: at(p.includes, j, v),
+                        }),
                       )
                     }
                   />
@@ -653,15 +671,15 @@ export function ContentEditor({
                     className="btn btn-neutral btn-sm"
                     onClick={() =>
                       set(
-                        "packages",
-                        at(draft.packages, i, {
+                        tabSel as "packages",
+                        at(draft[tabSel as "packages"], i, {
                           ...p,
                           includes: p.includes.filter((_, k) => k !== j),
                         }),
                       )
                     }
                   >
-                    Remove
+                    {tr("Remove")}
                   </button>
                 </div>
               ))}
@@ -670,8 +688,11 @@ export function ContentEditor({
                 className="btn btn-neutral btn-sm"
                 onClick={() =>
                   set(
-                    "packages",
-                    at(draft.packages, i, { ...p, includes: [...p.includes, blank()] }),
+                    tabSel as "packages",
+                    at(draft[tabSel as "packages"], i, {
+                      ...p,
+                      includes: [...p.includes, blank()],
+                    }),
                   )
                 }
               >
@@ -683,13 +704,13 @@ export function ContentEditor({
             type="button"
             className="btn btn-neutral"
             onClick={() =>
-              set("packages", [
-                ...draft.packages,
+              set(tabSel as "packages", [
+                ...draft[tabSel as "packages"],
                 { name: blank(), for: blank(), includes: [blank()] },
               ])
             }
           >
-            + Add package
+            + Add {tabSel === "softwarePlans" ? "plan" : "package"}
           </button>
         </>
       )}
@@ -698,7 +719,7 @@ export function ContentEditor({
         <>
           {draft.faq.map((f, i) => (
             <fieldset key={i} className="ce-group">
-              <legend>{f.q.en || "New question"}</legend>
+              <legend>{f.q.en || tr("New question")}</legend>
               <ItemTools
                 i={i}
                 n={draft.faq.length}
@@ -711,12 +732,12 @@ export function ContentEditor({
                 }
               />
               <BiInput
-                label="Question"
+                label={tr("Question")}
                 value={f.q}
                 onChange={v => set("faq", at(draft.faq, i, { ...f, q: v }))}
               />
               <BiInput
-                label="Answer"
+                label={tr("Answer")}
                 long
                 value={f.a}
                 onChange={v => set("faq", at(draft.faq, i, { ...f, a: v }))}
@@ -742,7 +763,7 @@ export function ContentEditor({
             disabled={busy || !dirty}
             onClick={() => save()}
           >
-            {busy ? "Saving…" : "Save"}
+            {busy ? tr("Saving…") : tr("Save")}
           </button>
           <button
             type="button"
@@ -751,7 +772,7 @@ export function ContentEditor({
             onClick={() => setDraft(d => ({ ...d, [tab]: saved[tab] }))}
             hidden={!dirty}
           >
-            Undo changes
+            {tr("Undo changes")}
           </button>
           <button
             type="button"
@@ -759,10 +780,10 @@ export function ContentEditor({
             disabled={busy}
             onClick={() => save(true)}
           >
-            Reset to default
+            {tr("Reset to default")}
           </button>
           <p className="small-note" role="status">
-            {dirty ? "Unsaved changes" : msg}
+            {dirty ? tr("Unsaved changes") : msg}
           </p>
         </div>
       )}
@@ -808,6 +829,7 @@ async function shrink(file: File): Promise<string> {
 }
 /** Admin → Website content → Images: upload or remove each picture. Changes go live immediately. */
 function MediaManager({ initial }: { initial: SiteContent["media"] }) {
+  const tr = useAdminText();
   const [media, setMedia] = useState(initial);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
@@ -827,7 +849,11 @@ function MediaManager({ initial }: { initial: SiteContent["media"] }) {
       return;
     }
     setMedia(data.media);
-    setMsg(image ? "Picture saved. Live now." : "Picture removed. The placeholder shows instead.");
+    setMsg(
+      image
+        ? tr("Picture saved. Live now.")
+        : tr("Picture removed. The placeholder shows instead."),
+    );
   }
   return (
     <div className="ce-media">
@@ -847,13 +873,17 @@ function MediaManager({ initial }: { initial: SiteContent["media"] }) {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={src} alt="" />
                 ) : (
-                  <span>No picture yet</span>
+                  <span>{tr("No picture yet")}</span>
                 )}
               </div>
               <div className="ce-media-actions">
                 <small>{s.hint}</small>
                 <label className="btn btn-primary btn-sm ce-file">
-                  {busy === s.key ? "Saving…" : src ? "Replace picture" : "Upload picture"}
+                  {busy === s.key
+                    ? tr("Saving…")
+                    : src
+                      ? tr("Replace picture")
+                      : tr("Upload picture")}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
@@ -877,7 +907,7 @@ function MediaManager({ initial }: { initial: SiteContent["media"] }) {
                     disabled={busy !== null}
                     onClick={() => put(s.key, null)}
                   >
-                    Remove
+                    {tr("Remove")}
                   </button>
                 )}
               </div>

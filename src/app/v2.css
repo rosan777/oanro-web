@@ -1,13 +1,13 @@
 /* ============================================================
    OANRO v2 design (canvas board I1 · Final homepage)
    Dark "planet" hero that becomes the light store below.
-   Colours: space #07090A · planet #F6F5F0 · brand #1F513C · glow #3DDC97
+   Colours: space #07090A · planet #F6F5F0 · brand var(--brand) · glow #d8c2ee
    Fonts: display (Barlow Condensed) · body (Space Grotesk) · label (JetBrains Mono) · script (Caveat)
    ============================================================ */
 :root {
   --space: #07090a;
   --planet: #f6f5f0;
-  --glow: #3ddc97;
+  --glow: #d8c2ee;
   --ink-soft: #a9afab;
   --edge: #1c2023;
   --background: #f6f5f0;
@@ -1255,7 +1255,7 @@ html[lang="bn"] .v2-h3 {
   border-radius: 999px;
   border: 1px solid transparent;
   background: var(--planet);
-  color: #153c2c;
+  color: var(--brand-strong);
   font-weight: 700;
   box-shadow: 0 10px 24px -14px rgb(0 0 0 / 0.5);
   transition:
@@ -1590,7 +1590,7 @@ html[lang="bn"] .pulse-heading h2 {
     0 0 0 1px rgb(61 220 151 / 0.25);
 }
 .pulse-thumbnail {
-  background: linear-gradient(135deg, #1f513c, #0e1a15);
+  background: linear-gradient(135deg, var(--brand), #0e1a15);
   border-radius: 12px;
 }
 .pulse-card:focus-visible,
@@ -2598,7 +2598,7 @@ dialog.privacy-center .pc-text a:focus-visible {
 }
 .lang-trigger:hover,
 .lang-trigger[aria-expanded="true"] {
-  border-color: #3ddc97;
+  border-color: #d8c2ee;
 }
 
 /* Language menu in the header. */
@@ -2637,7 +2637,7 @@ dialog.privacy-center .pc-text a:focus-visible {
   background: #f0efe9;
 }
 .lang-list button[aria-checked="true"] {
-  color: #1f513c;
+  color: var(--brand);
   font-weight: 600;
 }
 .lang-list button[lang="bn"] {
@@ -2720,8 +2720,8 @@ dialog.privacy-center .pc-text a:focus-visible {
   font-family: var(--font-bangla), sans-serif;
 }
 .region-langs button[aria-pressed="true"] {
-  background: #1f513c;
-  border-color: #1f513c;
+  background: var(--brand);
+  border-color: var(--brand);
   color: #fff;
 }
 /* ---------- 1. Product card reveal: gentle 3D tilt, second photo on hover, rise-in on scroll ---------- */
@@ -3362,10 +3362,10 @@ dialog.privacy-center .pc-text a:focus-visible {
 }
 .v2-mock .m-hero {
   height: 70px;
-  background: linear-gradient(135deg, #07090a, #1f513c);
+  background: linear-gradient(135deg, #07090a, var(--brand));
 }
 .v2-mock .m-alt {
-  background: linear-gradient(135deg, #1f513c, #3ddc97);
+  background: linear-gradient(135deg, var(--brand), #d8c2ee);
 }
 .v2-mock .m-row {
   height: 8px;
@@ -3422,7 +3422,7 @@ dialog.privacy-center .pc-text a:focus-visible {
     100deg,
     #edede6 0%,
     #edede6 35%,
-    #3ddc97 50%,
+    #d8c2ee 50%,
     #edede6 65%,
     #edede6 100%
   );
@@ -3450,7 +3450,7 @@ dialog.privacy-center .pc-text a:focus-visible {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1.5px solid #3ddc97;
+  border: 1.5px solid #d8c2ee;
   pointer-events: none;
   transition:
     width 0.2s,
@@ -4926,7 +4926,7 @@ dialog.privacy-center .pc-text a:focus-visible {
   background:
     radial-gradient(
       120% 90% at 30% 20%,
-      color-mix(in srgb, var(--glow, #3ddc97) 22%, transparent),
+      color-mix(in srgb, var(--glow, #d8c2ee) 22%, transparent),
       transparent 60%
     ),
     #0d1110;
