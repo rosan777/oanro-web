@@ -362,6 +362,24 @@
   line-height: 1;
   color: #22221f;
   transform: rotate(15deg);
+  animation: o-spark-spin 22s linear infinite;
+}
+@keyframes o-spark-spin {
+  from {
+    transform: rotate(15deg);
+  }
+  to {
+    transform: rotate(375deg);
+  }
+}
+/* Still at its resting angle: reduced-motion preference or the site's "Pause motion" switch. */
+@media (prefers-reduced-motion: reduce) {
+  .o-spark {
+    animation: none;
+  }
+}
+[data-motion="paused"] .o-spark {
+  animation: none;
 }
 .o-art-note {
   position: absolute;
