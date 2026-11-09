@@ -525,6 +525,17 @@ export function defaultProfile(): CompanyProfile {
             item("", "Business", "Licensed business"),
           ]),
           group("Terms & conditions", [
+            // Point 1 is the top-priority term: any upgrade is possible, depending on demand and budget.
+            {
+              ...item(
+                "",
+                "Any upgrade is possible, depending on the customer's demand and budget. Any upgrade means any upgrade.",
+              ),
+              title: {
+                en: "Any upgrade is possible, depending on the customer's demand and budget. Any upgrade means any upgrade.",
+                bn: "কাস্টমারের চাহিদা ও বাজেটের ওপর নির্ভর করে যেকোনো আপগ্রেড সম্ভব। যেকোনো আপগ্রেড মানে যেকোনো আপগ্রেড।",
+              },
+            },
             item(
               "",
               "OANRO believes the information in this profile is accurate at the time of publication and may update or change it without notice.",
