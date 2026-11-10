@@ -2,7 +2,7 @@ import { Signature } from "@/components/signature";
 import { InfoStrip, PaymentRow } from "@/components/info-strip";
 import Image from "next/image";
 import Link from "@/components/locale-link";
-import { ArrowUpRight, Mail } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { getSiteConfig } from "@/lib/site-config";
 import { Localized } from "@/components/locale";
 import { getActiveCampaigns, getStoreProducts } from "@/lib/store-products";
@@ -14,7 +14,6 @@ import {
   StudioTeaser,
 } from "@/components/home-design";
 import { CampaignShowcase } from "@/components/campaign-showcase";
-import { MessageReveal } from "@/components/message-reveal";
 import { getSectionState } from "@/lib/website-sections";
 import { HomeFaq, HowWeWork, TrustStrip } from "@/components/home-trust";
 import { CategoryTiles } from "@/components/category-tiles";
@@ -237,15 +236,6 @@ export default async function Home() {
                     bn="ডিজাইন প্রিভিউ: নমুনা পণ্য ও ছবি। অর্ডার শিগগিরই চালু হবে।"
                   />
                 </p>
-              )}
-            </div>
-            <div className="contact-actions">
-              <MessageReveal />
-              {content.contact.email && (
-                <a className="button light-button" href={`mailto:${content.contact.email}`}>
-                  <Mail size={17} />
-                  {content.contact.email}
-                </a>
               )}
             </div>
           </div>
