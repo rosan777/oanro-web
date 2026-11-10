@@ -28,6 +28,7 @@ import { listMyLeads } from "@/lib/lead-store";
 import { listClientInvoices, listClientProjects } from "@/lib/workspace-store";
 import { formatPrice } from "@/lib/catalog";
 import { formatDhaka } from "@/lib/dhaka-time";
+import { welcomeLine } from "@/lib/greeting";
 import { getSiteConfig } from "@/lib/site-config";
 import { SignOut } from "@/components/auth-panel";
 import { MyOrders } from "@/components/my-orders";
@@ -176,7 +177,7 @@ export default async function AccountPage({
                 <span className="o-eyebrow">{t("YOUR OANRO", "আপনার OANRO")}</span>
                 <h1>
                   {firstName
-                    ? t(`Welcome back, ${firstName}.`, `আবার স্বাগতম, ${firstName}।`)
+                    ? welcomeLine(firstName, locale)
                     : t("Everything, a little simpler.", "সব কিছু, একটু সহজে।")}
                 </h1>
                 <p>
