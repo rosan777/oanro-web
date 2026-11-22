@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import {
@@ -10,6 +11,8 @@ import {
   Space_Grotesk,
 } from "next/font/google";
 import { TrustBar } from "@/components/trust-bar";
+import { authConfigured } from "@/lib/auth";
+import { currentSession } from "@/lib/access";
 import { publicRules } from "@/lib/public-rules";
 import { Experience, Intro } from "@/components/experience";
 import { Header, Footer } from "@/components/shell";
@@ -20,6 +23,7 @@ import "./globals.css";
 import "./v2.css";
 // The approved OANRO design system; loaded after the older sheets so it decides shared styles.
 import "./oanro.css";
+import "./dot-print.css";
 import { CustomCursor, FloatingHelp } from "@/components/site-extras";
 import { PrivacyCenter } from "@/components/privacy-center";
 import { AssistantLoader } from "@/components/assistant-loader";
@@ -147,6 +151,8 @@ export const dynamic = "force-dynamic";
  * assistant, privacy center). Admin pages add their own layout inside this one.
  */
 export default async function RootLayout({ children }: { children: ReactNode }) {
+  const choice = (await cookies()).get("oanro-appearance")?.value;
+  const appearance = choice === "dark" || choice === "light" ? choice : "system";
   const config = getSiteConfig();
   const { locale } = await requestLocale();
   const rules = await publicRules();
@@ -166,16 +172,19 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   // Storefront data shared with client components through ProductsProvider (skipped when switched off).
 
-  const [stories, catalog, serviceList, lines, popular] = await Promise.all([
+  const [stories, catalog, serviceList, lines, popular, wishlistSession] = await Promise.all([
     sections["global-pulse"] ? getApprovedPulseStories() : [],
     config.products ? getStoreProducts() : [],
     site.services ? getStoreServices() : [],
     config.products ? getStoreCollections() : [],
     config.products && process.env.DATABASE_URL ? popularSlugs() : [],
+    config.products && authConfigured() ? currentSession().catch(() => null) : null,
   ]);
   return (
     <html
       lang={locale}
+      data-appearance={appearance}
+      data-wishlist-sync={wishlistSession ? "enabled" : undefined}
       data-scroll-behavior="smooth"
       className={`${sans.variable} ${bangla.variable} ${accent.variable} ${display.variable} ${body.variable} ${mono.variable} ${script.variable}`}
     >
@@ -208,10 +217,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   <Header config={site} />
                   {children}
                   <PlacedPulse stories={stories} where={content.contact.pulseWhere} />
-                  <Footer config={site} />
+                  <Footer config={site} appearance={appearance} />
                   <QuickViewHost />
                   <ToastHost />
-                  {config.products && <WishlistSync />}
+                  {wishlistSession && <WishlistSync />}
                 </div>
                 {content.features.cursorRing && <CustomCursor />}
                 <FloatingHelp

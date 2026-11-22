@@ -140,7 +140,7 @@ export function CompareView() {
                         onClick={() => removeFromCompare(p.slug)}
                         aria-label={t(`Remove ${name} from comparison`, `${name} তুলনা থেকে সরান`)}
                       >
-                        <X size={16} aria-hidden="true" />
+                        <X size={14} aria-hidden="true" /> {t("Remove", "সরান")}
                       </button>
                     </th>
                   );

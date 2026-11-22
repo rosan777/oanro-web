@@ -199,6 +199,11 @@ export const services: Service[] = [
     slug: "web",
     title: "Web development",
     word: "WEB",
+    bn: {
+      title: "ওয়েব ডেভেলপমেন্ট",
+      text: "অনলাইনে আপনার ব্যবসার জন্য উপযুক্ত একটি ঠিকানা।",
+      detail: "আপনার গ্রাহক ও ব্যবসার লক্ষ্য অনুযায়ী ওয়েবসাইট, গ্রাহক পোর্টাল ও অনলাইন স্টোর তৈরি করি।",
+    },
     text: "A thoughtful home for your business online.",
     detail:
       "Websites, customer portals, and commerce experiences built around your audience and business goals.",
@@ -207,6 +212,11 @@ export const services: Service[] = [
     slug: "app",
     title: "Mobile applications",
     word: "APP",
+    bn: {
+      title: "মোবাইল অ্যাপ্লিকেশন",
+      text: "দৈনন্দিন কাজের উপযোগী মোবাইল অ্যাপ।",
+      detail: "অ্যাপের প্রয়োজন, উপযুক্ত প্ল্যাটফর্ম ও বাস্তবসম্মত নির্মাণ পরিকল্পনা নিয়ে আলোচনা করুন।",
+    },
     text: "Practical ideas, ready for everyday life.",
     detail: "Explore mobile app requirements, platform choices, and an achievable delivery plan.",
   },
@@ -214,6 +224,11 @@ export const services: Service[] = [
     slug: "systems",
     title: "Business software",
     word: "BUILD",
+    bn: {
+      title: "বিজনেস সফটওয়্যার",
+      text: "ব্যবসার কাজগুলো এক জায়গায় গুছিয়ে নিন।",
+      detail: "অর্ডার, মজুত, প্রতিবেদন ও প্রতিদিনের কাজ পরিচালনার জন্য সফটওয়্যার।",
+    },
     text: "Bring your work into a clearer system.",
     detail: "Tools for orders, inventory, reporting, and the workflows your business depends on.",
   },
@@ -221,6 +236,11 @@ export const services: Service[] = [
     slug: "strategy",
     title: "Technology strategy",
     word: "NEXT",
+    bn: {
+      title: "প্রযুক্তি কৌশল",
+      text: "প্রযুক্তিতে পরের পদক্ষেপ ঠিক করুন।",
+      detail: "বর্তমান সরঞ্জাম পর্যালোচনা করে অগ্রাধিকার চিহ্নিত করুন এবং পরের ধাপ ঠিক করুন।",
+    },
     text: "A clearer direction for what comes next.",
     detail: "Review your current tools, identify priorities, and define a practical next step.",
   },

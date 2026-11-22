@@ -81,7 +81,8 @@ export function setWishlist(slugs: string[]) {
 export function toggleWishlist(slug: string) {
   const saved = !wishlist.read().includes(slug);
   wishlist.toggle(slug);
-  // The server ignores signed-out visitors (401), so this is safe to send for everyone.
+  // Sample mode only has a browser wishlist.
+  if (document.documentElement.dataset.wishlistSync !== "enabled") return saved;
   fetch("/api/account/wishlist", {
     method: saved ? "POST" : "DELETE",
     headers: { "content-type": "application/json" },

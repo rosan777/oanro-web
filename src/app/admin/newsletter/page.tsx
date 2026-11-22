@@ -4,7 +4,6 @@ import { listSubscribers, subscriberCounts } from "@/lib/marketing";
 import { requestLocale } from "@/lib/request-locale";
 import { formatDhaka } from "@/lib/dhaka-time";
 import { AdminBack } from "@/components/admin-nav";
-import Link from "@/components/locale-link";
 export const dynamic = "force-dynamic";
 
 /**
@@ -60,9 +59,9 @@ export default async function NewsletterAdminPage({
         </label>
         <button className="o-button secondary">{t("Search", "খুঁজুন")}</button>
         {/* The newsletter export uses the same newsletter.read permission as this page. */}
-        <Link className="o-underlined" href="/api/admin/export?type=newsletter">
+        <a className="o-underlined" href="/api/admin/export?type=newsletter" download>
           {t("Export CSV", "CSV এক্সপোর্ট")}
-        </Link>
+        </a>
       </form>
       {rows ? (
         <div className="o-table-wrap">

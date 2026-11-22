@@ -192,13 +192,6 @@ export type RoleTemplate = {
   description: string;
   permissions: Permission[];
 };
-/** Narrow product rights added later: never in built-in roles (Manager already has the full one); the owner adds them to custom roles. */
-const narrowProductPermissions: Permission[] = [
-  "products.draft",
-  "products.publish",
-  "products.hide",
-  "sections.toggle",
-];
 /** Business-sensitive permissions: never part of a built-in role; the owner grants them one by one. */
 export const sensitivePermissions: Permission[] = [
   // Client Workspace (approved 2026-11-05). Listed here so no existing role template gains them;
@@ -224,10 +217,19 @@ export const roleTemplates: RoleTemplate[] = [
   {
     id: "manager",
     name: "Manager",
-    description: "Runs the store day to day. Everything except staff management.",
-    permissions: permissions.filter(
-      p => !sensitivePermissions.includes(p) && !narrowProductPermissions.includes(p),
-    ),
+    description: "Manages the catalog, orders, campaigns, services and customer inquiries.",
+    permissions: [
+      "audit.read",
+      "campaigns.manage",
+      "leads.manage",
+      "leads.read",
+      "orders.manage",
+      "orders.read",
+      "products.manage",
+      "pulse.manage",
+      "services.manage",
+      "site.manage",
+    ],
   },
   {
     id: "catalog-editor",
@@ -238,14 +240,8 @@ export const roleTemplates: RoleTemplate[] = [
   {
     id: "content-editor",
     name: "Content editor",
-    description: "Website text, services, Global Pulse, announcement bar and site switches.",
-    permissions: [
-      "content.manage",
-      "banners.manage",
-      "services.manage",
-      "pulse.manage",
-      "site.manage",
-    ],
+    description: "Manages services, Global Pulse and site switches.",
+    permissions: ["services.manage", "pulse.manage", "site.manage"],
   },
   {
     id: "sales",

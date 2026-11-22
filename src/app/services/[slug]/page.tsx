@@ -1,3 +1,4 @@
+import TransactionStudy from "@/components/transaction-study";
 import type { Metadata } from "next";
 import { mediaUrl } from "@/lib/site-content-data";
 import { notFound } from "next/navigation";
@@ -111,12 +112,18 @@ export default async function ServicePage({ params }: Props) {
       <h1>{copy.title}</h1>
       {copy.text && <p className="legal-intro">{copy.text}</p>}
       {copy.detail && <p>{copy.detail}</p>}
+      <a className="service-inquiry-link" href="#service-inquiry">{bn ? "এই সেবা নিয়ে কথা বলুন" : "Discuss this service"}</a>
+      {service.slug === "web" && <TransactionStudy bn={bn} study="cutaway" />}
       <section>
         <h2>{guide.heading}</h2>
         {guide.paragraphs.map(text => (
           <p key={text.slice(0, 24)}>{text}</p>
         ))}
       </section>
+      {service.slug === "web" && <TransactionStudy bn={bn} study="ledger" />}
+      {(service.slug === "app" || service.slug === "systems" || service.slug === "strategy") && (
+        <TransactionStudy bn={bn} study={service.slug} />
+      )}
       {/* Optional sections the owner can switch off: studio packages and the FAQ (with its FAQPage data). */}
       {showPkgs && (
         <section className="studio-packages" aria-labelledby="pkg-title">
@@ -165,7 +172,7 @@ export default async function ServicePage({ params }: Props) {
           />
         </>
       )}
-      <div className="contact-actions">
+      <div id="service-inquiry" className="contact-actions">
         <FormPopup
           label={bn ? "ফ্রি কল বুক করুন" : "Book a free call"}
           dialogLabel={bn ? "ফ্রি কল বুক করুন" : "Book a free call"}

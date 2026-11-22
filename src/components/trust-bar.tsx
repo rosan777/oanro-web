@@ -77,7 +77,7 @@ export function TrustBar({
       <div className="trust-bar" role="region" aria-label={bn ? "ঘোষণা" : "Announcements"}>
         <div className="container trust-bar-row">
           {track("d")}
-          <Link href={services ? "/#studio" : "/delivery-returns"} className="announce-link">
+          <Link href={services ? "/services" : "/delivery-returns"} className="announce-link">
             {services
               ? bn
                 ? "স্টুডিও"

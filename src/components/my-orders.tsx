@@ -65,7 +65,7 @@ export function MyOrders({ orders }: { orders: Order[] }) {
       {!orders.length ? (
         <p>
           {bn ? "এখনো কোনো অর্ডার নেই।" : "No orders yet."}{" "}
-          <Link href="/#products">{bn ? "পণ্য দেখুন" : "Browse products"}</Link>
+          <Link href="/shop">{bn ? "পণ্য দেখুন" : "Browse products"}</Link>
         </p>
       ) : (
         <ul>

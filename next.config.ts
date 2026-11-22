@@ -51,6 +51,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   async headers() {
     return [
+      { source: "/studies/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
       { source: "/:path*", headers: securityHeaders },
       // The assistant icon never changes without a new file name, so browsers may keep it for a week (it loads on every page).
       {

@@ -1,19 +1,24 @@
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import { ArrowUpRight, Check } from "lucide-react";
 import Link from "@/components/locale-link";
 import { getSiteContent } from "@/lib/site-content";
 import { alternatesFor, requestLocale } from "@/lib/request-locale";
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata(_props: unknown, parent: ResolvingMetadata): Promise<Metadata> {
   const { locale } = await requestLocale();
   const bn = locale === "bn";
-  return {
-    title: bn
+  const title = bn
       ? "সফটওয়্যার – প্রজেক্ট, ফাইল ও অনুমোদন এক জায়গায়"
-      : "Software – projects, files and approvals in one place",
-    description: bn
+      : "Software – projects, files and approvals in one place";
+  const description = bn
       ? "আপনার ব্যবসার জন্য কাস্টম সফটওয়্যার ও ক্লায়েন্ট ওয়ার্কস্পেস। প্রতিটি প্ল্যান লিখিত কোটে; কোনো সাবস্ক্রিপশন নেই।"
-      : "Custom business software and a client workspace for your projects. Every plan is quoted in writing; no subscriptions.",
+      : "Custom business software and a client workspace for your projects. Every plan is quoted in writing; no subscriptions.";
+  const { openGraph, twitter } = await parent;
+  return {
+    title,
+    description,
+    openGraph: { ...openGraph, title, description },
+    twitter: { ...twitter, title, description },
     alternates: alternatesFor("/software", locale),
   };
 }

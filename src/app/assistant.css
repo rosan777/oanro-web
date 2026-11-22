@@ -145,6 +145,9 @@ body:has(.float-wa) .asst-launcher {
 }
 
 .asst-panel {
+  --chat-field: light-dark(#f0edf2, #353139);
+  --chat-edge: light-dark(#83788b, #9c8fa4);
+  --chat-action: #564167;
   position: fixed;
   right: 1.5rem;
   bottom: 1.5rem;
@@ -1266,20 +1269,21 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   margin-bottom: 0;
 }
 .asst-msg a {
-  color: var(--brand);
+  color: var(--color-secondary-strong);
   text-decoration: underline;
   text-underline-offset: 2px;
   font-weight: 600;
 }
 .asst-msg.is-user {
   align-self: flex-end;
-  background: var(--brand);
-  color: #fff;
+  background: var(--chat-action);
+  color: white;
   border-bottom-right-radius: 4px;
 }
 .asst-msg.is-bot {
+  color: var(--print-ink);
   align-self: flex-start;
-  background: #efeee8;
+  background: var(--chat-field);
   border-bottom-left-radius: 4px;
 }
 .asst-msg.is-error {
@@ -1315,12 +1319,12 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   border: 1px solid var(--brand);
   border-radius: 999px;
   background: var(--surface);
-  color: var(--brand);
+  color: var(--color-secondary-strong);
   font-size: 0.8rem;
 }
 .asst-chip:hover {
-  background: var(--brand);
-  color: #fff;
+  background: var(--chat-action);
+  color: white;
 }
 .asst-status {
   display: flex;
@@ -1329,6 +1333,7 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   padding: 0.4rem 0.8rem;
   font-size: 0.82rem;
   background: #eaf4ee;
+  color: #214a36;
   border-top: 1px solid var(--line);
 }
 .asst-status i {
@@ -1349,7 +1354,7 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   padding: 0.05rem 0.45rem;
   border-radius: 999px;
   background: #eaf4ee;
-  color: var(--brand-strong);
+  color: #214a36;
 }
 .asst-badge.is-out {
   background: #f3dcd9;
@@ -1415,7 +1420,7 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   border: 1px solid var(--brand);
   border-radius: 10px;
   background: var(--surface);
-  color: var(--brand) !important;
+  color: var(--color-secondary-strong) !important;
   font-size: 0.8rem;
   text-decoration: none !important;
   font-weight: 600;
@@ -1424,6 +1429,7 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   padding: 0.6rem 0.7rem;
   border-radius: 10px;
   background: #eaf4ee;
+  color: #214a36;
   font-size: 0.85rem;
 }
 .asst-timeline {
@@ -1459,9 +1465,9 @@ body:has(dialog.privacy-center[open]) .asst-panel {
 .asst-composer {
   margin: 0.4rem 0.7rem calc(0.7rem + env(safe-area-inset-bottom));
   padding: 0.55rem 0.65rem 0.5rem 0.9rem;
-  border: 1px solid #d9dad3;
+  border: 1px solid var(--chat-edge);
   border-radius: 26px;
-  background: #efeee8;
+  background: var(--chat-field);
   display: grid;
   gap: 0.2rem;
   transition:
@@ -1469,7 +1475,7 @@ body:has(dialog.privacy-center[open]) .asst-panel {
     box-shadow 150ms;
 }
 .asst-composer:focus-within {
-  border-color: var(--brand);
+  border-color: var(--color-secondary-strong);
   box-shadow: 0 0 0 3px rgb(31 81 60 / 0.14);
 }
 .asst-composer textarea {
@@ -1486,7 +1492,7 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   color: var(--foreground);
 }
 .asst-composer textarea::placeholder {
-  color: #5e6461;
+  color: var(--muted);
 }
 .asst-composer-bar {
   display: flex;
@@ -1505,7 +1511,7 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   -webkit-appearance: none;
   border: 0;
   background: transparent;
-  color: #5e6461;
+  color: var(--muted);
   font-size: 0.8rem;
   padding: 0 0.5rem;
   min-height: 36px;
@@ -1514,7 +1520,7 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   cursor: pointer;
 }
 .asst-lang:hover:not(:disabled) {
-  background: #edede6;
+  background: var(--print-store);
 }
 .asst-round,
 .asst-send {
@@ -1529,10 +1535,10 @@ body:has(dialog.privacy-center[open]) .asst-panel {
 }
 .asst-round {
   background: transparent;
-  color: #3f4542;
+  color: var(--print-ink);
 }
 .asst-round:hover:not(:disabled) {
-  background: #e3e1da;
+  background: var(--print-store);
 }
 .asst-round-dark {
   background: #151515;
@@ -1550,8 +1556,8 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   color: #fff;
 }
 .asst-send:disabled {
-  background: #d9dad3;
-  color: #fff;
+  background: var(--chat-field);
+  color: var(--muted);
   opacity: 1;
   cursor: default;
 }
@@ -1650,7 +1656,7 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   padding: 0 0.45rem;
   border-radius: 999px;
   background: #eaf4ee;
-  color: var(--brand-strong);
+  color: #214a36;
 }
 .asst-badge.is-out {
   background: #f3dcd9;
@@ -1681,7 +1687,7 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   font-size: 0.78rem;
 }
 .asst-option[aria-pressed="true"] {
-  border-color: var(--brand);
+  border-color: var(--color-secondary-strong);
   box-shadow: inset 0 0 0 1px var(--brand);
   font-weight: 600;
 }
@@ -1698,7 +1704,7 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   padding: 3px;
 }
 .asst-swatch[aria-pressed="true"] {
-  border-color: var(--brand);
+  border-color: var(--color-secondary-strong);
 }
 .asst-add {
   margin-left: auto;
@@ -1706,8 +1712,8 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   padding: 0 0.7rem;
   border: 0;
   border-radius: 8px;
-  background: var(--brand);
-  color: #fff;
+  background: var(--chat-action);
+  color: white;
   font-size: 0.78rem;
   font-weight: 600;
   display: inline-flex;
@@ -1737,7 +1743,7 @@ body:has(dialog.privacy-center[open]) .asst-panel {
   align-items: center;
   gap: calc(12px * var(--tk));
   min-height: calc(44px * var(--tk));
-  color: #151515;
+  color: var(--print-ink);
 }
 .asst-think-badge {
   position: relative;
@@ -1784,7 +1790,7 @@ body:has(dialog.privacy-center[open]) .asst-panel {
 .asst-think-status {
   font-size: 12px;
   line-height: 12.5px;
-  color: #5e6461;
+  color: var(--muted);
   white-space: nowrap;
 }
 .asst-think-dots {
@@ -1872,3 +1878,19 @@ body:has(dialog.privacy-center[open]) .asst-panel {
     translate: 300% 0;
   }
 }
+
+/* The studio plum anchors the mascot and the primary chat action. */
+.asst-launcher .asst-fab {background:rgb(53 43 66 / 94%);border:1px solid #a894bc;border-radius:50%}
+
+.asst-panel .asst-send:enabled {background:var(--chat-action);color:white}
+.asst-panel .asst-send:enabled:hover {background:#43314f}
+.asst-panel .asst-send:enabled:active {background:#35253f}
+.asst-panel .asst-composer textarea {color:var(--print-ink);caret-color:currentColor}
+.asst-lang option, .asst-form :is(input,select,textarea), .asst-option {color:var(--print-ink);background-color:var(--surface)}
+.asst-option[aria-pressed="true"] {background:var(--print-store);color:var(--print-store-text)}
+.asst-panel :is(button,a,select,input):focus-visible {outline:2px solid var(--color-secondary-strong);outline-offset:2px}
+.asst-panel .asst-home:focus-visible {outline-color:white}
+.asst-round.is-on:hover:not(:disabled) {background:#92231c;color:white}
+.asst-clear:hover {color:light-dark(#922c27,#ffb6ae)}
+.asst-msg .asst-notice a {color:#53365f}
+.asst-msg.is-error a {color:#762d38}

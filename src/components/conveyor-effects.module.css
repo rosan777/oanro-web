@@ -27,14 +27,14 @@
   justify-content: center;
   gap: 1rem;
   padding: 1.6rem;
-  background: var(--brand);
-  color: var(--surface);
+  background: #513369;
+  color: #fff;
   transform: rotateY(180deg);
 }
 .back span {
   font-size: 0.75rem;
   letter-spacing: 0.2em;
-  color: #d9b56a; /* lighter gold: 4.7:1 on the green card (WCAG AA for small text) */
+  color: #f6dfab;
 }
 .back strong {
   font-size: 1.55rem;

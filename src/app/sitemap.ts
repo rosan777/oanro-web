@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getStoreCollections, getStoreProducts, getStoreServices } from "@/lib/store-products";
+import { getActiveCampaigns, getStoreCollections, getStoreProducts, getStoreServices } from "@/lib/store-products";
 import { getSiteConfig } from "@/lib/site-config";
 import { getSectionState } from "@/lib/website-sections";
 import { siteUrl } from "@/lib/site-url";
@@ -29,6 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .catch(() => []);
   const paths: [string, number][] = [
     ["/", 1],
+    ["/software", 0.8],
     ["/about", 0.6],
     ["/company-profile", 0.6],
     ["/guides", 0.6],
@@ -40,6 +41,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ["/terms", 0.3],
   ];
   if (config.products) {
+    paths.push(["/shop", 0.9]);
+    if ((await getSiteContent()).features.campaigns) {
+      for (const campaign of await getActiveCampaigns()) paths.push([`/campaigns/${campaign.slug}`, 0.7]);
+    }
     const [products, collections] = await Promise.all([getStoreProducts(), getStoreCollections()]);
     // Only sections that have products: empty ones are kept out of Google.
     for (const c of collections)
@@ -47,7 +52,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         paths.push([`/${c.slug}`, 0.8]);
     for (const p of products) paths.push([`/products/${p.slug}`, 0.7]);
   }
-  if (config.services && (await getSectionState()).services)
+  if (config.services && (await getSectionState()).services) {
+    paths.push(["/services", 0.9]);
     for (const s of await getStoreServices()) paths.push([`/services/${s.slug}`, 0.7]);
+  }
   return paths.flatMap(([path, priority]) => entry(path, priority));
 }

@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { AuthPanel } from "@/components/auth-panel";
 import { Localized } from "@/components/locale";
 import { authConfigured } from "@/lib/auth";
+export const metadata: Metadata = { robots: { index: false, follow: false } };
+
 /** Only same-site paths are allowed as the post-login destination (no open redirects). */
 const safeNext = (value: unknown) =>
   typeof value === "string" && /^\/(?![\/\\])[\w\-/]*$/.test(value) ? value : "/account";

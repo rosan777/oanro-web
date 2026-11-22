@@ -59,14 +59,14 @@ export default async function AboutPage() {
         <div>
           <h2>{t("The store", "স্টোর")}</h2>
           <p>{tx("aboutPage.store")}</p>
-          <Link href="/#products" className="text-link">
+          <Link href="/shop" className="text-link">
             {t("Browse the store →", "স্টোর দেখুন →")}
           </Link>
         </div>
         <div>
           <h2>{t("The studio", "স্টুডিও")}</h2>
           <p>{tx("aboutPage.studio")}</p>
-          <Link href="/#studio" className="text-link">
+          <Link href="/services" className="text-link">
             {t("Meet OANRO Studio →", "OANRO স্টুডিও দেখুন →")}
           </Link>
         </div>

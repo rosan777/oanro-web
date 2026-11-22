@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>OANRO · Service walkthrough</title>
+<style>
+  * { box-sizing:border-box }
+  body { --sheet:#f7f7f2;--ink:#202a30;margin:0;background:var(--sheet);color:var(--ink);font:16px/1.45 "Avenir Next",system-ui,sans-serif }
+  body.dark {--sheet:#1f2024;--ink:#f6f5f0}
+  main { position:relative;padding:10px }
+  canvas {
+    display:block;width:100%;height:calc(100dvh - 76px);min-height:130px;
+    background:repeating-linear-gradient(30deg,transparent 0 24px,color-mix(in srgb,var(--ink) 9%, transparent) 25px),
+      repeating-linear-gradient(-30deg,transparent 0 24px,color-mix(in srgb,var(--ink) 9%, transparent) 25px),
+      radial-gradient(ellipse at bottom,#8eaaa640,var(--sheet) 72%);
+    border:1px solid color-mix(in srgb,var(--ink) 20%, transparent);border-radius:16px;cursor:grab;touch-action:none
+  }
+  canvas:active {cursor:grabbing}
+  #rotate {
+    position:absolute;right:20px;top:20px;min-height:36px;padding:0 10px;
+    border:1px solid color-mix(in srgb,var(--ink) 26%, transparent);border-radius:999px;color:var(--ink);
+    background:var(--sheet);font:700 13px/1 system-ui;cursor:pointer
+  }
+  #rotate:focus-visible {outline:3px solid #e3c9fb;outline-offset:2px}
+  canvas:focus-visible {outline:2px solid #a384c6;outline-offset:2px}
+  #part-label {position:absolute;left:20px;bottom:75px;max-width:80%;background:#1f282e;color:#fff;border-left:2px solid #a3d8be;padding:4px 8px;font-size:.8rem;pointer-events:none}
+  .sr-only {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  #note {margin:8px 0 0;font-size:.8rem;line-height:1.4}
+</style>
+</head>
+<body>
+<main>
+  <canvas id="model" role="img"></canvas>
+  <button id="rotate" type="button" hidden></button>
+  <span id="part-label" hidden role="status"></span>
+  <p id="orbit-help" class="sr-only"></p>
+  <p id="note"></p>
+</main>
+<script type="module" src="service.js"></script>
+</body>
+</html>
