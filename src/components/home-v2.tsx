@@ -5,6 +5,7 @@
 
 import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import Image from "next/image";
+import ServiceModel from "./service-model";
 import { useMotion } from "./experience";
 import { ArrowUpRight } from "lucide-react";
 import Link from "@/components/locale-link";
@@ -123,7 +124,7 @@ export function ShopTabs({ showServices, chips }: { showServices: boolean; chips
               {t(`See all ${name(single).toLowerCase()}`, `সব ${name(single)} দেখুন`)} →
             </Link>
           ) : isTech ? (
-            <Link href="/#studio" className="v2-link">
+            <Link href="/services" className="v2-link">
               {t("About OANRO Studio", "OANRO স্টুডিও সম্পর্কে")} →
             </Link>
           ) : null}
@@ -558,13 +559,14 @@ export function StudioTerminal() {
           <p className="v2-lede">{studioLede}</p>
         </div>
         <div className="v2-studio-services">
-          <ul className="v2-service-rows">
+          <ul className="v2-service-rows service-model-cards">
             {services.map(s => (
               <li key={s.slug}>
                 <Link href={`/services/${s.slug}`}>
                   {bn && s.bn ? s.bn.title : s.title}
                   <span>{t("Get a quote", "কোট নিন")} →</span>
                 </Link>
+                <ServiceModel slug={s.slug} bn={bn} compact />
               </li>
             ))}
           </ul>
@@ -882,7 +884,7 @@ export function WhyBento({ rules, services }: { rules: CheckoutRules; services: 
           </p>
         </div>
         {services && (
-          <Link href="/#studio" className="v2-tile v2-tile-wide v2-tile-dark v2-tile-link">
+          <Link href="/services" className="v2-tile v2-tile-wide v2-tile-dark v2-tile-link">
             <span className="v2-tile-label">OANRO Studio</span>
             <p>
               {t(

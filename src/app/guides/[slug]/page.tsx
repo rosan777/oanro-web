@@ -61,7 +61,7 @@ export default async function GuidePage({ params }: Props) {
         <Link href="/guides" className="button light-button">
           {bn ? "আরও গাইড" : "More guides"}
         </Link>
-        <Link href="/#products" className="button brand-button">
+        <Link href="/shop" className="button brand-button">
           {bn ? "স্টোর দেখুন" : "Browse the store"}
         </Link>
       </div>

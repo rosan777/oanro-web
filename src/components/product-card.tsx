@@ -6,7 +6,7 @@
 // at checkout.
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, Check, Eye, Heart, Plus, ShoppingBag, X } from "lucide-react";
+import { ArrowUpRight, Check, Eye, Heart, Columns2, ShoppingBag, X } from "lucide-react";
 import Link from "./locale-link";
 import { PriceTag, ProductPhoto } from "./shell";
 import { useLocale } from "./locale";
@@ -104,7 +104,7 @@ export function ProductCard({ product, label }: { product: Product; label?: stri
           {compared ? (
             <Check size={14} aria-hidden="true" />
           ) : (
-            <Plus size={14} aria-hidden="true" />
+            <Columns2 size={14} aria-hidden="true" />
           )}{" "}
           {t("Compare", "তুলনা")}
           <span className="o-sr"> – {name}</span>

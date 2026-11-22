@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en" data-theme="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="An interactive OANRO IT Services architecture study following a durable web application request.">
+<title>Inside a Request | OANRO IT Services</title>
+<style>
+:root{color-scheme:light;--paper:#f4f3ee;--panel:#fdfcf8;--ink:#191923;--mute:#575763;--line:#d5d3ce;--brand:#4e30ae;--tile:#ece6fa;--active:#d9cbfa;--scene:#141422;--sceneink:#f1edff;--scenemute:#b9b2ce;--rule:#39344c;--lime:#dcfa91;--mono:ui-monospace,SFMono-Regular,Consolas,monospace;--sans:"Avenir Next","Noto Sans Bengali","Kohinoor Bangla",system-ui,sans-serif}
+html[data-theme=dark]{color-scheme:dark;--paper:#13121b;--panel:#1d1b29;--ink:#f4f0ff;--mute:#b9b3c8;--line:#403a4e;--brand:#d1bdff;--tile:#292238;--active:#3b2c57;--scene:#0e0d18;--rule:#423954}
+@media(prefers-color-scheme:dark){html[data-theme=system]{color-scheme:dark;--paper:#13121b;--panel:#1d1b29;--ink:#f4f0ff;--mute:#b9b3c8;--line:#403a4e;--brand:#d1bdff;--tile:#292238;--active:#3b2c57;--scene:#0e0d18;--rule:#423954}}
+*{box-sizing:border-box} [hidden]{display:none!important} body{margin:0;background:var(--paper);color:var(--ink);font:500 15px/1.55 var(--sans)} button,select,input{font:inherit} button,select{cursor:pointer} button:disabled{cursor:default;opacity:.65} button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #a885ff;outline-offset:3px} .skip{position:absolute;left:1rem;top:-5rem;background:var(--panel);color:var(--ink);padding:.8rem;z-index:8}.skip:focus{top:1rem}
+header{border-bottom:1px solid var(--line)} .wrap{max-width:1440px;margin:auto;padding-inline:clamp(16px,4vw,64px)} .top{min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:22px;letter-spacing:-.08em}.mark{width:22px;height:22px;display:grid;place-items:center;transform:rotate(45deg);border:2px solid currentColor;border-radius:4px}.mark:after{content:'';width:8px;height:8px;background:var(--brand);border-radius:1px}.division{font:600 11px var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--mute);padding-left:13px;border-left:1px solid var(--line);margin-left:4px}.prefs{display:flex;gap:8px;flex-wrap:wrap;justify-content:end}.prefs select{max-width:165px;min-height:40px;background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:5px 7px}
+.intro{padding-block:clamp(26px,4.5vw,65px) clamp(20px,2.6vw,36px);display:grid;grid-template-columns:1fr minmax(240px,340px);gap:20px;align-items:end}.eyebrow,.micro,.count,.mode{font:600 11px/1.45 var(--mono);letter-spacing:.10em;text-transform:uppercase}.eyebrow{color:var(--brand);margin:0 0 9px}.intro h1{font-size:clamp(42px,6.7vw,105px);font-weight:700;letter-spacing:-.065em;line-height:.98;margin:0}.intro p:last-child{color:var(--mute);margin:0 0 2px;font-size:clamp(15px,1.5vw,19px);max-width:32ch}
+.workbench{display:grid;grid-template-columns:minmax(0,2.12fr) minmax(280px,1fr);border-radius:16px;border:1px solid var(--line);overflow:hidden;background:var(--panel)} .scene{isolation:isolate;position:relative;min-width:0;min-height:clamp(460px,43vw,640px);background:radial-gradient(ellipse at 53% 47%,#252039 0%,var(--scene) 63%);color:var(--sceneink);border-right:1px solid var(--line);overflow:hidden}.scene canvas{position:absolute;width:100%;height:100%;inset:0;touch-action:pan-y}.scene-head,.scene-foot{position:absolute;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:8px;left:19px;right:19px;pointer-events:none}.scene-head{top:16px}.scene-foot{bottom:15px;align-items:end}.scene-head .micro{color:var(--scenemute)}.mode{color:var(--lime);letter-spacing:.04em;font-size:10px;text-align:right}.legend{display:flex;align-items:center;gap:8px;color:var(--sceneink);font:500 11px var(--mono)}.legend:before{content:'';border-radius:100%;width:8px;height:8px;background:var(--lime);box-shadow:0 0 10px #c5ed6970}.view-tools{display:flex;gap:4px;pointer-events:auto}.view-tools button{background:#201a31e8;border:1px solid #575068;color:var(--sceneink);border-radius:5px;min-width:36px;min-height:36px;font:600 15px var(--mono)} .view-tools button:last-child{padding:0 8px;font-size:11px}
+.tags{position:absolute;inset:0;pointer-events:none;z-index:1}.tag{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:auto;background:#171323ee;color:var(--sceneink);border:1px solid #655784;border-radius:4px;padding:5px 7px;font:600 10px/1.2 var(--mono);min-height:31px;box-shadow:0 3px 12px #100a1a65}.tag[aria-pressed=true]{border-color:var(--lime);color:#1c2115;background:var(--lime)}
+.side{padding:clamp(19px,2.5vw,36px);min-width:0;display:flex;flex-direction:column;gap:19px}.side h2{font-size:clamp(25px,3.15vw,43px);letter-spacing:-.068em;line-height:1.03;margin:5px 0 9px}.side p{margin:0;color:var(--mute)} .micro,.count{color:var(--brand)} .trace{border:1px solid var(--line);background:var(--tile);border-radius:7px;overflow:hidden}.trace div{padding:8px 10px;display:grid;grid-template-columns:82px 1fr;gap:6px;align-items:start}.trace div+div{border-top:1px solid var(--line)}.trace dt{color:var(--mute);font-size:12px}.trace dd{margin:0;font:600 12px/1.45 var(--mono);overflow-wrap:anywhere}.inspect{border-top:1px solid var(--line);padding-top:12px}.inspect h3{margin:2px 0 3px;font-size:17px;letter-spacing:-.025em}.inspect p{font-size:13px}.scenario{margin-top:auto;display:grid;gap:6px;color:var(--mute);font-size:12px}.scenario select{min-height:40px;width:100%;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:5px;padding:5px 8px}
+.sequence{padding:16px 0 36px}.transport{display:flex;align-items:center;gap:8px;margin-bottom:11px}.transport button,.step{border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);min-height:43px}.transport button{padding:0 10px;flex-shrink:0}.transport #play{background:var(--ink);color:var(--panel);border-color:var(--ink);min-width:91px}.transport input{flex:1;min-width:50px;accent-color:var(--brand);cursor:pointer}.transport .count{margin-left:4px;white-space:nowrap}.steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}.step{text-align:left;padding:9px 12px;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:8px;font-size:13px;font-weight:700}.step span:first-child{font:600 11px var(--mono);color:var(--brand)}.step[aria-current=step]{background:var(--active);border-color:var(--brand)}
+details{border-top:1px solid var(--line);padding:13px 0 20px;color:var(--mute)}details summary{cursor:pointer;color:var(--ink);font-weight:700;min-height:30px}.component-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.component-list button{border:1px solid var(--line);border-radius:5px;min-height:42px;background:var(--panel);color:var(--ink);padding:4px 10px}.component-list button[aria-pressed=true]{background:var(--active);border-color:var(--brand)}.detail-copy{min-height:3em;margin:8px 0 0}.note{color:var(--mute);font-size:12px;padding-bottom:22px;margin:0}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+html[lang=bn] .intro h1,html[lang=bn] .side h2{letter-spacing:-.045em;line-height:1.18}
+@media(max-width:920px){.intro{grid-template-columns:1fr 285px}.workbench{grid-template-columns:minmax(0,1.6fr) minmax(255px,1fr)}.side{padding:19px}.step{padding:8px;gap:5px}}
+@media(max-width:700px){.intro,.workbench{grid-template-columns:1fr}.intro{gap:12px}.intro p:last-child{max-width:45ch}.scene{border-right:0;border-bottom:1px solid var(--line);min-height:clamp(335px,79vw,520px)}.side{gap:12px}.steps{grid-template-columns:repeat(3,minmax(0,1fr))}.prefs select{font-size:12px;min-height:36px}.division{display:none}.top{min-height:57px}.scene-head,.scene-foot{left:9px;right:9px}.scene-foot{bottom:9px}.scene-head{top:11px}.tag{font-size:9px;padding:3px 4px;min-height:26px}.view-tools button{min-width:32px;min-height:34px}.transport #play{min-width:69px}.transport button{padding-inline:7px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important}}
+@media(max-width:520px){.transport{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.transport input{grid-column:1/3;width:100%}.transport .count{text-align:right}.prefs{gap:4px}.prefs select{max-width:122px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main" data-i="skip">Skip to main content</a>
+<header><div class="wrap top"><div class="brand"><span class="mark" aria-hidden="true"></span>OANRO <span class="division" data-i="division">IT Services</span></div>
+<div class="prefs">
+<label><span class="sr" data-i="language">Language</span><select id="lang"><option value="en">English</option><option value="bn" lang="bn">বাংলা</option></select></label>
+<label><span class="sr" data-i="theme">Theme</span><select id="theme"><option value="system" data-i="system">System</option><option value="light" data-i="light">Light</option><option value="dark" data-i="dark">Dark</option></select></label>
+<label><span class="sr" data-i="motion">Motion</span><select id="motion"><option value="system" data-i="motionSystem">Motion: system</option><option value="reduced" data-i="motionReduced">Reduced motion</option></select></label>
+</div></div></header>
+<main id="main" class="wrap">
+<section class="intro" aria-labelledby="title"><div><p class="eyebrow" data-i="study">OANRO IT Services / Architecture study</p><h1 id="title" data-i="title">Inside a request.</h1></div><p data-i="intro">Follow a booking request from the browser to durable storage, then see how the system recovers when a worker retries.</p></section>
+<section class="workbench" aria-label="Request architecture">
+<div class="scene" id="scene"><canvas id="world" aria-hidden="true"></canvas><canvas id="fallback" aria-hidden="true" hidden></canvas>
+<div class="scene-head"><span class="micro" data-i="map">Request path</span><span class="mode" id="render-mode"></span></div><div class="tags" id="tags"></div>
+<div class="scene-foot"><span class="legend" id="signal-label">Active route</span><div class="view-tools"><button id="left" type="button">↶</button><button id="right" type="button">↷</button><button id="zoomout" type="button">−</button><button id="zoomin" type="button">+</button><button id="reset" type="button" data-i="reset">Reset view</button></div></div>
+</div>
+<aside class="side" aria-labelledby="stage-title">
+<div><div class="count" id="stage-count"></div><h2 id="stage-title">Send the request</h2><p id="stage-copy">The browser sends the selected slot and keeps a stable request key for retries.</p></div>
+<dl class="trace"><div><dt data-i="operation">Operation</dt><dd id="operation">POST /bookings</dd></div><div><dt data-i="boundary">Boundary</dt><dd id="boundary">Browser → Edge</dd></div><div><dt data-i="outcome">Outcome</dt><dd id="outcome">Request received</dd></div></dl>
+<div class="inspect"><div class="micro" data-i="selected">Selected component</div><h3 id="component-title">Browser</h3><p id="component-copy"></p></div>
+<label class="scenario" for="scenario"><span data-i="scenario">Run scenario</span><select id="scenario"><option value="normal" data-i="normal">Normal delivery</option><option value="retry" data-i="retry">Worker retries after a timeout</option></select></label>
+</aside></section>
+<section class="sequence" aria-label="Request stages"><div class="transport"><button type="button" id="play">▶ Play</button><button type="button" id="prev" data-i="prev">Previous</button><button type="button" id="next" data-i="next">Next</button><label for="timeline" class="sr" data-i="timeline">Request timeline</label><input id="timeline" type="range" min="0" max="5" step="0.01" value="0"><span class="count" id="position">01 / 06</span></div><div class="steps" id="steps"></div></section>
+<details><summary data-i="components">Explore components by name</summary><div class="component-list" id="component-list"></div><p class="detail-copy" id="component-summary"></p></details>
+<p class="note" data-i="note">Conceptual booking system. Requests, records, and retries are simulated.</p>
+<div id="announcement" class="sr" role="status" aria-live="polite"></div><noscript><p>This study follows a booking through the browser, edge, service, database, queue, and worker. JavaScript enables the architecture and timeline controls.</p></noscript>
+</main>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const terms = {
+ skip:["Skip to main content","মূল বিষয়বস্তুতে যান"],division:["IT Services","আইটি সেবা"],language:["Language","ভাষা"],theme:["Theme","থিম"],motion:["Motion","গতি"],system:["System","সিস্টেম"],light:["Light","হালকা"],dark:["Dark","গাঢ়"],motionSystem:["Motion: system","গতি: সিস্টেম"],motionReduced:["Reduced motion","কম গতি"],
+ study:["OANRO IT Services / Architecture study","OANRO আইটি সেবা / আর্কিটেকচার"],title:["Inside a request.","একটি অনুরোধের ভেতর।"],intro:["Follow a booking request from the browser to durable storage, then see how the system recovers when a worker retries.","ব্রাউজার থেকে স্থায়ী স্টোরেজ পর্যন্ত একটি বুকিং অনুসরণ করুন। তারপর দেখুন, ওয়ার্কার আবার চেষ্টা করলে সিস্টেম কীভাবে সামলে নেয়।"],
+ map:["Request path","অনুরোধের পথ"],route:["Active route","সক্রিয় পথ"],reset:["Reset view","দৃশ্য রিসেট"],left:["Rotate left","বামে ঘোরান"],right:["Rotate right","ডানে ঘোরান"],zoomout:["Zoom out","ছোট করুন"],zoomin:["Zoom in","বড় করুন"],operation:["Operation","কাজ"],boundary:["Boundary","সংযোগ"],outcome:["Outcome","ফল"],selected:["Selected component","নির্বাচিত অংশ"],scenario:["Run scenario","পরিস্থিতি"],normal:["Normal delivery","স্বাভাবিক ডেলিভারি"],retry:["Worker retries after a timeout","সময়সীমা পেরিয়ে ওয়ার্কার আবার চেষ্টা করে"],
+ prev:["Previous","আগের ধাপ"],next:["Next","পরের ধাপ"],timeline:["Request timeline","অনুরোধের সময়রেখা"],play:["▶ Play","▶ চালান"],pause:["Ⅱ Pause","Ⅱ বিরতি"],replay:["↻ Replay","↻ আবার চালান"],components:["Explore components by name","নাম ধরে অংশগুলো দেখুন"],note:["Conceptual booking system. Requests, records, and retries are simulated.","এটি একটি বুকিং সিস্টেমের ধারণা। অনুরোধ, রেকর্ড ও পুনঃচেষ্টা সিমুলেটেড।"],flat:["CANVAS VIEW","ক্যানভাস দৃশ্য"],restoring:["RESTORING 3D","৩ডি পুনরুদ্ধার হচ্ছে"],gl:["LIVE 3D · WEBGL","লাইভ ৩ডি · WEBGL"]
+};
+const modules = [
+ {name:["Browser","ব্রাউজার"],xyz:[-3.25,.55,.62],label:[-.38,.76,0],color:[.50,.36,.91],copy:["Creates one idempotency key per booking intent. After a network interruption the same intent reuses that key.","প্রতিটি বুকিংয়ের জন্য একটি অনন্য কী তৈরি করে। সংযোগ বিচ্ছিন্ন হলে একই বুকিংয়ের জন্য সেই কী আবার পাঠায়।"]},
+ {name:["Edge","এজ"],xyz:[-.98,2.02,.05],label:[-.08,.65,0],color:[.65,.47,1],copy:["Checks the session and rate limit, attaches a trace ID, and forwards the request with its idempotency key.","সেশন ও রেট সীমা যাচাই করে, ট্রেস আইডি যোগ করে এবং অনুরোধটি তার কীসহ পাঠায়।"]},
+ {name:["Service","সার্ভিস"],xyz:[-.29,1.08,.02],label:[.07,.5,1.02],color:[.50,.36,.88],copy:["Checks slot availability in the transaction. A unique booking constraint guards against concurrent reservations.","লেনদেনের মধ্যে স্লটের প্রাপ্যতা যাচাই করে। ইউনিক বুকিং নিয়ম একই সময়ে দুটি সংরক্ষণ ঠেকায়।"]},
+ {name:["Database","ডেটাবেস"],xyz:[.44,.02,.04],label:[-.28,.30,1.18],color:[.37,.59,.95],copy:["Commits the booking and an outbox event in a single transaction. It also holds the request key and delivery ledger.","একই লেনদেনে বুকিং ও আউটবক্স ইভেন্ট সংরক্ষণ করে। অনুরোধের কী এবং ডেলিভারি রেকর্ডও এখানে থাকে।"]},
+ {name:["Queue","কিউ"],xyz:[2.80,.67,-.48],label:[.35,.56,0],color:[.66,.45,.96],copy:["Accepts the outbox event, delivers at least once, and can hand it out again when the acknowledgment is late.","আউটবক্স ইভেন্ট গ্রহণ করে এবং অন্তত একবার পাঠায়। স্বীকৃতি দেরি হলে ইভেন্টটি আবার দিতে পারে।"]},
+ {name:["Worker","ওয়ার্কার"],xyz:[3.42,-.12,1.22],label:[.18,.30,.73],color:[.70,.57,.96],copy:["Uses the event ID as the delivery key. A completed ledger entry lets a redelivered event be acknowledged without repeating its recorded effect.","ইভেন্ট আইডি ডেলিভারি কী হিসেবে ব্যবহার করে। সম্পন্ন হওয়ার রেকর্ড থাকলে আবার কাজ না করেই পুনরায় আসা ইভেন্টের স্বীকৃতি দেয়।"]}
+];
+const stages = [
+ {short:["Request","অনুরোধ"],title:["Send the request.","অনুরোধ পাঠান।"],copy:["The browser sends the selected slot and a stable request key. A repeat submission carries the same key.","ব্রাউজার নির্বাচিত স্লট ও একটি স্থায়ী অনুরোধ কী পাঠায়। আবার পাঠালে একই কী ব্যবহার হয়।"],op:"POST /bookings",route:[0,1],focus:0,result:["Request received at the edge","এজ অনুরোধ পেয়েছে"]},
+ {short:["Authorize","অনুমোদন"],title:["Check the boundary.","প্রবেশের শর্ত যাচাই।"],copy:["The edge verifies the session and applies a rate limit. The trace ID follows the accepted request to the booking service.","এজ সেশন যাচাই করে এবং রেট সীমা প্রয়োগ করে। অনুমোদিত অনুরোধের সঙ্গে ট্রেস আইডি বুকিং সার্ভিসে যায়।"],op:"session.verify → trace.attach",route:[1,2],focus:1,result:["Request admitted","প্রবেশের অনুমতি মিলেছে"]},
+ {short:["Commit","সংরক্ষণ"],title:["Commit once.","একবারই সংরক্ষণ।"],copy:["The service checks availability. The booking and outbox event commit together, or both roll back. The same request key returns the saved booking.","সার্ভিস স্লট যাচাই করে। বুকিং ও আউটবক্স ইভেন্ট একসঙ্গে সংরক্ষিত হয় অথবা দুটিই বাতিল হয়। একই কী সংরক্ষিত বুকিং ফেরত দেয়।"],op:"BEGIN → booking + outbox → COMMIT",route:[2,3],focus:3,result:["Booking and event saved","বুকিং ও ইভেন্ট সংরক্ষিত"]},
+ {short:["Respond","উত্তর"],title:["Return the booking.","বুকিং ফেরত দিন।"],copy:["The service returns the committed confirmation through the edge. The browser shows the booking without waiting for a notification.","সার্ভিস এজের মাধ্যমে সংরক্ষিত বুকিংয়ের নিশ্চিতকরণ পাঠায়। ব্রাউজার নোটিফিকেশনের অপেক্ষা ছাড়াই বুকিং দেখায়।"],op:"201 Created · booking B-041",route:[3,2,1,0],focus:0,result:["Confirmation visible to the user","ব্যবহারকারী নিশ্চিতকরণ দেখছেন"]},
+ {short:["Dispatch","ইভেন্ট পাঠান"],title:["Dispatch the event.","ইভেন্টটি পাঠান।"],copy:["An outbox relay publishes the saved event. The queue can redeliver it, so the event ID stays stable across attempts.","আউটবক্স রিলে সংরক্ষিত ইভেন্ট পাঠায়। কিউ আবার পাঠাতে পারে, তাই সব চেষ্টায় ইভেন্ট আইডি একই থাকে।"],op:"outbox.relay → booking.created",route:[3,4,5],focus:4,result:["Event delivered at least once","ইভেন্ট অন্তত একবার পৌঁছেছে"]},
+ {short:["Deliver","ডেলিভারি"],title:["Deliver with a receipt.","রেকর্ড রেখে ডেলিভারি।"],copy:["The worker sends confirmation using the event ID as the provider’s idempotency key, records completion, then acknowledges the queue message.","ওয়ার্কার প্রদানকারীর পুনরাবৃত্তি ঠেকানোর কী হিসেবে ইভেন্ট আইডি ব্যবহার করে। কাজের রেকর্ড রেখে কিউকে স্বীকৃতি দেয়।"],op:"notify(evt-041) → ledger.write → ACK",route:[5,3,5,4],focus:5,result:["Notification recorded and acknowledged","নোটিফিকেশন রেকর্ড ও স্বীকৃত হয়েছে"],
+  retry:{title:["Recover after timeout.","সময়সীমা পেরিয়ে পুনরুদ্ধার।"],copy:["The send and ledger write succeeded, but the acknowledgment timed out. The queue redelivers. The worker finds the completed ledger entry and acknowledges without resending.","পাঠানো ও রেকর্ড লেখা সফল হলেও স্বীকৃতির সময়সীমা পেরিয়েছে। কিউ আবার পাঠায়। ওয়ার্কার সম্পন্ন রেকর্ড দেখে দ্বিতীয়বার না পাঠিয়ে স্বীকৃতি দেয়।"],op:"redeliver(evt-041) → ledger.hit → ACK",route:[4,5,3,5,4],result:["Duplicate send avoided","দ্বিতীয়বার পাঠানো এড়ানো হয়েছে"]}}
+];
+let lang=Number(new URLSearchParams(location.search).get("lang")==="bn"), index=0, progress=0, selected=0, playing=false, retry=false;
+const preference=matchMedia("(prefers-reduced-motion: reduce)");
+const reduced=()=> preference.matches || $("motion").value==="reduced";
+const word=key=>terms[key][lang];
+const local=pair=>pair[lang];
+const liveStage=()=>retry && stages[index].retry ? {...stages[index],...stages[index].retry} : stages[index];
+const camera={yaw:-.56,pitch:.54,zoom:1};
+const reset=()=>{Object.assign(camera,{yaw:-.56,pitch:.54,zoom:1});invalidate()};
+function controls(){
+ $("play").textContent=word(playing?"pause":index===5&&stageTime>=3200?"replay":"play");
+ $("play").disabled=reduced();
+ $("prev").disabled=index===0;
+ $("next").disabled=index===5;
+ $("timeline").value=progress;
+ $("timeline").setAttribute("aria-valuetext",local(stages[index].short));
+}
+function setComponent(id){
+ selected=id;
+ const part=modules[id];
+ $("component-title").textContent=local(part.name);
+ $("component-copy").textContent=local(part.copy);
+ $("component-summary").textContent=local(part.copy);
+ document.querySelectorAll("[data-part]").forEach(button=>button.setAttribute("aria-pressed",String(+button.dataset.part===id)));
+ invalidate();
+}
+function renderInfo(announce=false){
+ const step=liveStage(), number=String(index+1).padStart(2,"0") + " / 06";
+ $("stage-title").textContent=local(step.title);
+ $("stage-copy").textContent=local(step.copy);
+ $("stage-count").textContent=number;
+ $("position").textContent=number;
+ $("operation").textContent=step.op;
+ $("boundary").textContent=step.route.map(i=>local(modules[i].name)).join(" → ");
+ $("outcome").textContent=local(step.result);
+ $("steps").querySelectorAll("button").forEach((button,i)=>i===index?button.setAttribute("aria-current","step"):button.removeAttribute("aria-current"));
+ if(announce) $("announcement").textContent=number+" · "+local(step.title)+" "+local(step.result);
+ controls();
+}
+function jump(value,announce=true){
+ progress=Math.max(0,Math.min(5,value));
+ const next=Math.floor(progress+1e-6);
+ if(next!==index) {
+   index=next;
+   setComponent(stages[index].focus);
+   renderInfo(announce);
+ } else controls();
+ invalidate();
+}
+function localize(){
+ document.documentElement.lang=lang?"bn":"en";
+ document.title=lang?"একটি অনুরোধের ভেতর | OANRO আইটি সেবা":"Inside a Request | OANRO IT Services";
+ document.querySelectorAll("[data-i]").forEach(node=>node.textContent=word(node.dataset.i));
+ for(const id of ["left","right","zoomout","zoomin"]) $(id).setAttribute("aria-label",word(id));
+ $("signal-label").textContent=word("route");
+ document.querySelectorAll("[data-part]").forEach(button=>button.textContent=local(modules[+button.dataset.part].name));
+ $("steps").querySelectorAll("button").forEach((button,i)=>button.lastElementChild.textContent=local(stages[i].short));
+ reportRenderer();
+ setComponent(selected);
+ renderInfo();
+}
+function button(text,fn,parent){
+ const b=document.createElement("button"); b.type="button"; b.textContent=text; b.addEventListener("click",fn); parent.append(b); return b;
+}
+const canvas=$("world"), flat=$("fallback"), ctx=flat.getContext("2d");
+let gl,program,buffer;
+function startGL(){
+ try{
+ gl=canvas.getContext("webgl",{alpha:true,antialias:true});
+ if(!gl)throw Error("context unavailable");
+ const shader=(type,src)=>{const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s};
+ program=gl.createProgram();
+ gl.attachShader(program,shader(gl.VERTEX_SHADER,"attribute vec3 p;attribute vec3 c;varying vec3 col;void main(){col=c;gl_Position=vec4(p,1.);}"));
+ gl.attachShader(program,shader(gl.FRAGMENT_SHADER,"precision mediump float;varying vec3 col;void main(){gl_FragColor=vec4(col,1.);}"));
+ gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error("link");
+ gl.useProgram(program);buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+ for(const [attr,size,offset] of [["p",3,0],["c",3,12]]){const loc=gl.getAttribLocation(program,attr);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,24,offset)}
+ }catch{gl=null}
+ canvas.hidden=!gl;flat.hidden=!!gl;
+}
+function reportRenderer(){$("render-mode").textContent=word(gl?"gl":"flat")}
+startGL();
+canvas.addEventListener("webglcontextlost",e=>{e.preventDefault();gl=null;canvas.hidden=true;flat.hidden=false;reportRenderer();invalidate()});
+canvas.addEventListener("webglcontextrestored",()=>{startGL();reportRenderer();invalidate()});
+const metal="#685f81", ink="#292638", violet="#9e81ed", silver="#b3afc5", lime="#cff881", cool="#9dbef3";
+const faces=[],add=(a,b)=>a.map((x,i)=>x+b[i]);
+let origin=[0,0,0],group=-1;
+function face(points,color,shade=1){
+ const rgb=[1,3,5].map(i=>Math.min(1,parseInt(color.slice(i,i+2),16)/255*shade));
+ faces.push({points:points.map(p=>add(p,origin)),rgb,group});
+}
+function prism(x,y,z,w,d,h,color,cut=.08){
+ const a=w/2,b=d/2,k=Math.min(a/2,b/2,cut);
+ const ring=[[-a+k,-b],[a-k,-b],[a,-b+k],[a,b-k],[a-k,b],[-a+k,b],[-a,b-k],[-a,-b+k]];
+ const low=ring.map(([u,v])=>[x+u,y,z+v]),high=low.map(([u,v,t])=>[u,v+h,t]);
+ face(high,color);for(let i=0;i<8;i++){const j=(i+1)%8;face([low[i],low[j],high[j],high[i]],color,[.63,.70,.77,.81,.73,.64,.52,.56][i])}
+}
+function disk(x,y,z,r,h,color,n=32){
+ const lo=Array.from({length:n},(_,i)=>[x+r*Math.cos(i*2*Math.PI/n),y,z+r*Math.sin(i*2*Math.PI/n)]),hi=lo.map(([u,v,t])=>[u,v+h,t]);
+ face(hi,color);lo.forEach((p,i)=>{const j=(i+1)%n;face([p,lo[j],hi[j],hi[i]],color,.63+.18*Math.cos(i*2*Math.PI/n))})
+}
+prism(0,-.88,0,9.6,4.55,.18,"#393347",.4);
+for(let x=-4.5;x<=4.5;x+=.4)prism(x,-.695,0,.012,4.12,.005,"#50495c");
+for(let z=-2;z<=2;z+=.4)prism(0,-.691,z,9.16,.012,.005,"#50495c");
+modules.forEach((m,id)=>{
+ origin=m.xyz;group=id;
+ if(id===0){ // Client terminal: framed display, content rows, and keyed deck.
+ prism(0,0,0,1.5,1,.1,silver);
+ prism(0,.1,-.32,1.44,.11,.88,metal);
+ prism(0,.17,-.246,1.25,.045,.67,"#262137");
+ for(let i=0;i<5;i++)prism(-.21+i%2*.08,.28+i*.095,-.212,.52+(i%3)*.12,.016,.025,i===4?lime:violet);
+ for(let i=0;i<7;i++)for(let j=0;j<3;j++)prism((i-3)*.14,.11,.02+j*.12,.11,.085,.024,ink);
+ }else if(id===3){for(let i=0;i<4;i++){disk(0,i*.17,0,.85,.11,i===3?cool:metal);disk(0,i*.17+.11,0,.76,.035,"#657baf")}disk(0,.63,0,.47,.04,"#7794bf");disk(0,.676,0,.18,.024,silver)}
+ else if(id===4){prism(0,0,0,1.65,.99,.16,metal);for(let i=0;i<5;i++){prism((i-2)*.245,.15,0,.15,.84,.52,i===0?lime:violet);prism((i-2)*.245,.68,0,.095,.6,.025,silver)}}
+ else{prism(0,0,0,1.9,1.22,.17,metal);prism(0,.18,0,1.72,1.04,.075,id===5?"#54877f":"#645591");
+ for(let j=0;j<2;j++)for(let i=0;i<6;i++){prism((i-2.5)*.21,.26,(j-.5)*.42,.145,.26,.09,ink);prism((i-2.5)*.21,.36,(j-.5)*.42,.10,.17,.02,silver)}
+ for(let i=0;i<8;i++)prism((i-3.5)*.10,.27,0,.053,.67,.28,id===5?cool:violet);
+ for(let i=0;i<3;i++)prism(-.62+i*.22,.05,.618,.10,.026,.045,i===0?lime:silver)}
+});
+let frame=0,last=0,stageTime=0;
+function invalidate(){if(!frame)frame=requestAnimationFrame(draw)}
+const tint=rgb=>"rgb("+rgb.map(c=>Math.round(c*255)).join(",")+")";
+function draw(time){
+ frame=0;
+ if(playing){
+ const elapsed=last?Math.min(100,time-last):0;stageTime+=elapsed;
+ if(stageTime>=3200){if(index===5){playing=false;stageTime=3200;controls()}else{stageTime=0;jump(index+1)}}
+ if(playing&&index<5){progress=index+stageTime/3200;controls()}
+ }
+ last=time;
+ const w=$("scene").clientWidth,h=$("scene").clientHeight,dpr=Math.min(devicePixelRatio||1,2);
+ const target=gl?canvas:flat;if(target.width!==Math.round(w*dpr)||target.height!==Math.round(h*dpr)){target.width=Math.round(w*dpr);target.height=Math.round(h*dpr)}
+ const scale=Math.min(w/10.8,h/6.6)*camera.zoom,cy=Math.cos(camera.yaw),sy=Math.sin(camera.yaw),cp=Math.cos(camera.pitch),sp=Math.sin(camera.pitch);
+ const project=([x,y,z])=>{const depth=-x*sy+z*cy;return [w*.5+(x*cy+z*sy)*scale,h*.55+(-y*cp+depth*sp)*scale,depth*cp+y*sp]};
+ const polygons=[];
+ function poly(points,rgb){polygons.push({points,rgb,z:points.reduce((v,p)=>v+p[2],0)/points.length})}
+ const fraction=playing?Math.min(1,stageTime/3200):progress-index;
+ const lift=reduced()?0:Math.sin(Math.PI*fraction)**2;
+ for(const f of faces){
+   const part=f.group;
+   const active=part===stages[index].focus;
+   const points=f.points.map(v=>{
+     if(!active || !lift)return project(v);
+     const localHeight=Math.max(0,v[1]-modules[part].xyz[1]);
+     return project([v[0],v[1]+lift*(.14+localHeight*.54),v[2]]);
+   });
+   poly(points,f.rgb);
+ }
+ function ribbon(a,b,width,color){
+ const p=project(a),q=project(b),dx=q[0]-p[0],dy=q[1]-p[1],len=Math.hypot(dx,dy)||1;
+ const off=[-dy/len*width,dx/len*width,0];
+ poly([add(p,off),add(q,off),q.map((v,i)=>v-off[i]),p.map((v,i)=>v-off[i])],color)
+ }
+ const route=liveStage().route,anchors=modules.map(m=>add(m.xyz,[0,.42,0]));
+ const links=[[0,1],[1,2],[2,3],[3,4],[4,5],[5,3]];
+ for(const [a,b] of links){const active=route.some((v,i)=>i&&((v===a&&route[i-1]===b)||(v===b&&route[i-1]===a)));ribbon(anchors[a],anchors[b],active?2:1,active?[.78,.95,.51]:[.47,.41,.59])}
+ const phase=playing?stageTime/3200:index===5?.56:progress-index;
+ const path=Math.min(route.length-1-.00001,phase*(route.length-1)),leg=Math.floor(path);
+ const p=anchors[route[leg]],q=anchors[route[leg+1]],dot=project(p.map((v,i)=>v+(q[i]-v)*(path-leg)));
+ poly(Array.from({length:12},(_,i)=>[dot[0]+5*Math.cos(i*Math.PI/6),dot[1]+5*Math.sin(i*Math.PI/6),dot[2]+.1]),[1,1,.76]);
+ polygons.sort((a,b)=>a.z-b.z);
+ if(gl){const data=[];for(const f of polygons){for(let i=1;i<f.points.length-1;i++)for(const v of [f.points[0],f.points[i],f.points[i+1]])data.push(v[0]*2/w-1,1-v[1]*2/h,-v[2]/18,...f.rgb)}
+ gl.viewport(0,0,target.width,target.height);gl.clearColor(0,0,0,0);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.length/6)
+ }else{ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);for(const f of polygons){ctx.fillStyle=tint(f.rgb);ctx.beginPath();f.points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fill()}}
+ modules.forEach((m,i)=>{const p=project(add(m.xyz,m.label)),tag=$("tags").children[i];tag.style.left=Math.max(35,Math.min(w-35,p[0]))+"px";tag.style.top=Math.max(50,Math.min(h-55,p[1]-10))+"px"});
+ if(playing)invalidate();
+}
+function pause(){playing=false;last=0;controls()}
+stages.forEach((s,i)=>{const b=button("",()=>{pause();stageTime=0;jump(i)},$("steps"));b.className="step";b.innerHTML="<span>"+String(i+1).padStart(2,"0")+"</span><span></span>"});
+modules.forEach((m,i)=>{for(const parent of [$("tags"),$("component-list")]){const b=button("",()=>{pause();setComponent(i);$("announcement").textContent=local(m.name)+". "+local(m.copy)},parent);b.dataset.part=i;if(parent===$("tags"))b.className="tag"}});
+$("timeline").oninput=e=>{pause();jump(+e.target.value);stageTime=(progress-index)*3200};
+$("play").onclick=()=>{if(playing){pause();return}if(reduced())return;if(index===5&&stageTime>=3200){jump(0);stageTime=0}else if(index<5)stageTime=(progress-index)*3200;playing=true;last=0;controls();invalidate()};
+$("next").onclick=()=>{pause();stageTime=0;jump(index+1)};
+$("prev").onclick=()=>{pause();stageTime=0;jump(index-1)};
+$("scenario").onchange=e=>{pause();retry=e.target.value==="retry";stageTime=0;jump(5);renderInfo(true);invalidate()};
+$("left").onclick=()=>{camera.yaw-=.23;invalidate()};$("right").onclick=()=>{camera.yaw+=.23;invalidate()};
+$("zoomin").onclick=()=>{camera.zoom=Math.min(1.6,camera.zoom+.12);invalidate()};$("zoomout").onclick=()=>{camera.zoom=Math.max(.68,camera.zoom-.12);invalidate()};$("reset").onclick=reset;
+$("lang").onchange=e=>{lang=Number(e.target.value==="bn");localize()};$("theme").onchange=e=>{document.documentElement.dataset.theme=e.target.value;invalidate()};
+$("motion").onchange=()=>{pause();invalidate()};preference.addEventListener("change",()=>{pause();invalidate()});
+let drag=null;
+for(const surface of [canvas,flat]){
+ surface.onpointerdown=e=>{drag=[e.clientX,e.clientY,camera.yaw,camera.pitch];surface.setPointerCapture(e.pointerId)};
+ surface.onpointermove=e=>{if(drag){camera.yaw=drag[2]+(e.clientX-drag[0])*.007;camera.pitch=Math.max(.18,Math.min(1,drag[3]+(e.clientY-drag[1])*.004));invalidate()}};
+ surface.onpointerup=surface.onpointercancel=()=>drag=null;
+}
+new ResizeObserver(invalidate).observe($("scene"));document.addEventListener("visibilitychange",()=>{if(document.hidden)pause()});
+$("lang").value=lang?"bn":"en";localize();invalidate();
+</script></body></html>

@@ -1,4 +1,6 @@
-import type { Metadata } from "next";
+import ServiceModel from "@/components/service-model";
+import TransactionStudy from "@/components/transaction-study";
+import type { Metadata, ResolvingMetadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import Link from "@/components/locale-link";
@@ -14,16 +16,21 @@ import { localePath } from "@/lib/locale-path";
 import { siteUrl } from "@/lib/site-url";
 import { JsonLd } from "@/components/json-ld";
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata(_props: unknown, parent: ResolvingMetadata): Promise<Metadata> {
   const { locale } = await requestLocale();
   const bn = locale === "bn";
-  return {
-    title: bn
+  const title = bn
       ? "OANRO স্টুডিও – ওয়েবসাইট, অ্যাপ ও সফটওয়্যার"
-      : "OANRO Studio – websites, apps and software",
-    description: bn
+      : "OANRO Studio – websites, apps and software";
+  const description = bn
       ? "ওয়েবসাইট, অনলাইন স্টোর, মোবাইল অ্যাপ ও বিজনেস সফটওয়্যার। পরিকল্পনা থেকে লঞ্চ ও সাপোর্ট পর্যন্ত, লিখিত কোটসহ।"
-      : "Websites, online stores, mobile apps and business software, from the first plan to launch and support, with a written quote.",
+      : "Websites, online stores, mobile apps and business software, from the first plan to launch and support, with a written quote.";
+  const { openGraph, twitter } = await parent;
+  return {
+    title,
+    description,
+    openGraph: { ...openGraph, title, description },
+    twitter: { ...twitter, title, description },
     alternates: alternatesFor("/services", locale),
   };
 }
@@ -120,19 +127,18 @@ export default async function StudioPage() {
         <h2 id="studio-services">{t("Services, made useful.", "কাজের সেবা।")}</h2>
         <div className="o-service-grid o-service-list">
           {services.map((s, i) => (
-            <Link
+            <article
               key={s.slug}
-              href={`/services/${s.slug}`}
               className={`o-service-card ${["lilac", "ink", "peach", "sage"][i % 4]}`}
             >
               <span>
                 {String(i + 1).padStart(2, "0")} /{" "}
                 {(bn && s.bn ? s.bn.title : s.title).toUpperCase()}
               </span>
-              <h3>{bn && s.bn ? s.bn.title : s.title}</h3>
+              <h3><Link href={`/services/${s.slug}`}>{bn && s.bn ? s.bn.title : s.title}</Link></h3>
               <p>{bn && s.bn ? s.bn.text : s.text}</p>
-              <b aria-hidden="true">{s.word}</b>
-            </Link>
+              <ServiceModel slug={s.slug} bn={bn} compact />
+            </article>
           ))}
         </div>
         {!services.length && (
@@ -250,6 +256,7 @@ export default async function StudioPage() {
         )
       )}
 
+      {<TransactionStudy bn={bn} study="benchmark" />}
       {showPkgs && (
         <section className="o-section" aria-labelledby="studio-packages">
           <span className="o-eyebrow">{t("WAYS TO WORK WITH US", "যেভাবে কাজ করি")}</span>

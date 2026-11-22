@@ -1,3 +1,4 @@
+import { SelectedHome } from "@/components/selected-home";
 import { Signature } from "@/components/signature";
 import { InfoStrip, PaymentRow } from "@/components/info-strip";
 import Image from "next/image";
@@ -49,6 +50,7 @@ export default async function Home() {
   const live = storeLive();
   // Texts and section switches from Admin → Website content.
   const content = await getSiteContent();
+  const contactEmail = content.contact.email || "support@oanro.com";
   const f = content.features;
   const tx = (k: TextKey) => pick(content, k, locale);
   const t = (en: string, b: string) => (bn ? b : en);
@@ -59,18 +61,50 @@ export default async function Home() {
     catalog.find(p => p.inStock !== false) ??
     null;
   return (
-    <main id="main-content" className="o-home">
-      {/* Hero of the approved design: store + studio, with the featured product. */}
-      {f.designHero && (
+    <main id="main-content" className="home-continuity">
+      {f.designHero && config.services && (
+        <SelectedHome
+          bn={bn}
+          text={tx}
+          showStore={config.products}
+          products={catalog}
+          featured={featured}
+        />
+      )}
+      {f.designHero && config.products && !config.services && (
         <DesignHero
           text={k => tx(`home.${k}` as TextKey)}
           t={t}
           featured={featured}
+          catalog={catalog}
           bn={bn}
-          showStore={config.products}
-          showStudio={config.services}
+          showStore
+          showStudio={false}
         />
       )}
+      {f.about && (
+        <section id="about" className="container v2-brand" aria-labelledby="about-title">
+          <div className="v2-orbit-wrap" aria-hidden="true">
+            <div className="v2-orbit">
+              <div className="ring1" />
+              <div className="ring2" />
+              <div className="core">
+                <Image src="/logo-on-dark.svg" alt="" width={56} height={56} />
+              </div>
+            </div>
+          </div>
+          <div className="v2-brand-copy">
+            <p className="v2-eyebrow">{tx("about.eyebrow")}</p>
+            <h2 id="about-title" className="v2-h2" style={{ marginTop: "0.6rem" }}>
+              {tx("about.title")}
+            </h2>
+            <p className="v2-body">{tx("about.body")}</p>
+            <Signature />
+          </div>
+        </section>
+      )}
+
+      {f.studio && config.services && <StudioTerminal />}
       {f.designHero && (
         <BrandStrip
           phrases={tx("home.strip")
@@ -111,7 +145,14 @@ export default async function Home() {
       )}
 
       {f.homeFavourites && config.products && (
-        <NewFavourites title={tx("home.favourites")} products={catalog.slice(0, 3)} t={t} />
+        <NewFavourites
+          title={tx("home.favourites")}
+          products={(featured
+            ? [featured, ...catalog.filter(p => p.slug !== featured.slug)]
+            : catalog
+          ).slice(0, 3)}
+          t={t}
+        />
       )}
       {f.studioTeaser && config.services && (
         <StudioTeaser
@@ -192,34 +233,12 @@ export default async function Home() {
       {f.bento && config.products && <WhyBento rules={rules} services={config.services} />}
 
       {/* About, the five values, the studio and the contact block. */}
-      {f.about && (
-        <section id="about" className="container v2-brand" aria-labelledby="about-title">
-          <div className="v2-orbit-wrap" aria-hidden="true">
-            <div className="v2-orbit">
-              <div className="ring1" />
-              <div className="ring2" />
-              <div className="core">
-                <Image src="/logo-on-dark.svg" alt="" width={56} height={56} />
-              </div>
-            </div>
-          </div>
-          <div className="v2-brand-copy">
-            <p className="v2-eyebrow">{tx("about.eyebrow")}</p>
-            <h2 id="about-title" className="v2-h2" style={{ marginTop: "0.6rem" }}>
-              {tx("about.title")}
-            </h2>
-            <p className="v2-body">{tx("about.body")}</p>
-            <Signature />
-          </div>
-        </section>
-      )}
-
       {f.standardPanel && <StandardPanel />}
       {f.values && <ValueLetters />}
       {f.valueFan && <ValueFan showProducts={config.products} />}
 
       {f.serviceConveyor && config.services && <ServiceConveyor />}
-      {f.studio && config.services && <StudioTerminal />}
+
       {f.howWeWork && config.services && <HowWeWork locale={locale} />}
 
       {f.contact && (
@@ -241,12 +260,10 @@ export default async function Home() {
             </div>
             <div className="contact-actions">
               <MessageReveal />
-              {content.contact.email && (
-                <a className="button light-button" href={`mailto:${content.contact.email}`}>
-                  <Mail size={17} />
-                  {content.contact.email}
-                </a>
-              )}
+              <a className="button light-button" href={`mailto:${contactEmail}`}>
+                <Mail size={17} />
+                {contactEmail}
+              </a>
             </div>
           </div>
         </section>

@@ -22,12 +22,12 @@
   "dependencies": {
     "@ai-sdk/groq": "^4.0.71",
     "@ai-sdk/openai-compatible": "^3.0.79",
-    "@next/env": "^16.4.1",
+    "@next/env": "16.4.5",
     "ai": "^7.0.154",
     "better-auth": "1.7.7",
     "drizzle-orm": "0.45.4",
     "lucide-react": "^0.468.0",
-    "next": "^16.4.1",
+    "next": "16.4.5",
     "nodemailer": "10.2.1",
     "pg": "8.23.1",
     "react": "19.3.0",
@@ -48,10 +48,15 @@
     "@types/three": "^0.180.0",
     "drizzle-kit": "0.31.11",
     "eslint": "^9",
-    "eslint-config-next": "16.4.0",
+    "eslint-config-next": "16.4.5",
     "prettier": "3.9.10",
     "tailwindcss": "^4",
     "tsx": "4.23.15",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "0.25.12"
+    }
   }
 }

@@ -1,0 +1,14 @@
+.product-stage{isolation:isolate}
+.product-stage::before,.product-stage::after{content:"";position:absolute;inset:-35%;pointer-events:none;z-index:-1;--violet:#9179ae52;--pearl:#ffffff70}
+.dark .product-stage::before,.dark .product-stage::after{--violet:#ac91d348;--pearl:#e6dafa28}
+[data-flow="1"].product-stage::before{background:linear-gradient(105deg,transparent 28%,var(--violet) 43%,var(--pearl) 53%,transparent 67%);animation:sweep 12s ease-in-out infinite alternate}
+[data-flow="2"].product-stage::before,[data-flow="2"].product-stage::after{background:radial-gradient(ellipse at 38% 58%,var(--violet),transparent 39%);animation:halo 9s ease-in-out infinite alternate}
+[data-flow="2"].product-stage::after{background:radial-gradient(ellipse at 73% 32%,var(--pearl),transparent 33%);animation-direction:alternate-reverse}
+[data-flow="3"].product-stage::before{background:linear-gradient(122deg,transparent 37%,var(--violet) 42%,var(--pearl) 42.5%,transparent 43%,transparent 55%,var(--pearl) 56%,transparent 57%);animation:sweep 17s linear infinite alternate}
+[data-flow="4"].product-stage::before{border-radius:46%;background:linear-gradient(8deg,var(--violet),var(--pearl));inset:57% -25% -140%;animation:tide 12s ease-in-out infinite alternate}
+[data-flow="5"].product-stage::before{background:radial-gradient(ellipse at 52% 60%,var(--pearl) 8%,var(--violet) 38%,transparent 66%);animation:pearl 8s ease-in-out infinite alternate}
+@keyframes sweep{from{transform:translateX(-28%)}to{transform:translateX(28%)}}@keyframes halo{from{transform:translate(-9%,6%)}to{transform:translate(13%,-8%)}}@keyframes tide{from{transform:rotate(-4deg) translateY(8%)}to{transform:rotate(5deg) translateY(-12%)}}@keyframes pearl{from{opacity:.48;transform:scale(.78)}to{opacity:1;transform:scale(1.13)}}
+@keyframes float-product{0%,100%{translate:0 0;rotate:0deg}50%{translate:0 -2.5px;rotate:var(--lean,.6deg)}}
+.product-stage .goods img{animation:float-product var(--cycle,5s) ease-in-out var(--delay,2s) infinite}
+#studio-field[data-paused]~main .product-stage :is(img),#studio-field[data-paused]~main .product-stage::before,#studio-field[data-paused]~main .product-stage::after{animation-play-state:paused}
+#palettes button:before{display:none}@media(prefers-reduced-motion:reduce){.product-stage::before,.product-stage::after,.product-stage .goods img{animation:none!important}}

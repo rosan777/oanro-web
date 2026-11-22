@@ -22,8 +22,8 @@ export default async function WorkspaceHome() {
   const bn = locale === "bn";
   const t = (en: string, b: string) => (bn ? b : en);
   const session = await currentSession().catch(() => null);
-  const db = catalogDb();
-  const [projects, access] = session
+  const db = session ? catalogDb() : null;
+  const [projects, access] = session && db
     ? await Promise.all([
         listClientProjects(db, session.user.id).catch(() => []),
         getAccess(db, session.user.id),

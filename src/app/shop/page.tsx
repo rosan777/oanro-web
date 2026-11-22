@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import Link from "@/components/locale-link";
+import type { Metadata, ResolvingMetadata } from "next";
 import { notFound } from "next/navigation";
 import { getSiteConfig } from "@/lib/site-config";
 import { getStoreCollections, getStoreProducts } from "@/lib/store-products";
@@ -11,14 +12,19 @@ import { CollectionBrowser } from "@/components/collection-browser";
 // The whole store in one place (approved design "Shop"): every live product with search, collection,
 // availability, size, colour and budget filters. Collections keep their own pages at /<slug>.
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata(_props: unknown, parent: ResolvingMetadata): Promise<Metadata> {
   const { locale } = await requestLocale();
   const bn = locale === "bn";
-  return {
-    title: bn ? "সব পণ্য – অনলাইনে কিনুন" : "Shop all products",
-    description: bn
+  const title = bn ? "সব পণ্য – অনলাইনে কিনুন" : "Shop all products";
+  const description = bn
       ? "OANRO-র সব পণ্য এক জায়গায়: খুঁজুন, ফিল্টার করুন, তুলনা করুন। সারা বাংলাদেশে ডেলিভারি, বিকাশ, নগদ ও ক্যাশ অন ডেলিভারি।"
-      : "Every OANRO product in one place: search, filter and compare. Delivery across Bangladesh with bKash, Nagad and cash on delivery.",
+      : "Every OANRO product in one place: search, filter and compare. Delivery across Bangladesh with bKash, Nagad and cash on delivery.";
+  const { openGraph, twitter } = await parent;
+  return {
+    title,
+    description,
+    openGraph: { ...openGraph, title, description },
+    twitter: { ...twitter, title, description },
     alternates: alternatesFor("/shop", locale),
   };
 }
@@ -89,6 +95,13 @@ export default async function ShopPage({
           </div>
         )}
       </section>
+      {getSiteConfig().partners && (
+        <section className="o-section print-partners" id="partners" aria-labelledby="partners-title">
+          <h2 id="partners-title">{t("Partner picks", "পার্টনার পছন্দ")}</h2>
+          <p>{t("Interested in featuring a product with OANRO?", "ওনারোর সঙ্গে আপনার পণ্য তুলে ধরতে চান?")}</p>
+          <Link href="/contact">{t("Discuss a product partnership", "পণ্য নিয়ে অংশীদারত্বের কথা বলুন")}</Link>
+        </section>
+      )}
     </main>
   );
 }

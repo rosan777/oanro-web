@@ -7,6 +7,7 @@ import {
   type TouchEvent as ReactTouchEvent,
 } from "react";
 import type { CheckoutRules } from "@/lib/order-store";
+import "./studio-product.css";
 import { BuyBox, CompleteLook, SizeGuide, StickyBuy } from "./buy-box";
 import Image from "next/image";
 import Link from "@/components/locale-link";
@@ -119,6 +120,8 @@ export default function ProductDetail({
           product.bn.specs,
         ]
       : [product.name, product.category, product.tagline, product.description, product.specs];
+  const sampleThemeControl = !live && product.slug === "forest-knit";
+  const [appearance, setAppearance] = useState("system");
   const [name, category, tagline, description, specs] = copy as [
     string,
     string,
@@ -200,12 +203,14 @@ export default function ProductDetail({
     }
   };
   return (
-    <main id="main-content" className="product-page">
+    <main id="main-content" className="product-page studio-knit" data-appearance={sampleThemeControl ? appearance : undefined}>
       <div className="container">
         <Link className="back-link o-back" href="/shop">
           <ArrowLeft size={16} />
           {bn ? "স্টোরে ফিরে যান" : "Back to the store"}
         </Link>
+        {sampleThemeControl && <label className="studio-appearance">{bn ? "পণ্যের থিম" : "Product theme"} <select value={appearance} onChange={event => setAppearance(event.target.value)}>
+          <option value="system">{bn ? "সিস্টেম" : "System"}</option><option value="light">{bn ? "হালকা" : "Light"}</option><option value="dark">{bn ? "গাঢ়" : "Dark"}</option></select></label>}
         <div className="product-detail-grid">
           <div className="product-gallery">
             <div
@@ -379,6 +384,8 @@ export default function ProductDetail({
                   : "This colour/size is sold out. Pick another, or ask when it’s back."}
               </p>
             )}
+            <SizeGuide product={product} />
+            <BuyBox product={product} rules={rules} soldOut={soldOut} />
             <div className="contact-actions">
               <button
                 type="button"
@@ -448,8 +455,7 @@ export default function ProductDetail({
               </FormPopup>
             </div>
             <SaveCompare slug={product.slug} bn={bn} />
-            <BuyBox product={product} rules={rules} soldOut={soldOut} />
-            <SizeGuide product={product} />
+
             {!live && (
               <p className="small-note">
                 {bn

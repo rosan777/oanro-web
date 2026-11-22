@@ -159,7 +159,7 @@ export default async function AssistantAdminPage({
         free quota is left; their own console is the source of truth. Token counts are as reported
         by the provider; Cloudflare neurons are not reported, so only requests are capped for it.
       </p>
-      <table className="disc-table">
+      <div className="table-scroll" role="region" aria-label="Assistant data table" tabIndex={0}><table className="disc-table">
         <thead>
           <tr>
             <th>Service</th>
@@ -222,7 +222,7 @@ export default async function AssistantAdminPage({
             <td>{whisper().key ? "Ready" : "No key set"}</td>
           </tr>
         </tbody>
-      </table>
+      </table></div>
       {!assistantEnvEnabled() && (
         <p className="small-note">
           <strong>The hosting emergency stop is active</strong>, so visitors do not see the
@@ -231,7 +231,7 @@ export default async function AssistantAdminPage({
       )}
       <details>
         <summary>Last 7 days</summary>
-        <table className="disc-table">
+        <div className="table-scroll" role="region" aria-label="Assistant data table" tabIndex={0}><table className="disc-table">
           <thead>
             <tr>
               <th>Day (UTC)</th>
@@ -258,7 +258,7 @@ export default async function AssistantAdminPage({
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       </details>
 
       {canEdit && settings && (
@@ -350,7 +350,7 @@ export default async function AssistantAdminPage({
           {list.sessions.length === 0 ? (
             <p className="small-note">No conversations match.</p>
           ) : (
-            <table className="disc-table">
+            <div className="table-scroll" role="region" aria-label="Assistant data table" tabIndex={0}><table className="disc-table">
               <thead>
                 <tr>
                   <th>Session</th>
@@ -381,7 +381,7 @@ export default async function AssistantAdminPage({
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           )}
           <p className="small-note">
             {filters.page > 0 && <Link href={href({ page: filters.page - 1 })}>← Newer</Link>}{" "}

@@ -1,6 +1,6 @@
 "use client";
 import { ActionIcon } from "./action-icon";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { useLocale } from "./locale";
@@ -10,6 +10,10 @@ import Link from "@/components/locale-link";
 
 /** Wait this long before another verification email can be requested. Matches the server limit (3 per 60 s on /send-verification-email). */
 const RESEND_COOLDOWN_SECONDS = 60;
+const subscribeToHydration = () => () => {};
+const clientReady = () => true;
+const serverReady = () => false;
+
 type Mode = "login" | "signup" | "forgot" | "reset" | "code";
 
 /**
@@ -25,6 +29,7 @@ export function AuthPanel({
   resetToken?: string;
   next?: string;
 }) {
+  const ready = useSyncExternalStore(subscribeToHydration, clientReady, serverReady);
   const router = useRouter();
   const { locale } = useLocale();
   const bn = locale === "bn";
@@ -241,7 +246,7 @@ export function AuthPanel({
               ? "Authenticator অ্যাপে OANRO-র ৬ সংখ্যার কোডটি লিখুন।"
               : "Enter the 6-digit code for OANRO from your authenticator app."}
         </p>
-        <form onSubmit={verifyCode}>
+        <form method="post" onSubmit={verifyCode}>
           <label>
             {backup ? "Backup code" : bn ? "৬ সংখ্যার কোড" : "6-digit code"}
             <input
@@ -265,7 +270,7 @@ export function AuthPanel({
               </span>
             </label>
           )}
-          <button className="button brand-button" disabled={busy}>
+          <button className="button brand-button" disabled={!ready || busy}>
             {busy ? (bn ? "অপেক্ষা করুন…" : "Please wait…") : bn ? "যাচাই করুন" : "Verify"}
           </button>
         </form>
@@ -315,7 +320,7 @@ export function AuthPanel({
               ? "OANRO-তে sign in"
               : "Sign in to OANRO"}
       </h1>
-      <form ref={formRef} onSubmit={submit}>
+      <form method="post" ref={formRef} onSubmit={submit}>
         {mode === "signup" && (
           <label>
             {bn ? "পুরো নাম" : "Full name"}
@@ -408,7 +413,7 @@ export function AuthPanel({
             </span>
           </label>
         )}
-        <button className="button brand-button" disabled={busy}>
+        <button className="button brand-button" disabled={!ready || busy}>
           {busy
             ? bn
               ? "অপেক্ষা করুন…"

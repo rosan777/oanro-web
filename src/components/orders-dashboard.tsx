@@ -420,7 +420,7 @@ function RulesCard({
               value={d.dhakaDays}
               onChange={set("dhakaDays")}
               placeholder="1-3"
-              pattern="\d{1,2}([-–]\d{1,2})?"
+              pattern="\d{1,2}([\-–]\d{1,2})?"
               maxLength={5}
               required
               disabled={busy}
@@ -432,7 +432,7 @@ function RulesCard({
               value={d.outsideDays}
               onChange={set("outsideDays")}
               placeholder="3-5"
-              pattern="\d{1,2}([-–]\d{1,2})?"
+              pattern="\d{1,2}([\-–]\d{1,2})?"
               maxLength={5}
               required
               disabled={busy}
@@ -747,7 +747,7 @@ export function OrdersDashboard({
                       <div>
                         <dt>{tr("Phone")}</dt>
                         <dd>
-                          <a href={`tel:${o.phone}`}>{o.phone}</a>
+                          {o.phone && <a href={`tel:${o.phone}`}>{o.phone}</a>}
                         </dd>
                       </div>
                       <div>

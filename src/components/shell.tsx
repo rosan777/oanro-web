@@ -137,6 +137,7 @@ export function Header({ config }: { config: SiteConfig }) {
     setMobile(false);
   };
   const wishlist = useWishlist();
+  const showStoreTeaser = useFeature("designHero") && config.services;
   const pathname = stripLocale(usePathname() || "/");
   const active = (prefixes: string[]) =>
     prefixes.some(p => pathname === p || pathname.startsWith(`${p}/`));
@@ -191,7 +192,12 @@ export function Header({ config }: { config: SiteConfig }) {
             className={mobile ? "open" : ""}
             aria-label={t("Main navigation", "প্রধান নেভিগেশন")}
           >
-            {panels.map(panel => (
+            {panels.map(panel => panel === "store" && pathname === "/" && showStoreTeaser ? (
+              <button key={panel} type="button" onClick={() => {
+                closeMenu();
+                window.dispatchEvent(new Event("oanro-show-home-store"));
+              }}>{panelLabel[panel]}</button>
+            ) : (
               <button
                 key={panel}
                 type="button"
@@ -309,7 +315,7 @@ export function Header({ config }: { config: SiteConfig }) {
                         </Link>
                       ))}
                     {config.partners && (
-                      <Link href="/#partners" onClick={closeMenu}>
+                      <Link href="/shop#partners" onClick={closeMenu}>
                         <span>{t("Partner Picks", "পার্টনার পছন্দ")}</span>
                         <ArrowUpRight size={15} />
                       </Link>
@@ -419,7 +425,7 @@ export function Header({ config }: { config: SiteConfig }) {
               </p>
               <Link
                 className="button brand-button"
-                href="/#products"
+                href="/shop"
                 onClick={() => cartDialog.current?.close()}
               >
                 <Localized en="Explore products" bn="পণ্য দেখুন" />
@@ -518,7 +524,7 @@ export function Header({ config }: { config: SiteConfig }) {
 /** Site footer (approved structure): brand, description and contact with the compact newsletter on the
  * left; Store, Studio, Your OANRO and Help & Company link groups on the right (collapsible on phones);
  * then copyright, region/language, privacy and motion controls and the social links. */
-export function Footer({ config }: { config: SiteConfig }) {
+export function Footer({ config, appearance }: { config: SiteConfig; appearance: "system" | "light" | "dark" }) {
   const { locale, setLocale } = useLocale();
   const bn = locale === "bn";
   const lines = useProductLines().filter(line => line.count > 0);
@@ -548,7 +554,7 @@ export function Footer({ config }: { config: SiteConfig }) {
                   {bn && collection.bn ? collection.bn.name : collection.name}
                 </Link>
               )),
-              ...(config.partners ? [link("/#partners", "Partner Picks", "পার্টনার পছন্দ")] : []),
+              ...(config.partners ? [link("/shop#partners", "Partner Picks", "পার্টনার পছন্দ")] : []),
             ],
           },
         ]
@@ -680,6 +686,18 @@ export function Footer({ config }: { config: SiteConfig }) {
               বাংলা
             </button>
           </span>
+          <label className="appearance-picker">
+            {t("Appearance", "থিম")}
+            <select defaultValue={appearance} onChange={event => {
+              const value = event.currentTarget.value;
+              document.documentElement.dataset.appearance = value;
+              document.cookie = `oanro-appearance=${value}; Path=/; Max-Age=31536000; SameSite=Lax`;
+            }}>
+              <option value="system">{t("System", "সিস্টেম")}</option>
+              <option value="light">{t("Light", "হালকা")}</option>
+              <option value="dark">{t("Dark", "গাঢ়")}</option>
+            </select>
+          </label>
           <PrivacySettingsLink />
           <MotionToggle />
         </div>

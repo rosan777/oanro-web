@@ -7,5 +7,5 @@ export default defineConfig([
 
   // Build output folders, the local development database scripts and the tests are not linted.
 
-  globalIgnores([".next/**", ".next-*/**", "scripts/dev-db/**", "next-env.d.ts", "tests/**"]),
+  globalIgnores([".next/**", ".next-*/**", "scripts/dev-db/**", "next-env.d.ts", "tests/**", "public/**/three.*.min.js"]),
 ]);

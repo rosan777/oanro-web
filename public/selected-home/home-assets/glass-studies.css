@@ -1,0 +1,24 @@
+/* Hide the complete ribbon beyond each edge before wrapping to the start. */
+body #store.product-stage[data-flow]::before{inset:-40% auto -40% 0;width:40%;background:var(--ribbon);animation:glass-forward var(--time,12s) linear infinite;pointer-events:none}
+body #store.product-stage[data-flow]::after{content:none}
+#store[data-flow="1"]{--ribbon:linear-gradient(106deg,transparent 38%,var(--violet) 48%,var(--pearl) 49%,transparent 50%);--time:10s}
+#store[data-flow="2"]{--ribbon:linear-gradient(106deg,transparent 25%,var(--violet) 32%,var(--pearl) 33%,transparent 34% 51%,var(--violet) 58%,var(--pearl) 59%,transparent 60%);--time:12s}
+#store[data-flow="3"]{--ribbon:linear-gradient(109deg,transparent 8%,var(--violet) 35%,var(--pearl) 61%,var(--pearl) 66%,transparent 87%);--time:14s}
+#store[data-flow="4"]{--ribbon:linear-gradient(107deg,transparent 29%,#93a5c23d 40%,#a7c9c655 43%,var(--pearl) 45%,#be99c45c 48%,transparent 55%);--time:11s}
+#store[data-flow="5"]{--ribbon:conic-gradient(from 155deg at 48% 54%,transparent 0deg 40deg,var(--violet) 41deg 55deg,transparent 56deg 185deg,var(--pearl) 186deg 200deg,transparent 201deg 360deg);--time:13s}
+@keyframes glass-forward{from{transform:translateX(-101%)}to{transform:translateX(251%)}}
+@media(prefers-reduced-motion:reduce){body #store.product-stage[data-flow]::before{animation:none;transform:translateX(82%)}}
+body[data-palette] #store.product-stage[data-flow]{background:linear-gradient(112deg,var(--base),var(--end));color:var(--text);border:1px solid var(--end);isolation:isolate}
+#store[data-flow="1"]{--base:#e6d9f5;--end:#af96cf;--text:#30233d}
+#store[data-flow="2"]{--base:#d9f2ff;--end:#87bbcf;--text:#122f40}
+#store[data-flow="3"]{--base:#fff0c9;--end:#d9b27e;--text:#392b17}
+#store[data-flow="4"]{--base:#cce8d9;--end:#84b5a6;--text:#153b30}
+#store[data-flow="5"]{--base:#ffe1df;--end:#d49cad;--text:#452732}
+.dark #store[data-flow="1"]{--base:#382645;--end:#655077;--text:#fff5ff}
+.dark #store[data-flow="2"]{--base:#163444;--end:#315d74;--text:#f2faff}
+.dark #store[data-flow="3"]{--base:#403323;--end:#695238;--text:#fff6df}
+.dark #store[data-flow="4"]{--base:#183b33;--end:#366250;--text:#f1fff6}
+.dark #store[data-flow="5"]{--base:#442833;--end:#704453;--text:#fff3f5}
+body #store.product-stage[data-flow]::before{z-index:0;--pearl:#ffffffa8;--violet:#867da448;animation-duration:7s;animation-delay:-2.8s}
+.product-stage .store-sign,.product-stage>a{position:relative;z-index:1}
+#store.product-stage[data-flow]{--pearl:#ffffffa8;--violet:#9989be88}

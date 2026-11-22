@@ -22,10 +22,10 @@ export default function NotFound() {
         />
       </p>
       <div className="empty-actions">
-        <Link href="/#products" className="button brand-button">
+        <Link href="/shop" className="button brand-button">
           <Localized en="Browse the store" bn="স্টোর দেখুন" />
         </Link>
-        <Link href="/#studio" className="button light-button">
+        <Link href="/services" className="button light-button">
           <Localized en="OANRO Studio" bn="OANRO স্টুডিও" />
         </Link>
         <Link href="/contact" className="button light-button">

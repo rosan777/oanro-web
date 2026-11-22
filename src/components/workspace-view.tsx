@@ -190,7 +190,7 @@ export function WorkspaceView({
         <span className="o-avatar" aria-hidden="true">
           O.
         </span>
-        <h2>{project.title}</h2>
+        <h1>{project.title}</h1>
         <p>
           {projectTypeLabel(project.projectType, bn)} · {projectStatusLabel(project.status, bn)}
         </p>

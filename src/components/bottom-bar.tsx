@@ -25,7 +25,12 @@ export function BottomBar({ shop }: { shop: boolean }) {
         <span>{t("Home", "হোম")}</span>
       </Link>
       {shop && (
-        <Link href="/#products">
+        <Link href="/shop" onClick={event => {
+          if (path === "/" && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+            event.preventDefault();
+            window.dispatchEvent(new Event("oanro-show-home-store"));
+          }
+        }}>
           <LayoutGrid size={22} aria-hidden="true" />
           <span>{t("Shop", "শপ")}</span>
         </Link>

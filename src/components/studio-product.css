@@ -1,0 +1,32 @@
+.studio-knit {--sheet:#f5f3eb;--type:#212e28;--panel:#fffef9;--rule:#bbc5b9;background:var(--sheet);color:var(--type)}
+.studio-knit[data-appearance="dark"] {--sheet:#19221d;--type:#edf3e9;--panel:#29332b;--rule:#738376;color-scheme:dark}
+@media(prefers-color-scheme:dark){.studio-knit[data-appearance="system"]{--sheet:#19221d;--type:#edf3e9;--panel:#29332b;--rule:#738376;color-scheme:dark}}
+.studio-knit .studio-appearance{float:right;display:inline-flex;align-items:center;gap:.5rem;font-size:.83rem}.studio-appearance select{background:var(--panel);color:var(--type);padding:.4rem;border:1px solid var(--rule);border-radius:5px}
+.studio-knit .product-detail-grid{clear:both;border-top:1px solid var(--rule);padding-top:1.4rem;align-items:start}
+.studio-knit .product-information{background:var(--panel);color:var(--type);padding:clamp(1rem,2.4vw,2.2rem);border:1px solid var(--rule);border-radius:8px}
+.studio-knit .product-information h1{font-family:Georgia,"Kohinoor Bangla",serif;font-weight:500;font-size:clamp(2.4rem,4.6vw,4.5rem);letter-spacing:-.045em;line-height:1.06;color:var(--type)}
+.studio-knit .product-information>p,.studio-knit .back-link,.studio-knit .size-selector legend,.studio-knit .demo-price{color:var(--type)}.studio-knit .buy-box{border-inline-start:3px solid #7d957c;background:#e9eee5;color:#213027;padding:1rem}.studio-knit .buy-box p,.studio-knit .buy-box span,.studio-knit .buy-box b{color:#213027}
+.studio-knit .gallery-stage{border-radius:8px;overflow:hidden}.studio-knit .product-information .add-to-bag{background:#284b39;color:white;border-color:#284b39}
+.transaction-study{padding:clamp(1rem,3vw,2.4rem);border-radius:12px;background:#242132;color:#f2eff7;margin:1.5rem 0}.transaction-study h2,.transaction-study p{color:inherit}.transaction-study .eyebrow{color:#d4c3fa}.study-choices{display:flex;gap:.6rem;flex-wrap:wrap}.study-choices button{padding:.7rem 1rem;border:1px solid #a499ba;border-radius:6px;color:#fff;background:#342f43;cursor:pointer}.study-choices button[aria-pressed=true]{color:#211b2e;background:#e5d7fa}.transaction-study iframe{display:block;width:100%;height: min(850px,85vh);margin-top:1rem;border:0;border-radius:8px}.studio-knit button:focus-visible,.study-choices button:focus-visible{outline:3px solid #ae8cdb;outline-offset:3px}
+#main-content.studio-knit .product-information{background:var(--panel);border:1px solid var(--rule);color:var(--type);border-radius:8px}
+#main-content.studio-knit .product-information h1{font-family:Georgia,"Kohinoor Bangla",serif;font-size:clamp(2.4rem,4.6vw,4.5rem);color:var(--type)}
+#main-content.studio-knit :is(.price-tag,.o-detail-tools a,.o-detail-tools button,.demo-price span,.specifications dd,.specifications dt,.o-detail-more a,.gallery-tabs button,.size-selector button){color:var(--type)}
+#main-content.studio-knit :is(.size-selector button,.gallery-tabs button,.o-size-guide,.size-guide){background:var(--panel);border-color:var(--rule)}
+#main-content.studio-knit .size-selector button[aria-pressed=true],#main-content.studio-knit .gallery-tabs button[aria-selected=true]{background:var(--type);color:var(--panel)}
+
+#transaction-study.transaction-study > p {color:#f2eff7}
+#transaction-study.transaction-study > .eyebrow {color:#d4c3fa}
+#transaction-study .study-choices button:focus-visible {outline:3px solid #f4db94;outline-offset:3px}
+
+/* E2 catalog layout shared by sample and catalog-backed detail pages. */
+#main-content.studio-knit {
+  --sheet:var(--print-paper); --type:var(--print-ink); --panel:var(--surface); --rule:var(--line);
+  background:var(--sheet);color:var(--type)
+}
+#main-content.studio-knit[data-appearance="dark"] {--sheet:#1f2024;--type:#fbfaf7;--panel:#292c31;--rule:#555b62}
+#main-content.studio-knit[data-appearance="light"] {--sheet:#f7f7f2;--type:#202a30;--panel:#fffefa;--rule:#cbcfd0}
+#main-content.studio-knit .product-information h1 {font-family:"Avenir Next",var(--font-bangla),system-ui,sans-serif;font-size:clamp(2rem,4vw,4rem);font-weight:650;line-height:1.13}
+#main-content.studio-knit .buy-box {background:color-mix(in srgb,var(--panel) 88%,#b19ac8);border-inline-start-color:#9178ac}
+#main-content.studio-knit .buy-box :is(p,span,b) {color:var(--type)}
+#main-content.studio-knit .product-information .add-to-bag {background:#573c74;border-color:#573c74;color:#fff}
+.o #transaction-study.transaction-study>p {color:var(--muted)}

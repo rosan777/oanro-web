@@ -1,6 +1,7 @@
 "use client";
 import type { StoreCampaign } from "@/lib/catalog";
 import { formatDhaka } from "@/lib/dhaka-time";
+import Link from "./locale-link";
 import { Conveyor } from "./home-experience";
 import { ProductCard } from "./collection-conveyor";
 import { useProducts } from "./products-context";
@@ -36,6 +37,7 @@ export function CampaignShowcase({ campaign }: { campaign: StoreCampaign }) {
           <p className="eyebrow">{name}</p>
           <h2>{headline || name}</h2>
           {description && <p>{description}</p>}
+          <Link href={`/campaigns/${campaign.slug}`}>{locale === "bn" ? "ক্যাম্পেইন দেখুন" : "Explore the campaign"}</Link>
           {ends && <span className="campaign-ends">{ends}</span>}
         </div>
       </div>
